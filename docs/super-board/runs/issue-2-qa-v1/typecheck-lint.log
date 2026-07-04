@@ -1,0 +1,9 @@
+=== npx tsc --noEmit ===
+tsc: clean (exit 0)
+
+=== pnpm lint ===
+
+> ap-exam-planner@0.1.0 lint /Users/jon/repos/AP-Exam-Planner/.worktrees/issue-2-qa
+> eslint
+
+lint: clean (exit 0)

@@ -1,0 +1,69 @@
+=== pnpm test:data with subjects[4] (biology) exam.date=2026-06-01 (outside windows) ===
+
+> ap-exam-planner@0.1.0 test:data /Users/jon/repos/AP-Exam-Planner/.worktrees/issue-2-qa
+> vitest run src/data
+
+
+ RUN  v4.1.9 /Users/jon/repos/AP-Exam-Planner/.worktrees/issue-2-qa
+
+ ❯ src/data/ap-2026.qa.test.ts (0 test)
+ ❯ src/data/ap-2026.test.ts (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/data/ap-2026.qa.test.ts [ src/data/ap-2026.qa.test.ts ]
+ZodError: [
+  {
+    "code": "custom",
+    "path": [
+      "subjects",
+      4,
+      "exam",
+      "date"
+    ],
+    "message": "exam date 2026-06-01 is outside the published 2026 regular testing windows (May 4–8 and May 11–15)"
+  }
+]
+ ❯ parseApDataset src/data/schema.ts:174:26
+    172| /** Parse unknown JSON into a validated dataset (throws on invalid dat…
+    173| export function parseApDataset(data: unknown): ApDataset {
+    174|   return apDatasetSchema.parse(data);
+       |                          ^
+    175| }
+    176|
+ ❯ src/data/ap-2026.qa.test.ts:21:17
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/data/ap-2026.test.ts [ src/data/ap-2026.test.ts ]
+ZodError: [
+  {
+    "code": "custom",
+    "path": [
+      "subjects",
+      4,
+      "exam",
+      "date"
+    ],
+    "message": "exam date 2026-06-01 is outside the published 2026 regular testing windows (May 4–8 and May 11–15)"
+  }
+]
+ ❯ parseApDataset src/data/schema.ts:174:26
+    172| /** Parse unknown JSON into a validated dataset (throws on invalid dat…
+    173| export function parseApDataset(data: unknown): ApDataset {
+    174|   return apDatasetSchema.parse(data);
+       |                          ^
+    175| }
+    176|
+ ❯ src/data/ap-2026.test.ts:32:19
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  no tests
+   Start at  18:30:39
+   Duration  179ms (transform 72ms, setup 0ms, import 0ms, tests 0ms, environment 0ms)
+
+[41m[30m ELIFECYCLE [39m[49m [31mCommand failed with exit code 1.[39m
+exit code: 1
