@@ -1,0 +1,22 @@
+# dependencies / build
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+
+# test artifacts (QA evidence in docs/super-board/runs/ IS committed)
+test-results/
+playwright-report/
+blob-report/
+
+# env
+.env*
+!.env.example
+
+# super-board machine-local state
+.claude/super-board/active
+.claude/super-board/inflight/
+.worktrees/
+
+# os
+.DS_Store
