@@ -1,0 +1,13 @@
+
+> ap-exam-planner@0.1.0 test:unit /Users/jon/repos/AP-Exam-Planner/.worktrees/issue-5-qa
+> vitest run src/lib
+
+
+ RUN  v4.1.9 /Users/jon/repos/AP-Exam-Planner/.worktrees/issue-5-qa
+
+
+ Test Files  2 passed (2)
+      Tests  22 passed (22)
+   Start at  17:05:43
+   Duration  628ms (transform 82ms, setup 0ms, import 112ms, tests 9ms, environment 0ms)
+

@@ -25,7 +25,10 @@ import apData from "../src/data/ap-2026.json";
  *   - AP Drawing + AP 2-D Art and Design — portfolio-only, deadline 2026-05-08
  */
 
-const EVIDENCE_DIR = "docs/super-board/runs/issue-5-qa-v1";
+// Env-overridable so a re-verification pass writes a fresh evidence set
+// instead of rewriting a prior run's committed screenshots.
+const EVIDENCE_DIR =
+  process.env.QA_EVIDENCE_DIR ?? "docs/super-board/runs/issue-5-qa-v2";
 
 const SELECTION_KEY = "apx.selection.v1";
 const RESOLUTIONS_KEY = "apx.resolutions.v1";
