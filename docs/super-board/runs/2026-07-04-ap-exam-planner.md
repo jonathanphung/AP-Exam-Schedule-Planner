@@ -9,3 +9,4 @@ Backend: workflow · tier: medium · human_approves_merge: true
 | #2 | build:advanced → qa:failed | failed | QA | QA agent hit Claude session limit (reset 6pm CT); Builder completed: draft PR #11 on issue-2-ap-2026-dataset; relaunched at QA lane 18:25 CT |
 | #2 | qa:advanced → review:advanced | advanced | Done | PR #11 ready; 34/34 tests green; truth 90/100; dataset re-verified vs College Board; awaiting human merge |
 | #3 | build:advanced → qa:advanced → review:advanced | advanced | Done | PR #12 ready; 14/14 e2e green; truth 90/100; awaiting human merge |
+| #4,#6 | none | stopped | Ready | Operator stop (session limit) during classify; no work in flight; both unassigned in Ready — next run picks them up |
