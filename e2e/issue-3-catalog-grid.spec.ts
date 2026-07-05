@@ -17,7 +17,11 @@ const STEM_COUNT = 13;
 
 const catalog = (page: Page) =>
   page.locator('section[aria-label="Subject catalog"]');
-const cards = (page: Page) => catalog(page).locator("ul > li > button");
+// The select toggle is the button carrying aria-pressed. Issue #6 adds a second
+// per-card control (the "View exam details" info button, no aria-pressed), so
+// this scopes the catalog's card helper to the selection toggle specifically.
+const cards = (page: Page) =>
+  catalog(page).locator("ul > li button[aria-pressed]");
 const chip = (page: Page, name: string) =>
   catalog(page)
     .getByRole("group", { name: "Filter by category" })
