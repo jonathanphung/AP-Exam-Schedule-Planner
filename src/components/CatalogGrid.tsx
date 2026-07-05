@@ -9,6 +9,7 @@ import {
   type Category,
 } from "@/data/schema";
 import { useSelection } from "@/lib/selection";
+import { InfoPanel } from "@/components/InfoPanel";
 
 // The dataset ships bundled and is validated by `pnpm test:data`; the JSON
 // module's inferred type is widened, so re-assert the schema's types here.
@@ -57,56 +58,86 @@ interface SubjectCardProps {
   subject: ApSubject;
   selected: boolean;
   onToggle: (id: string) => void;
+  onShowDetails: (subject: ApSubject) => void;
 }
 
-function SubjectCard({ subject, selected, onToggle }: SubjectCardProps) {
+function SubjectCard({
+  subject,
+  selected,
+  onToggle,
+  onShowDetails,
+}: SubjectCardProps) {
   const meta = subjectMeta(subject);
 
   return (
-    <button
-      type="button"
-      aria-pressed={selected}
-      onClick={() => onToggle(subject.id)}
-      className={[
-        "flex h-full w-full flex-col gap-2 rounded-xl border p-4 text-left transition",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-950",
-        selected
-          ? "border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-950/40"
-          : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700",
-      ].join(" ")}
-    >
-      <span className="flex items-start justify-between gap-2">
-        <span className="font-medium leading-snug break-words">
-          {subject.name}
-        </span>
-        <span
-          aria-hidden="true"
-          className={[
-            "mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-full border text-xs leading-none",
-            selected
-              ? "border-blue-500 bg-blue-500 text-white dark:border-blue-400 dark:bg-blue-400 dark:text-slate-950"
-              : "border-slate-300 text-transparent dark:border-slate-600",
-          ].join(" ")}
-        >
-          ✓
-        </span>
-      </span>
-      <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-        {subject.category}
-      </span>
-      <span
+    <div className="relative h-full">
+      <button
+        type="button"
+        aria-pressed={selected}
+        onClick={() => onToggle(subject.id)}
         className={[
-          "mt-auto text-sm break-words",
-          meta.tone === "portfolio"
-            ? "text-amber-700 dark:text-amber-400"
-            : meta.tone === "none"
-              ? "text-slate-400 dark:text-slate-500"
-              : "text-slate-600 dark:text-slate-300",
+          "flex h-full w-full flex-col gap-2 rounded-xl border p-4 text-left transition",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-950",
+          selected
+            ? "border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-950/40"
+            : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700",
         ].join(" ")}
       >
-        {meta.label}
-      </span>
-    </button>
+        <span className="flex items-start gap-2 pr-9">
+          <span
+            aria-hidden="true"
+            className={[
+              "mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-full border text-xs leading-none",
+              selected
+                ? "border-blue-500 bg-blue-500 text-white dark:border-blue-400 dark:bg-blue-400 dark:text-slate-950"
+                : "border-slate-300 text-transparent dark:border-slate-600",
+            ].join(" ")}
+          >
+            ✓
+          </span>
+          <span className="font-medium leading-snug break-words">
+            {subject.name}
+          </span>
+        </span>
+        <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          {subject.category}
+        </span>
+        <span
+          className={[
+            "mt-auto text-sm break-words",
+            meta.tone === "portfolio"
+              ? "text-amber-700 dark:text-amber-400"
+              : meta.tone === "none"
+                ? "text-slate-400 dark:text-slate-500"
+                : "text-slate-600 dark:text-slate-300",
+          ].join(" ")}
+        >
+          {meta.label}
+        </span>
+      </button>
+
+      {/* Details affordance — a separate control from the select toggle. */}
+      <button
+        type="button"
+        onClick={() => onShowDetails(subject)}
+        aria-label={`View exam details for ${subject.name}`}
+        aria-haspopup="dialog"
+        className="absolute top-2 right-2 z-10 flex h-7 w-7 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+      >
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          className="h-5 w-5"
+        >
+          <path
+            fillRule="evenodd"
+            d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm1-11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm-2.25 2.5a.75.75 0 0 0 0 1.5h.5v2.25h-.75a.75.75 0 0 0 0 1.5h3a.75.75 0 0 0 0-1.5h-.75V10.25A.75.75 0 0 0 9.75 9.5h-1Z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </button>
+    </div>
   );
 }
 
@@ -114,6 +145,7 @@ export function CatalogGrid() {
   const { isSelected, toggle, selectedCount } = useSelection();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<CategoryFilter>("All");
+  const [detailsSubject, setDetailsSubject] = useState<ApSubject | null>(null);
 
   const normalizedQuery = query.trim().toLowerCase();
 
@@ -199,10 +231,18 @@ export function CatalogGrid() {
                 subject={subject}
                 selected={isSelected(subject.id)}
                 onToggle={toggle}
+                onShowDetails={setDetailsSubject}
               />
             </li>
           ))}
         </ul>
+      )}
+
+      {detailsSubject && (
+        <InfoPanel
+          subject={detailsSubject}
+          onClose={() => setDetailsSubject(null)}
+        />
       )}
     </section>
   );
