@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:data": "vitest run src/data",
+    "test:unit": "vitest run src/lib",
     "test:e2e": "playwright test"
   },
   "dependencies": {

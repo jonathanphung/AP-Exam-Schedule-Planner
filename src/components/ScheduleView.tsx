@@ -1,34 +1,43 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import apData from "@/data/ap-2026.json";
 import type { ApDataset, ApSubject } from "@/data/schema";
 import { useSelection } from "@/lib/selection";
-import { buildSchedule, type ScheduleEntry } from "@/lib/schedule";
+import {
+  buildSchedule,
+  formatDateLabel,
+  type ScheduleEntry,
+} from "@/lib/schedule";
+import {
+  findLateLateCollisions,
+  findSameSlotConflicts,
+  pruneResolutions,
+  resolveSlots,
+  slotKey,
+  unresolvedConflicts,
+} from "@/lib/conflicts";
+import {
+  replaceResolutions,
+  setResolution,
+  useResolutions,
+} from "@/lib/resolutions";
+import {
+  COORDINATOR_NOTE,
+  ConflictDialog,
+  nameList,
+} from "@/components/ConflictDialog";
 
 // The dataset ships bundled and is validated by `pnpm test:data`; the JSON
 // module's inferred type is widened, so re-assert the schema's types here.
 const dataset = apData as unknown as ApDataset;
 const SUBJECTS: readonly ApSubject[] = dataset.subjects;
+const SUBJECTS_BY_ID: ReadonlyMap<string, ApSubject> = new Map(
+  SUBJECTS.map((subject) => [subject.id, subject]),
+);
 // The banner reads the cycle from dataset metadata — never hardcoded, so a
 // dataset swap (May 2027) re-labels the schedule automatically.
 const CYCLE = dataset.cycle;
-
-/**
- * Format an ISO calendar date as a *local* date heading. Dates are floating
- * (no timezone); building the Date from explicit parts avoids the UTC-parse
- * day-shift of `new Date("2026-05-04")` in negative-offset zones.
- */
-function formatDateHeading(iso: string): string {
-  const [year, month, day] = iso.split("-").map(Number);
-  const date = new Date(year, month - 1, day);
-  return new Intl.DateTimeFormat("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  }).format(date);
-}
 
 function ScheduleRow({ entry }: { entry: ScheduleEntry }) {
   const isPortfolio = entry.kind === "portfolio";
@@ -53,7 +62,18 @@ function ScheduleRow({ entry }: { entry: ScheduleEntry }) {
             {entry.session}
           </span>
         )}
+        {entry.movedToLate && (
+          <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-violet-900 dark:bg-violet-500/30 dark:text-violet-200">
+            Moved to late testing
+          </span>
+        )}
       </div>
+
+      {entry.movedToLate && (
+        <p className="text-xs italic break-words text-slate-600 dark:text-slate-400">
+          {COORDINATOR_NOTE}
+        </p>
+      )}
 
       {isPortfolio && (
         <>
@@ -75,10 +95,46 @@ function ScheduleRow({ entry }: { entry: ScheduleEntry }) {
 
 export function ScheduleView() {
   const { selectedIds, selectedCount } = useSelection();
+  const storedResolutions = useResolutions();
+
+  const conflicts = useMemo(
+    () => findSameSlotConflicts(SUBJECTS, selectedIds),
+    [selectedIds],
+  );
+
+  // Only resolutions matching a live conflict group are honored; the rest are
+  // stale (a member was deselected, or a new subject joined the slot).
+  const validResolutions = useMemo(
+    () => pruneResolutions(storedResolutions, conflicts),
+    [storedResolutions, conflicts],
+  );
+
+  // Persist the pruning: a cleared resolution must not silently re-apply if
+  // the same collision is re-created later — the prompt has to come back.
+  useEffect(() => {
+    if (validResolutions.length !== storedResolutions.length) {
+      replaceResolutions(validResolutions);
+    }
+  }, [validResolutions, storedResolutions]);
+
+  const unresolved = useMemo(
+    () => unresolvedConflicts(conflicts, validResolutions),
+    [conflicts, validResolutions],
+  );
+
+  const resolvedSlots = useMemo(
+    () => resolveSlots(SUBJECTS, selectedIds, validResolutions),
+    [selectedIds, validResolutions],
+  );
+
+  const lateCollisions = useMemo(
+    () => findLateLateCollisions(resolvedSlots),
+    [resolvedSlots],
+  );
 
   const { groups, undated } = useMemo(
-    () => buildSchedule(SUBJECTS, selectedIds),
-    [selectedIds],
+    () => buildSchedule(SUBJECTS, selectedIds, resolvedSlots),
+    [selectedIds, resolvedSlots],
   );
 
   return (
@@ -90,6 +146,52 @@ export function ScheduleView() {
           Dates reflect the {CYCLE} AP exam cycle.
         </p>
       </div>
+
+      {unresolved.map((group) => (
+        <ConflictDialog
+          key={slotKey(group.slot)}
+          group={group}
+          subjectsById={SUBJECTS_BY_ID}
+          onKeep={(keeperId) =>
+            setResolution({
+              date: group.slot.date,
+              session: group.slot.session,
+              keeperId,
+              memberIds: [...group.subjectIds],
+            })
+          }
+        />
+      ))}
+
+      {lateCollisions.length > 0 && (
+        <div
+          role="alert"
+          data-testid="late-collision-warning"
+          className="rounded-lg border-2 border-red-300 bg-red-50 p-4 dark:border-red-500/50 dark:bg-red-950/40"
+        >
+          <p className="text-sm font-bold uppercase tracking-wide text-red-900 dark:text-red-100">
+            <span aria-hidden="true">⚠️ </span>
+            Late-testing slots overlap
+          </p>
+          {lateCollisions.map((collision) => (
+            <p
+              key={slotKey(collision.slot)}
+              className="mt-2 text-sm text-red-900 dark:text-red-100"
+            >
+              {nameList(
+                collision.subjectIds.map(
+                  (id) => SUBJECTS_BY_ID.get(id)?.name ?? id,
+                ),
+              )}{" "}
+              now share the late-testing slot{" "}
+              {formatDateLabel(collision.slot.date)} (
+              {collision.slot.session} session). Late testing can&rsquo;t
+              separate these exams any further — ask your school&rsquo;s AP
+              coordinator about your options.
+            </p>
+          ))}
+        </div>
+      )}
 
       {selectedCount === 0 ? (
         <p className="rounded-lg border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
@@ -103,7 +205,7 @@ export function ScheduleView() {
               {groups.map((group) => (
                 <li key={group.date} className="flex flex-col gap-2">
                   <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                    {formatDateHeading(group.date)}
+                    {formatDateLabel(group.date)}
                   </h3>
                   <ul className="flex flex-col gap-2">
                     {group.entries.map((entry) => (
