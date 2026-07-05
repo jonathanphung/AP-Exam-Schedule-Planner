@@ -13,3 +13,4 @@ Backend: workflow · tier: medium · human_approves_merge: true
 | #4 | build:advanced → qa:advanced → review:advanced | advanced | Done | PR #13 ready; reviewer reran gates green (lint, data 34/34, e2e 26/26); truth 90/100; awaiting human merge |
 | #6 | build:advanced → qa:advanced → review:advanced | advanced | Done | PR #14 ready; truth 92/100; reviewer rerun 23/23 e2e + data + lint + tsc, 0 open threads; awaiting human merge |
 | — | none | parked | n/a | Session end (usage limit); nothing in flight; PRs #13/#14 await human merge; next session verifies merges → promotes #5 → wave at xhigh effort (ultracode session) |
+| #5 | none | promoted | Ready | PRs #13/#14 merged during park — promotion gate satisfied; #5 Backlog→Ready, unassigned; next session launches its wave (xhigh/ultracode) |
