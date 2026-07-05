@@ -32,8 +32,11 @@ const dateHeadings = (page: Page) => schedule(page).locator("ol > li > h3");
 
 const catalog = (page: Page) =>
   page.locator('section[aria-label="Subject catalog"]');
+// Card toggle = the aria-pressed button (issue #6 wrapped cards in a div and
+// added a sibling "View exam details" button, so `ul > li > button` no longer
+// matches; same locator convention as the issue-3 spec).
 const card = (page: Page, name: string) =>
-  catalog(page).locator("ul > li > button").filter({ hasText: name });
+  catalog(page).locator("ul > li button[aria-pressed]").filter({ hasText: name });
 
 async function select(page: Page, name: string) {
   const c = card(page, name);

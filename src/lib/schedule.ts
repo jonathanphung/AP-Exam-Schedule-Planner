@@ -1,13 +1,16 @@
 import type { ApSubject, Session } from "@/data/schema";
+import type { ResolvedSlot } from "./conflicts";
 
 /**
  * Pure schedule-building logic for the "My Schedule" view (issue #4).
  *
  * Kept out of the component (per PROJECT.md: `src/lib/` functions are pure and
  * unit-testable) so the grouping/sorting rules can be verified independently of
- * React. Reads exam slots + portfolio deadlines straight from the dataset for a
- * given selection; conflict-resolved dates arrive in a later card (#5) and will
- * re-point this builder without changing its shape.
+ * React. Exam slots come from the conflict-resolution layer (issue #5): pass
+ * the map returned by `resolveSlots` and each exam entry renders at its
+ * effective date/session — the late-testing slot when a resolution moved it.
+ * Without a map (or for subjects missing from it) the dataset's regular slot
+ * is used. Portfolio deadlines always come straight from the dataset.
  */
 
 /** A schedule entry is either a sit-down exam or a portfolio submission deadline. */
@@ -25,6 +28,8 @@ export interface ScheduleEntry {
   session: Session | null;
   /** Portfolio submission note from the dataset; `null` for exams. */
   note: string | null;
+  /** True when a conflict resolution moved this exam to its late-testing slot. */
+  movedToLate: boolean;
 }
 
 export interface ScheduleDateGroup {
@@ -72,10 +77,13 @@ function withinDayRank(entry: ScheduleEntry): number {
  * - Within a date: AM before PM before portfolio; ties broken by subject name.
  * - A subject with both an exam and a portfolio yields two entries.
  * - Portfolio-only subjects yield a single portfolio entry (never an exam).
+ * - `resolvedSlots` (from `resolveSlots` in conflicts.ts) re-points exam
+ *   entries to their effective slot; portfolio entries are never affected.
  */
 export function buildSchedule(
   subjects: readonly ApSubject[],
   selectedIds: readonly string[],
+  resolvedSlots?: ReadonlyMap<string, ResolvedSlot>,
 ): Schedule {
   const selected = new Set(selectedIds);
   const entries: ScheduleEntry[] = [];
@@ -88,14 +96,16 @@ export function buildSchedule(
 
     if (subject.exam) {
       dated = true;
+      const resolved = resolvedSlots?.get(subject.id);
       entries.push({
         key: `${subject.id}:exam`,
         subjectId: subject.id,
         subjectName: subject.name,
         kind: "exam",
-        date: subject.exam.date,
-        session: subject.exam.session,
+        date: resolved?.date ?? subject.exam.date,
+        session: resolved?.session ?? subject.exam.session,
         note: null,
+        movedToLate: resolved?.movedToLate ?? false,
       });
     }
 
@@ -109,6 +119,7 @@ export function buildSchedule(
         date: subject.portfolio.deadline,
         session: null,
         note: subject.portfolio.note,
+        movedToLate: false,
       });
     }
 
@@ -140,4 +151,21 @@ export function buildSchedule(
     }));
 
   return { groups, undated };
+}
+
+/**
+ * Format an ISO calendar date as a *local* long date label (shared by the
+ * schedule headings and the conflict UI). Dates are floating (no timezone);
+ * building the Date from explicit parts avoids the UTC-parse day-shift of
+ * `new Date("2026-05-04")` in negative-offset zones.
+ */
+export function formatDateLabel(iso: string): string {
+  const [year, month, day] = iso.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
 }
