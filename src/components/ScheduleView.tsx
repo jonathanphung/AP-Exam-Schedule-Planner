@@ -184,10 +184,9 @@ export function ScheduleView() {
                 ),
               )}{" "}
               now share the late-testing slot{" "}
-              {formatDateLabel(collision.slot.date)} (
-              {collision.slot.session} session). Late testing can&rsquo;t
-              separate these exams any further — ask your school&rsquo;s AP
-              coordinator about your options.
+              {`${formatDateLabel(collision.slot.date)} (${collision.slot.session} session)`}.
+              Late testing can&rsquo;t separate these exams any further — ask
+              your school&rsquo;s AP coordinator about your options.
             </p>
           ))}
         </div>
