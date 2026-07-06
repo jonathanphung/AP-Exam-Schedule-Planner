@@ -733,6 +733,64 @@ test("AC8 — switcher chips paint a focus-visible ring under keyboard focus", a
 // focus-visible ring on the pager buttons; reduced-motion safe throughout.
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Bounce item 5 (QA-added) — the default page FOLLOWS the live selection
+// (first week holding a placed exam) until the student pages manually; after
+// a manual page, their position wins and later selection changes never yank
+// the view away. Also exercises the issue-notes constraint that the grid
+// reacts live to catalog toggles while mounted.
+// ---------------------------------------------------------------------------
+
+test("Bounce 5 — default page follows the live selection until the student pages manually", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await seedSelection(page, [SPANISH_LIT.id]);
+  await page.goto("/");
+  await openCalendar(page);
+
+  const spanishWeek = weekIndexOf(SPANISH_LIT.exam!.date) + 1;
+  const bioWeek = weekIndexOf(BIOLOGY.exam!.date) + 1;
+  expect(bioWeek, "fixture sanity: biology must sit in an earlier week").toBeLessThan(spanishWeek);
+
+  // Default = the first (here: only) week holding a placed exam — week 2.
+  await expect(indicator(page)).toContainText(
+    `Week ${spanishWeek} of ${WEEK_COUNT}`,
+  );
+  await expect(blockFor(page, SPANISH_LIT.id)).toHaveCount(1);
+
+  // Live-toggle an EARLIER-week subject in the catalog while the calendar is
+  // mounted (no reload): the grid reacts live and the default page follows
+  // back to Biology's week, where its block is now placed.
+  await select(page, BIOLOGY.name);
+  await expect(indicator(page)).toContainText(
+    `Week ${bioWeek} of ${WEEK_COUNT}`,
+  );
+  await expect(blockFor(page, BIOLOGY.id)).toHaveCount(1);
+
+  // The student pages manually — their position now wins...
+  await gotoWeek(page, WEEK_COUNT);
+  await expect(indicator(page)).toContainText(
+    `Week ${WEEK_COUNT} of ${WEEK_COUNT}`,
+  );
+
+  // ...so a further live selection change (Chemistry lands in week 1, not
+  // here) must NOT yank the page away from the student's chosen week.
+  await select(page, CHEMISTRY.name);
+  await expect(card(page, CHEMISTRY.name)).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await expect(indicator(page)).toContainText(
+    `Week ${WEEK_COUNT} of ${WEEK_COUNT}`,
+  );
+  await expect(blockFor(page, CHEMISTRY.id)).toHaveCount(0);
+
+  await page.screenshot({
+    path: `${EVIDENCE_DIR}/bounce5-default-follows-then-manual-wins-desktop.png`,
+  });
+});
+
 test("Pager a11y — keyboard-operable buttons with accessible names and an aria-live week announcement", async ({
   page,
 }) => {
