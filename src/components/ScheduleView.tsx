@@ -27,6 +27,7 @@ import {
   ConflictDialog,
   nameList,
 } from "@/components/ConflictDialog";
+import { ExportButton } from "@/components/ExportButton";
 
 // The dataset ships bundled and is validated by `pnpm test:data`; the JSON
 // module's inferred type is widened, so re-assert the schema's types here.
@@ -141,10 +142,13 @@ export function ScheduleView() {
     <section aria-label="My schedule" className="flex flex-col gap-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-lg font-semibold tracking-tight">My Schedule</h2>
-        <p className="inline-flex w-fit items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-800 dark:border-blue-500/40 dark:bg-blue-950/40 dark:text-blue-200">
-          <span aria-hidden="true">📅</span>
-          Dates reflect the {CYCLE} AP exam cycle.
-        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="inline-flex w-fit items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-800 dark:border-blue-500/40 dark:bg-blue-950/40 dark:text-blue-200">
+            <span aria-hidden="true">📅</span>
+            Dates reflect the {CYCLE} AP exam cycle.
+          </p>
+          <ExportButton />
+        </div>
       </div>
 
       {unresolved.map((group) => (
