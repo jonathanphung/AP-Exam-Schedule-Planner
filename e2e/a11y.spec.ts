@@ -320,6 +320,28 @@ test.describe("AC1 — keyboard operability", () => {
     );
     await expectVisibleFocusIndicator(page, "details affordance");
 
+    // Then the schedule view switcher (issue #19): its two toggle chips —
+    // "My Schedule" (the pressed default) then "Calendar" — sit between the
+    // catalog and the schedule content in the tab order. (`pressed` here
+    // means the aria-pressed attribute exists, not that it is "true".)
+    await page.keyboard.press("Tab");
+    d = await focusedDescriptor(page);
+    expect(d, "next stop: the My Schedule view chip").toMatchObject({
+      text: "My Schedule",
+      pressed: true,
+      inCatalog: false,
+    });
+    await expectVisibleFocusIndicator(page, "My Schedule view chip");
+
+    await page.keyboard.press("Tab");
+    d = await focusedDescriptor(page);
+    expect(d, "next stop: the Calendar view chip").toMatchObject({
+      text: "Calendar",
+      pressed: true,
+      inCatalog: false,
+    });
+    await expectVisibleFocusIndicator(page, "Calendar view chip");
+
     // Then into the schedule section: the export control.
     await page.keyboard.press("Tab");
     d = await focusedDescriptor(page);
