@@ -1,5 +1,5 @@
 import { CatalogGrid } from "@/components/CatalogGrid";
-import { ScheduleView } from "@/components/ScheduleView";
+import { ScheduleViews } from "@/components/ScheduleViews";
 import { ResourcesSidebar } from "@/components/ResourcesSidebar";
 
 export default function Home() {
@@ -19,12 +19,15 @@ export default function Home() {
         {/* Persistent left column on desktop; a collapsed disclosure near the
             top on mobile/tablet (see ResourcesSidebar). */}
         <ResourcesSidebar />
+        {/* min-w-0: the calendar grid inside ScheduleViews has a min-width;
+            without it the flex item would refuse to shrink and push the page
+            wider than the viewport at 375px. */}
         <main
           className="flex min-w-0 flex-1 flex-col gap-12"
           aria-label="Exam planner"
         >
           <CatalogGrid />
-          <ScheduleView />
+          <ScheduleViews />
         </main>
       </div>
     </>
