@@ -1,0 +1,155 @@
+import { test, expect, type Page } from "@playwright/test";
+import { readFileSync } from "node:fs";
+
+/**
+ * super-board QA (issue #7) — export selected exams as an ICS calendar file.
+ *
+ * AC1 is the browser-observable acceptance criterion (button placement +
+ * enabled/disabled state + client-side download of `ap-exams-2026.ics` with
+ * zero network requests) and is verified here end-to-end through the real app
+ * and the real dataset. AC2–AC5 (the RFC 5545 / ical.js generator contract) are
+ * covered at the unit layer by `src/lib/ics.test.ts` and, against the shipped
+ * dataset, by `src/lib/ics.qa.test.ts`; this spec additionally confirms the
+ * bytes that actually land on disk carry the exam + portfolio VEVENTs.
+ *
+ * Screenshots are captured at the three standard super-board viewports and
+ * committed to the issue branch so they render inline on the issue / PR.
+ */
+
+const EVIDENCE_DIR = "docs/super-board/runs/issue-7-qa-v1";
+
+const schedule = (page: Page) =>
+  page.locator('section[aria-label="My schedule"]');
+const exportButton = (page: Page) => page.getByTestId("export-ics-button");
+
+const catalog = (page: Page) =>
+  page.locator('section[aria-label="Subject catalog"]');
+const card = (page: Page, name: string) =>
+  catalog(page)
+    .locator("ul > li button[aria-pressed]")
+    .filter({ hasText: name });
+
+async function select(page: Page, name: string) {
+  const c = card(page, name);
+  await c.scrollIntoViewIfNeeded();
+  await c.click();
+  await expect(c).toHaveAttribute("aria-pressed", "true");
+}
+
+test.describe("issue #7 — export to calendar", () => {
+  test("AC1 — the Export button lives in the My Schedule header and is disabled until ≥1 subject is selected", async ({
+    page,
+  }) => {
+    await page.goto("/");
+
+    // Rendered *near My Schedule*: the button is inside the My Schedule section,
+    // in the same header row as the section heading.
+    const btn = schedule(page).getByTestId("export-ics-button");
+    await expect(btn).toBeVisible();
+    await expect(btn).toHaveText(/Export to Calendar/i);
+
+    // Zero selections → disabled.
+    await expect(page.getByText(/^0 selected$/)).toBeVisible();
+    await expect(btn).toBeDisabled();
+
+    // One selection → enabled.
+    await select(page, "AP Biology");
+    await expect(btn).toBeEnabled();
+
+    // Back to zero → disabled again (state tracks the live selection count).
+    const bioCard = card(page, "AP Biology");
+    await bioCard.click(); // toggle Biology back off
+    await expect(bioCard).toHaveAttribute("aria-pressed", "false");
+    await expect(page.getByText(/^0 selected$/)).toBeVisible();
+    await expect(btn).toBeDisabled();
+  });
+
+  test("AC1 — clicking downloads ap-exams-2026.ics generated client-side (blob, zero network) with the selected exam + portfolio events", async ({
+    page,
+  }) => {
+    await page.goto("/");
+
+    // A selection that yields an exam VEVENT (Biology) and both an exam and a
+    // portfolio VEVENT (Seminar) — no same-slot conflict between the two.
+    await select(page, "AP Biology"); // 2026-05-04 AM exam
+    await select(page, "AP Seminar"); // 2026-05-11 PM exam + 2026-04-30 portfolio
+
+    const btn = exportButton(page);
+    await expect(btn).toBeEnabled();
+
+    // Record any real network traffic the click provokes. A truly client-side
+    // export must not issue fetch/XHR requests; Next.js dev-only internals
+    // (_next, HMR hot-update) are excluded so the assertion tracks app traffic.
+    const appRequests: string[] = [];
+    page.on("request", (req) => {
+      const url = req.url();
+      const type = req.resourceType();
+      const isDevInternal =
+        url.includes("/_next/") ||
+        url.includes("hot-update") ||
+        url.includes("__nextjs");
+      if (!isDevInternal && (type === "fetch" || type === "xhr")) {
+        appRequests.push(`${type} ${url}`);
+      }
+    });
+
+    const downloadPromise = page.waitForEvent("download");
+    await btn.click();
+    const download = await downloadPromise;
+
+    // Named exactly ap-exams-2026.ics…
+    expect(download.suggestedFilename()).toBe("ap-exams-2026.ics");
+    // …and generated entirely client-side: a blob: URL is not a server fetch.
+    expect(download.url()).toMatch(/^blob:/);
+    // …with no app-level network requests triggered by the export.
+    expect(
+      appRequests,
+      `unexpected network requests on export: ${appRequests.join(", ")}`,
+    ).toEqual([]);
+
+    // The bytes on disk are a real RFC 5545 calendar carrying the events.
+    const path = await download.path();
+    const ics = readFileSync(path, "utf8");
+    expect(ics.startsWith("BEGIN:VCALENDAR")).toBe(true);
+    expect(ics.trimEnd().endsWith("END:VCALENDAR")).toBe(true);
+    expect(ics).toContain("VERSION:2.0");
+    expect(ics.endsWith("\r\n")).toBe(true); // CRLF-terminated (RFC 5545 §3.1)
+
+    const unfolded = ics.replace(/\r\n /g, "");
+    expect(unfolded).toContain("SUMMARY:AP Biology exam (AM session)");
+    expect(unfolded).toContain("SUMMARY:AP Seminar exam (PM session)");
+    expect(unfolded).toContain("SUMMARY:AP Seminar portfolio due");
+    // Exam start times are floating local (no trailing Z).
+    expect(unfolded).not.toMatch(/DTSTART:\d{8}T\d{6}Z/);
+    // Three events for this selection: 2 exams + 1 portfolio.
+    expect((ics.match(/BEGIN:VEVENT/g) ?? []).length).toBe(3);
+  });
+});
+
+// --- Evidence capture: the three mandatory super-board viewports ------------
+const viewports = [
+  { name: "desktop", width: 1920, height: 1080 },
+  { name: "tablet", width: 1024, height: 768 },
+  { name: "mobile", width: 375, height: 667 },
+] as const;
+
+for (const vp of viewports) {
+  test(`evidence — enabled Export button over a populated schedule (${vp.name} ${vp.width}x${vp.height})`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: vp.width, height: vp.height });
+    await page.goto("/");
+
+    await select(page, "AP Biology"); // exam
+    await select(page, "AP Seminar"); // exam + portfolio
+
+    // The export affordance is present and enabled in the working state.
+    await expect(exportButton(page)).toBeEnabled();
+    await expect(schedule(page).getByText("Portfolio due").first()).toBeVisible();
+
+    await page.screenshot({
+      path: `${EVIDENCE_DIR}/${vp.name}.png`,
+      fullPage: true,
+    });
+  });
+}
