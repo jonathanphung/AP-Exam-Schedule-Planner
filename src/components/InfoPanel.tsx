@@ -1,7 +1,8 @@
 "use client";
 
-import { type ReactNode, useEffect, useId, useRef } from "react";
+import { type ReactNode, useId, useRef } from "react";
 import type { ApSubject } from "@/data/schema";
+import { useModalDialog } from "@/lib/modal";
 
 /**
  * Accessible exam-info modal (issue #6).
@@ -26,13 +27,10 @@ interface InfoPanelProps {
   onClose: () => void;
 }
 
-const FOCUSABLE =
-  'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
-
 /** Muted badge for any value College Board has not yet published. */
 function PendingBadge() {
   return (
-    <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+    <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-400">
       pending
     </span>
   );
@@ -93,48 +91,9 @@ export function InfoPanel({ subject, onClose }: InfoPanelProps) {
   const titleId = useId();
   const descId = useId();
 
-  useEffect(() => {
-    const previouslyFocused = document.activeElement as HTMLElement | null;
-
-    // Move focus into the dialog.
-    closeButtonRef.current?.focus();
-
-    // Lock background scroll while the dialog is open.
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        event.stopPropagation();
-        onClose();
-        return;
-      }
-      if (event.key !== "Tab") return;
-
-      const focusables = panelRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE);
-      if (!focusables || focusables.length === 0) return;
-      const first = focusables[0];
-      const last = focusables[focusables.length - 1];
-      const active = document.activeElement;
-
-      if (event.shiftKey && (active === first || active === panelRef.current)) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && active === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    }
-
-    document.addEventListener("keydown", onKeyDown, true);
-
-    return () => {
-      document.removeEventListener("keydown", onKeyDown, true);
-      document.body.style.overflow = previousOverflow;
-      // Return focus to the element that opened the dialog.
-      previouslyFocused?.focus();
-    };
-  }, [onClose]);
+  // Focus trap + Escape-to-close + scroll lock + focus restore (issue #8:
+  // shared with the conflict dialog via src/lib/modal.ts).
+  useModalDialog(panelRef, onClose, closeButtonRef);
 
   const { format, portfolio } = subject;
 
@@ -189,7 +148,7 @@ export function InfoPanel({ subject, onClose }: InfoPanelProps) {
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="flex h-9 w-9 flex-none items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+            className="flex h-11 w-11 flex-none items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none sm:h-9 sm:w-9 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
           >
             <svg
               aria-hidden="true"
@@ -287,7 +246,7 @@ export function InfoPanel({ subject, onClose }: InfoPanelProps) {
                   ) : (
                     <span className="font-semibold">
                       {portfolio.weightPct}%{" "}
-                      <span className="font-normal text-slate-500 dark:text-slate-400">
+                      <span className="font-normal text-slate-600 dark:text-slate-400">
                         of final score
                       </span>
                     </span>
@@ -298,7 +257,7 @@ export function InfoPanel({ subject, onClose }: InfoPanelProps) {
               <p className="mt-2 text-xs leading-relaxed text-amber-800/90 dark:text-amber-200/80">
                 {portfolio.note}
               </p>
-              <p className="mt-1 text-xs text-amber-700/80 dark:text-amber-300/70">
+              <p className="mt-1 text-xs text-amber-800 dark:text-amber-300/70">
                 Schools often set earlier internal deadlines — confirm yours with
                 your teacher.
               </p>

@@ -151,11 +151,14 @@ export function ScheduleView() {
         </div>
       </div>
 
-      {unresolved.map((group) => (
+      {unresolved.map((group, index) => (
         <ConflictDialog
+          // Keyed by slot: a re-created collision mounts a fresh dialog (and
+          // therefore re-prompts modally) — see ConflictDialog's doc comment.
           key={slotKey(group.slot)}
           group={group}
           subjectsById={SUBJECTS_BY_ID}
+          modalCandidate={index === 0}
           onKeep={(keeperId) =>
             setResolution({
               date: group.slot.date,
