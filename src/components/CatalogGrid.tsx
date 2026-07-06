@@ -83,13 +83,14 @@ function SubjectCard({
             : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700",
         ].join(" ")}
       >
-        <span className="flex items-start gap-2 pr-9">
+        <span className="flex items-start gap-2 pr-12 sm:pr-9">
           <span
             aria-hidden="true"
             className={[
               "mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-full border text-xs leading-none",
+              // blue-600: the white ✓ glyph needs ≥4.5:1 (blue-500 was 3.68:1).
               selected
-                ? "border-blue-500 bg-blue-500 text-white dark:border-blue-400 dark:bg-blue-400 dark:text-slate-950"
+                ? "border-blue-600 bg-blue-600 text-white dark:border-blue-400 dark:bg-blue-400 dark:text-slate-950"
                 : "border-slate-300 text-transparent dark:border-slate-600",
             ].join(" ")}
           >
@@ -99,7 +100,8 @@ function SubjectCard({
             {subject.name}
           </span>
         </span>
-        <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+        {/* slate-600: slate-500 lands under 4.5:1 on the selected card's blue-50 bg (issue #8 AC3/AC2). */}
+        <span className="text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-slate-400">
           {subject.category}
         </span>
         <span
@@ -108,7 +110,9 @@ function SubjectCard({
             meta.tone === "portfolio"
               ? "text-amber-700 dark:text-amber-400"
               : meta.tone === "none"
-                ? "text-slate-400 dark:text-slate-500"
+                ? // Still muted relative to the name, but ≥4.5:1 on every card
+                  // background (slate-400-on-white was 3.0:1 — issue #8 AC2).
+                  "text-slate-600 dark:text-slate-400"
                 : "text-slate-600 dark:text-slate-300",
           ].join(" ")}
         >
@@ -122,7 +126,7 @@ function SubjectCard({
         onClick={() => onShowDetails(subject)}
         aria-label={`View exam details for ${subject.name}`}
         aria-haspopup="dialog"
-        className="absolute top-2 right-2 z-10 flex h-7 w-7 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+        className="absolute top-0.5 right-0.5 z-10 flex h-11 w-11 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none sm:top-2 sm:right-2 sm:h-7 sm:w-7 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-200"
       >
         <svg
           aria-hidden="true"
@@ -180,7 +184,7 @@ export function CatalogGrid() {
               onChange={(event) => setQuery(event.target.value)}
               placeholder="e.g. bio"
               autoComplete="off"
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/40 dark:border-slate-700 dark:bg-slate-900 sm:w-72"
+              className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/40 sm:min-h-0 sm:w-72 dark:border-slate-700 dark:bg-slate-900"
             />
           </div>
           <p
@@ -205,10 +209,13 @@ export function CatalogGrid() {
                 aria-pressed={active}
                 onClick={() => setCategory(option)}
                 className={[
-                  "rounded-full border px-3 py-1 text-sm transition",
+                  // ≥44px tall tap target at phone widths (issue #8 AC4);
+                  // desktop keeps the original compact chip.
+                  "inline-flex min-h-11 items-center rounded-full border px-4 py-1 text-sm transition sm:min-h-0 sm:px-3",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-950",
+                  // blue-600: white chip text needs ≥4.5:1 (blue-500 was 3.68:1).
                   active
-                    ? "border-blue-500 bg-blue-500 text-white dark:border-blue-400 dark:bg-blue-400 dark:text-slate-950"
+                    ? "border-blue-600 bg-blue-600 text-white dark:border-blue-400 dark:bg-blue-400 dark:text-slate-950"
                     : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800",
                 ].join(" ")}
               >
