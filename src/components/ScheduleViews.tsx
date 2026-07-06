@@ -6,7 +6,7 @@ import { CalendarView } from "@/components/CalendarView";
 
 /**
  * View switcher between the "My Schedule" list (issue #4) and the
- * month-calendar grid (issue #19).
+ * week-paged calendar grid (issue #19).
  *
  * Defaults to the list view so existing behavior is unchanged on first load.
  * The toggle chips follow the catalog's category-filter pattern: native

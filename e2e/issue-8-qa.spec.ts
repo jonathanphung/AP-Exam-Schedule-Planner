@@ -253,6 +253,14 @@ test.describe("issue #8 QA evidence", () => {
     const withSel = await ctx1.newPage();
     await seed(withSel, ["biology", "seminar", "drawing", "cybersecurity"]);
     await withSel.goto("/");
+    // Close the remaining settleAnimations race: wait for the hydration flip
+    // (export button disabled -> enabled) so its `transition-colors` run has
+    // STARTED before settleAnimations awaits it — otherwise, under parallel
+    // load, the settle can complete before the transition begins and axe
+    // samples mid-blend colors (same false positive as the PR #18 thread).
+    // The other seeded states already gate on hydration-dependent UI
+    // (conflict dialog / late-collision warning) before their scans.
+    await expect(withSel.getByTestId("export-ics-button")).toBeEnabled();
     await scan(withSel, "with-selections");
     await ctx1.close();
 

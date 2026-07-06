@@ -6,14 +6,16 @@ import {
 } from "../src/data/schema";
 
 /**
- * super-board QA (issue #19) — scrollable month-calendar grid view for
- * selected exams.
+ * super-board QA (issue #19) — week-paged calendar grid view for selected
+ * exams (v2 design after the human bounce: one week at a time with visible
+ * Previous/Next pager buttons; the pager replaces month scrolling).
  *
- * One observable, browser-level test per acceptance criterion, plus screenshot
- * capture at the three standard super-board viewports (desktop 1920x1080,
- * tablet 1024x768, mobile 375x667). Screenshots land in the run evidence
- * folder and are committed to the issue branch so they render inline on the
- * issue / PR.
+ * One observable, browser-level test per acceptance criterion, plus pager
+ * coverage (week 1 → next → late-testing week, indicator text, a11y
+ * semantics, default page) and screenshot capture at the three standard
+ * super-board viewports (desktop 1920x1080, tablet 1024x768, mobile 375x667).
+ * Screenshots land in the run evidence folder and are committed to the issue
+ * branch so they render inline on the issue / PR.
  *
  * Dataset-driven fixtures (asserted from the shipped JSON, never hardcoded
  * beyond ids):
@@ -35,7 +37,7 @@ import {
 // Env-overridable so a re-verification pass writes a fresh evidence set
 // instead of rewriting a prior run's committed screenshots.
 const EVIDENCE_DIR =
-  process.env.QA_EVIDENCE_DIR ?? "docs/super-board/runs/issue-19-qa-v1";
+  process.env.QA_EVIDENCE_DIR ?? "docs/super-board/runs/issue-19-qa-v2";
 
 const SELECTION_KEY = "apx.selection.v1";
 
@@ -80,6 +82,10 @@ if (BIOLOGY.category !== CHEMISTRY.category)
   throw new Error("fixture drift: biology/chemistry categories differ");
 if (CYBER.exam !== null || CYBER.portfolio !== null)
   throw new Error("fixture drift: cybersecurity now has a dated entry");
+if (REGULAR_WINDOWS.length + 1 < 3)
+  throw new Error(
+    "fixture drift: fewer than 3 testing weeks — pager tests assume week 3 exists",
+  );
 {
   // The seeded (non-AC3) sets must stay conflict-free — see fixture rule above.
   const slots = [BIOLOGY, CHEMISTRY, SPANISH_LIT, SEMINAR].map(
@@ -112,6 +118,74 @@ const blockFor = (page: Page, subjectId: string) =>
     `[data-testid="calendar-block"][data-subject-id="${subjectId}"]`,
   );
 const offGrid = (page: Page) => page.getByTestId("calendar-off-grid");
+
+// Pager (v2 design): Previous/Next buttons + aria-live position indicator.
+// Accessible names start with "Previous week" / "Next week"; when other weeks
+// hold exams the name carries a count suffix, so match by prefix.
+const pager = (page: Page) => page.getByTestId("calendar-pager");
+const prevButton = (page: Page) =>
+  pager(page).getByRole("button", { name: /^Previous week/ });
+const nextButton = (page: Page) =>
+  pager(page).getByRole("button", { name: /^Next week/ });
+const indicator = (page: Page) =>
+  page.getByTestId("calendar-week-indicator");
+
+/** Page forward until the indicator reads "Week <n> of ...". */
+async function gotoWeek(page: Page, n: number) {
+  for (let guard = 0; guard < 10; guard += 1) {
+    const text = (await indicator(page).textContent()) ?? "";
+    const match = /Week (\d+) of/.exec(text);
+    if (!match) throw new Error(`no week indicator found: "${text}"`);
+    const current = Number(match[1]);
+    if (current === n) return;
+    if (current < n) await nextButton(page).click();
+    else await prevButton(page).click();
+  }
+  throw new Error(`could not reach week ${n}`);
+}
+
+// Schema-derived week fixtures (never hardcoded): regular windows in order,
+// then the late-testing window — mirrors `calendarWeeks()`.
+const WINDOWS = [
+  ...REGULAR_WINDOWS.map((w) => ({ ...w, late: false })),
+  { ...LATE_TESTING_WINDOW, late: true },
+];
+const WEEK_COUNT = WINDOWS.length;
+
+/** Every ISO date from start to end inclusive (UTC math, no DST drift). */
+function datesOf(w: { start: string; end: string }): string[] {
+  const out: string[] = [];
+  for (
+    let ms = Date.parse(`${w.start}T00:00:00Z`);
+    ms <= Date.parse(`${w.end}T00:00:00Z`);
+    ms += 86_400_000
+  )
+    out.push(new Date(ms).toISOString().slice(0, 10));
+  return out;
+}
+
+/** "MON" / "May 4" labels for a floating ISO date (mirrors the app's labels). */
+function weekdayOf(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Intl.DateTimeFormat("en-US", { weekday: "short" })
+    .format(new Date(y, m - 1, d))
+    .toUpperCase();
+}
+function monthDayOf(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+  }).format(new Date(y, m - 1, d));
+}
+function rangeOf(w: { start: string; end: string }): string {
+  return `${monthDayOf(w.start)} – ${monthDayOf(w.end)}`;
+}
+
+/** 0-based index of the window containing an ISO date, or -1. */
+function weekIndexOf(iso: string): number {
+  return WINDOWS.findIndex((w) => iso >= w.start && iso <= w.end);
+}
 
 const catalog = (page: Page) =>
   page.locator('section[aria-label="Subject catalog"]');
@@ -191,11 +265,12 @@ test("AC1 — switcher defaults to list, toggles by keyboard, exposes pressed st
 });
 
 // ---------------------------------------------------------------------------
-// AC2 — time-grid: hourly axis, dated day headers, every published window
-//       day present week by week, vertically reachable by scrolling.
+// AC2 (v2) — time-grid pages ONE week at a time: hourly axis, dated day
+//       headers, every published window reachable via the Previous/Next
+//       pager (which replaces month scrolling), ends disabled (no wrap).
 // ---------------------------------------------------------------------------
 
-test("AC2 — grid covers every day of the published windows with dated headers and an hourly axis", async ({
+test("AC2 — pager walks every published week one grid at a time with dated headers and an hourly axis", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
@@ -203,74 +278,74 @@ test("AC2 — grid covers every day of the published windows with dated headers 
   await page.goto("/");
   await openCalendar(page);
 
-  // One week section per published window: regular windows in order, then
-  // the late-testing window — computed from the schema, not hardcoded.
-  const expectedWeekCount = REGULAR_WINDOWS.length + 1;
-  await expect(weekSections(page)).toHaveCount(expectedWeekCount);
-  await expect(
-    calendarView(page).locator('section[aria-label^="Week of May 4"]'),
-  ).toBeVisible();
-  await expect(
-    calendarView(page).locator('section[aria-label^="Week of May 11"]'),
-  ).toBeVisible();
-  const lateSection = calendarView(page).locator(
-    'section[aria-label^="Late-testing week"]',
-  );
-  await expect(lateSection).toBeVisible();
-  await expect(
-    lateSection.getByText("Late testing", { exact: true }),
-  ).toBeVisible();
+  // Biology sits in the first window, so the default page is week 1: the
+  // Previous button is disabled at the start end (documented no-wrap choice).
+  await expect(indicator(page)).toContainText(`Week 1 of ${WEEK_COUNT}`);
+  await expect(prevButton(page)).toBeDisabled();
+  await expect(nextButton(page)).toBeEnabled();
 
-  // Every day of every window renders a dated column header ("MON" + "May 4").
-  // 2026 windows are Mon–Fri: 5 days x 3 weeks = 15 dated columns.
-  const week1 = calendarView(page).locator(
-    'section[aria-label^="Week of May 4"]',
-  );
-  for (const [weekday, monthDay] of [
-    ["MON", "May 4"],
-    ["TUE", "May 5"],
-    ["WED", "May 6"],
-    ["THU", "May 7"],
-    ["FRI", "May 8"],
-  ] as const) {
-    const header = week1
+  // Walk forward through EVERY published window — regular weeks in order,
+  // then the late-testing week — asserting exactly one week grid at a time.
+  for (const [index, window] of WINDOWS.entries()) {
+    if (index > 0) await nextButton(page).click();
+
+    // Indicator: schema-derived range + position ("May 4 – May 8 · Week 1 of 3").
+    await expect(indicator(page)).toContainText(rangeOf(window));
+    await expect(indicator(page)).toContainText(
+      `Week ${index + 1} of ${WEEK_COUNT}`,
+    );
+
+    // Exactly ONE week section mounted — the month never stacks vertically.
+    await expect(weekSections(page)).toHaveCount(1);
+    const section = weekSections(page).first();
+    await expect(section).toBeInViewport();
+
+    // The late-testing week is visibly badged; regular weeks are not.
+    await expect(
+      indicator(page).getByText("Late testing", { exact: true }),
+    ).toHaveCount(window.late ? 1 : 0);
+
+    // Every day of the window renders a dated column header ("MON · May 4").
+    const days = datesOf(window);
+    for (const iso of days) {
+      const header = section
+        .locator("p")
+        .filter({ hasText: weekdayOf(iso) })
+        .filter({ hasText: monthDayOf(iso) });
+      await expect(header).toHaveCount(1);
+    }
+    const headerCells = section
       .locator("p")
-      .filter({ hasText: weekday })
-      .filter({ hasText: monthDay });
-    await expect(header).toHaveCount(1);
+      .filter({ hasText: /^(MON|TUE|WED|THU|FRI|SAT|SUN)\s*·/ });
+    await expect(headerCells).toHaveCount(days.length);
+
+    // Hourly axis on every page: both dataset session anchors are labeled
+    // (8 AM / 12 PM per the shipped sessionStartTimes) plus a later tick
+    // proving the axis is hour-by-hour, not a two-band AM/PM strip.
+    await expect(section.getByText("8 AM", { exact: true })).toBeVisible();
+    await expect(section.getByText("12 PM", { exact: true })).toBeVisible();
+    await expect(section.getByText("2 PM", { exact: true })).toBeVisible();
+
+    if (index === 0) {
+      await page.screenshot({
+        path: `${EVIDENCE_DIR}/ac2-week1-grid-desktop.png`,
+        fullPage: true,
+      });
+    }
   }
-  const allDays = [
-    ...REGULAR_WINDOWS.map((w) => ({ ...w })),
-    { ...LATE_TESTING_WINDOW },
-  ].reduce((n, w) => {
-    const days =
-      (Date.parse(`${w.end}T00:00:00Z`) - Date.parse(`${w.start}T00:00:00Z`)) /
-        86_400_000 +
-      1;
-    return n + days;
-  }, 0);
-  const headerCells = calendarView(page)
-    .locator("p")
-    .filter({ hasText: /^(MON|TUE|WED|THU|FRI|SAT|SUN)\s*·/ });
-  await expect(headerCells).toHaveCount(allDays);
 
-  // Hourly axis: both dataset session anchors are labeled (8 AM and 12 PM
-  // per the shipped sessionStartTimes), plus a later tick proving the axis
-  // is hour-by-hour, not a two-band AM/PM strip.
-  await expect(week1.getByText("8 AM", { exact: true })).toBeVisible();
-  await expect(week1.getByText("12 PM", { exact: true })).toBeVisible();
-  await expect(week1.getByText("2 PM", { exact: true })).toBeVisible();
-
+  // Far end: Next is disabled on the last (late-testing) week — no wrap.
+  await expect(nextButton(page)).toBeDisabled();
+  await expect(prevButton(page)).toBeEnabled();
   await page.screenshot({
-    path: `${EVIDENCE_DIR}/ac2-grid-weeks-desktop.png`,
+    path: `${EVIDENCE_DIR}/ac2-late-week-grid-desktop.png`,
     fullPage: true,
   });
 
-  // Vertically scrollable, nothing clipped: the late week starts off-screen
-  // at 1080px but is fully reachable by scrolling the page.
-  await expect(lateSection).not.toBeInViewport();
-  await lateSection.scrollIntoViewIfNeeded();
-  await expect(lateSection).toBeInViewport();
+  // And back: Previous returns to week 1 where Previous disables again.
+  await gotoWeek(page, 1);
+  await expect(indicator(page)).toContainText(`Week 1 of ${WEEK_COUNT}`);
+  await expect(prevButton(page)).toBeDisabled();
 });
 
 // ---------------------------------------------------------------------------
@@ -333,19 +408,27 @@ test("AC3 — resolved conflict places the moved exam at its late-testing slot i
 
   await openCalendar(page);
 
+  // Reopening the calendar re-derives the default page: Latin (the keeper)
+  // is now the earliest placed exam, so the view opens on week 1 with Latin
+  // at its regular AM slot — and Biology's block is NOT on this page.
+  await expect(indicator(page)).toContainText(`Week 1 of ${WEEK_COUNT}`);
+  const latinBlock = blockFor(page, LATIN.id);
+  await expect(latinBlock).toHaveCount(1);
+  await expect(latinBlock).toContainText(DATASET.sessionStartTimes.AM);
+  await expect(blockFor(page, BIOLOGY.id)).toHaveCount(0);
+
+  // Page to the late-testing week (the pager, not scrolling, reaches it).
+  await gotoWeek(page, WEEK_COUNT);
+  const lateSection = calendarView(page).locator(
+    'section[aria-label^="Late-testing week"]',
+  );
+  await expect(lateSection).toBeVisible();
+
   // Calendar truth: exactly one Biology block, inside the late-testing week,
   // in the May 20 column, at the PM session start read from the dataset.
   const bioBlock = blockFor(page, BIOLOGY.id);
   await expect(bioBlock).toHaveCount(1);
-  const lateSection = calendarView(page).locator(
-    'section[aria-label^="Late-testing week"]',
-  );
   await expect(lateSection.getByTestId("calendar-block")).toHaveCount(1);
-  await expect(
-    lateSection.locator(
-      `[data-testid="calendar-block"][data-subject-id="${BIOLOGY.id}"]`,
-    ),
-  ).toHaveCount(1);
   await expect(bioBlock).toContainText(BIOLOGY.name);
   await expect(bioBlock).toContainText(DATASET.sessionStartTimes.PM);
   await expect(bioBlock).toContainText("Moved to late testing");
@@ -354,18 +437,9 @@ test("AC3 — resolved conflict places the moved exam at its late-testing slot i
     'ul[aria-label*="May 20"] [data-testid="calendar-block"]',
   );
   await expect(may20Exams).toHaveCount(1);
+  // Latin stayed behind on week 1 — one week mounted at a time.
+  await expect(blockFor(page, LATIN.id)).toHaveCount(0);
 
-  // Latin (the keeper) stays at its regular slot: week 1, AM session label.
-  const latinBlock = blockFor(page, LATIN.id);
-  await expect(latinBlock).toHaveCount(1);
-  await expect(
-    calendarView(page)
-      .locator('section[aria-label^="Week of May 4"]')
-      .locator(`[data-testid="calendar-block"][data-subject-id="${LATIN.id}"]`),
-  ).toHaveCount(1);
-  await expect(latinBlock).toContainText(DATASET.sessionStartTimes.AM);
-
-  await lateSection.scrollIntoViewIfNeeded();
   await page.screenshot({
     path: `${EVIDENCE_DIR}/ac3-moved-to-late-desktop.png`,
   });
@@ -388,28 +462,39 @@ test("AC4 — blocks are category-colored with a legend, showing subject name an
   await page.goto("/");
   await openCalendar(page);
 
-  await expect(blocks(page)).toHaveCount(4);
-
-  // Every block shows its subject name + its session start label.
-  for (const s of [BIOLOGY, CHEMISTRY, SPANISH_LIT, SEMINAR]) {
+  // The fixtures span two testing weeks; the view shows one week at a time,
+  // so visit each subject's week via the pager and collect its rendered
+  // background along the way (computed styles, not class names).
+  const fixtures = [BIOLOGY, CHEMISTRY, SPANISH_LIT, SEMINAR];
+  const bgBySubject = new Map<string, string>();
+  for (const s of fixtures) {
+    await gotoWeek(page, weekIndexOf(s.exam!.date) + 1);
     const b = blockFor(page, s.id);
+    await expect(b).toHaveCount(1);
+    // Every block shows its subject name + its session start label.
     await expect(b).toContainText(s.name);
-    await expect(b).toContainText(
-      DATASET.sessionStartTimes[s.exam!.session],
+    await expect(b).toContainText(DATASET.sessionStartTimes[s.exam!.session]);
+    bgBySubject.set(
+      s.id,
+      await b.evaluate((el) => getComputedStyle(el).backgroundColor),
     );
   }
 
   // Color-coded by category: same category → same background, different
-  // category → different background (computed styles, not class names).
-  const bg = (subjectId: string) =>
-    blockFor(page, subjectId).evaluate(
-      (el) => getComputedStyle(el).backgroundColor,
-    );
-  const bioBg = await bg(BIOLOGY.id);
-  expect(await bg(CHEMISTRY.id)).toBe(bioBg); // STEM = STEM
-  expect(await bg(SPANISH_LIT.id)).not.toBe(bioBg); // Languages ≠ STEM
-  expect(await bg(SEMINAR.id)).not.toBe(bioBg); // Humanities ≠ STEM
-  expect(await bg(SEMINAR.id)).not.toBe(await bg(SPANISH_LIT.id));
+  // category → different background — consistent across pager pages.
+  const bg = (id: string) => bgBySubject.get(id)!;
+  expect(bg(CHEMISTRY.id)).toBe(bg(BIOLOGY.id)); // STEM = STEM
+  expect(bg(SPANISH_LIT.id)).not.toBe(bg(BIOLOGY.id)); // Languages ≠ STEM
+  expect(bg(SEMINAR.id)).not.toBe(bg(BIOLOGY.id)); // Humanities ≠ STEM
+  expect(bg(SEMINAR.id)).not.toBe(bg(SPANISH_LIT.id));
+
+  // Pager nice-to-have (bounce item 5): with two exams in a later week, the
+  // Next button carries an exam-count badge, folded into its accessible name.
+  await gotoWeek(page, 1);
+  await expect(nextButton(page)).toHaveAccessibleName(
+    "Next week (2 exams in later weeks)",
+  );
+  await expect(prevButton(page)).toHaveAccessibleName("Previous week");
 
   // Legend lists exactly the categories in use.
   const legend = page.getByRole("list", { name: "Category color legend" });
@@ -436,6 +521,13 @@ test("AC5 — portfolio deadlines and undated subjects land in the off-grid list
   await seedSelection(page, [SEMINAR.id, DRAWING.id, CYBER.id]);
   await page.goto("/");
   await openCalendar(page);
+
+  // Default page (bounce item 5): Seminar's exam is the only placed block and
+  // sits in the second window, so the calendar opens directly on that week —
+  // off-grid-only subjects (Drawing/Cyber) never influence the default.
+  await expect(indicator(page)).toContainText(
+    `Week ${weekIndexOf(SEMINAR.exam!.date) + 1} of ${WEEK_COUNT}`,
+  );
 
   const section = offGrid(page);
   await expect(section).toBeVisible();
@@ -493,6 +585,8 @@ test("AC6 — empty selection renders a hint instead of a blank grid", async ({
   ).toBeVisible();
   await expect(weekSections(page)).toHaveCount(0);
   await expect(blocks(page)).toHaveCount(0);
+  // The pager only exists alongside the grid — the empty state replaces both.
+  await expect(pager(page)).toHaveCount(0);
 
   await page.screenshot({
     path: `${EVIDENCE_DIR}/ac6-empty-state-desktop.png`,
@@ -551,6 +645,13 @@ for (const vp of viewports) {
     await page.goto("/");
     await openCalendar(page);
     await expect(blocks(page).first()).toBeVisible();
+
+    // One week at a time, with the pager buttons ALWAYS visible (touch swipe,
+    // where offered, is never the only affordance — bounce item 4).
+    await expect(weekSections(page)).toHaveCount(1);
+    await expect(prevButton(page)).toBeVisible();
+    await expect(nextButton(page)).toBeVisible();
+    await expect(indicator(page)).toContainText(`of ${WEEK_COUNT}`);
 
     // Page body NEVER scrolls horizontally.
     const bodyOverflow = await page.evaluate(
@@ -624,4 +725,65 @@ test("AC8 — switcher chips paint a focus-visible ring under keyboard focus", a
   expect(shadow, "keyboard focus should paint a visible ring").not.toBe(
     "none",
   );
+});
+
+// ---------------------------------------------------------------------------
+// Pager a11y (bounce item 4) — real buttons with accessible labels, fully
+// keyboard operable, week changes announced via an aria-live region, and a
+// focus-visible ring on the pager buttons; reduced-motion safe throughout.
+// ---------------------------------------------------------------------------
+
+test("Pager a11y — keyboard-operable buttons with accessible names and an aria-live week announcement", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await seedSelection(page, [BIOLOGY.id]);
+  await page.goto("/");
+  await openCalendar(page);
+
+  // Real <button>s with the required accessible labels.
+  await expect(prevButton(page)).toHaveCount(1);
+  await expect(nextButton(page)).toHaveCount(1);
+  await expect(prevButton(page)).toHaveAccessibleName(/^Previous week/);
+  await expect(nextButton(page)).toHaveAccessibleName(/^Next week/);
+
+  // The position indicator is a polite atomic live region, so week changes
+  // are announced to assistive tech without stealing focus.
+  await expect(indicator(page)).toHaveAttribute("aria-live", "polite");
+  await expect(indicator(page)).toHaveAttribute("aria-atomic", "true");
+  await expect(indicator(page)).toContainText(`Week 1 of ${WEEK_COUNT}`);
+
+  // Real Tab traversal reaches the pager: with Previous disabled on week 1
+  // (disabled buttons are skipped), the next stop after the Calendar chip is
+  // the Next button — and keyboard focus paints a :focus-visible ring.
+  await calendarChip(page).focus();
+  await page.keyboard.press("Tab");
+  await expect(nextButton(page)).toBeFocused();
+  const shadow = await nextButton(page).evaluate(
+    (el) => getComputedStyle(el).boxShadow,
+  );
+  expect(shadow, "keyboard focus should paint a visible ring").not.toBe(
+    "none",
+  );
+
+  // Enter pages forward and the live region reflects the new week.
+  await page.keyboard.press("Enter");
+  await expect(indicator(page)).toContainText(`Week 2 of ${WEEK_COUNT}`);
+  await expect(indicator(page)).toContainText(rangeOf(WINDOWS[1]));
+  await expect(prevButton(page)).toBeEnabled();
+
+  // Space works too (native button semantics).
+  await nextButton(page).focus();
+  await page.keyboard.press("Space");
+  await expect(indicator(page)).toContainText(`Week 3 of ${WEEK_COUNT}`);
+
+  // Keyboard paging back via the Previous button.
+  await prevButton(page).focus();
+  await page.keyboard.press("Enter");
+  await expect(indicator(page)).toContainText(`Week 2 of ${WEEK_COUNT}`);
+
+  await page.screenshot({
+    path: `${EVIDENCE_DIR}/pager-keyboard-week2-desktop.png`,
+  });
 });

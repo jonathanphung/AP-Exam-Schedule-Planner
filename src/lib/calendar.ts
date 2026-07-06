@@ -7,12 +7,15 @@ import {
 import type { Schedule, ScheduleEntry, UndatedSubject } from "./schedule";
 
 /**
- * Pure layout logic for the month-calendar grid view (issue #19).
+ * Pure layout logic for the calendar grid view (issue #19).
  *
  * Turns the schedule built by `buildSchedule` (which already reads through the
  * conflict-resolution layer, so every exam sits at its *effective* slot) into
  * a week-by-week time-grid layout: dated day columns, an hourly axis, and
- * positioned exam blocks.
+ * positioned exam blocks. The view renders ONE week at a time and pages
+ * through the weeks with prev/next buttons (per the issue-19 design bounce —
+ * no vertical month scrolling); {@link defaultWeekIndex} and
+ * {@link weekExamCounts} feed that pager.
  *
  * Design decision (documented per the issue): the dataset publishes session
  * START times only ("8 a.m. local time" / "12 p.m. local time") and no exam
@@ -244,6 +247,30 @@ export function buildCalendarLayout(
     offGrid,
     undated: schedule.undated,
   };
+}
+
+/** Number of exam blocks placed in each week of the layout (pager badges). */
+export function weekExamCounts(
+  weeks: readonly CalendarWeekLayout[],
+): number[] {
+  return weeks.map((week) =>
+    week.days.reduce((count, day) => count + day.blocks.length, 0),
+  );
+}
+
+/**
+ * Default pager page: the first week containing a placed exam block, falling
+ * back to the first week when no block is placed anywhere (issue-19 design
+ * bounce, item 5). Off-grid/undated entries never influence the default —
+ * they have no week position by definition.
+ */
+export function defaultWeekIndex(
+  weeks: readonly CalendarWeekLayout[],
+): number {
+  const index = weeks.findIndex((week) =>
+    week.days.some((day) => day.blocks.length > 0),
+  );
+  return index === -1 ? 0 : index;
 }
 
 /** "MON" — uppercase short weekday for a floating ISO date (local, no TZ shift). */

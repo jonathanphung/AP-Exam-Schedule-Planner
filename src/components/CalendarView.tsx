@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import apData from "@/data/ap-2026.json";
 import {
   CATEGORIES,
@@ -14,9 +14,11 @@ import { resolveSlots } from "@/lib/conflicts";
 import { buildSchedule, formatDateLabel } from "@/lib/schedule";
 import {
   buildCalendarLayout,
+  defaultWeekIndex,
   hourLabel,
   monthDayLabel,
   weekdayLabel,
+  weekExamCounts,
   weekRangeLabel,
   NOMINAL_BLOCK_HOURS,
   type CalendarBlock,
@@ -25,11 +27,29 @@ import {
 } from "@/lib/calendar";
 
 /**
- * Month-calendar grid view of the selected exams (issue #19).
+ * Week-paged calendar grid view of the selected exams (issue #19).
  *
  * A UT-Registration-Plus-style time grid, except the columns are REAL May
- * 2026 dates (the published testing windows from the dataset schema), laid
- * out week by week and vertically scrollable so the whole month is reachable.
+ * 2026 dates (the published testing windows from the dataset schema). The
+ * view shows EXACTLY ONE testing week at a time — matching the single-week
+ * look of the reference — and pages through the cycle's weeks with visible
+ * Previous/Next buttons instead of vertical month scrolling (issue-19 design
+ * bounce). The pages are derived from `REGULAR_WINDOWS` + `LATE_TESTING_WINDOW`
+ * via `calendarWeeks()`, never hardcoded, so an annual dataset swap re-pages
+ * automatically.
+ *
+ * Pager design decisions (documented per the bounce spec):
+ * - Ends DISABLE the buttons (no wrap-around) — predictable for keyboard and
+ *   screen-reader users; the position indicator makes the ends legible.
+ * - Default page = first week containing a placed exam (falls back to week 1;
+ *   with zero selections the empty-state hint replaces the grid + pager). The
+ *   default keeps following the selection as it changes until the student
+ *   pages manually — after that, their chosen position wins.
+ * - Instead of dot/tab quick-jump, the Prev/Next buttons carry exam-count
+ *   badges when other weeks hold exams (the bounce's nice-to-have), so "there
+ *   is more" is visible right on the pager.
+ * - Week changes are announced to assistive tech via the `aria-live="polite"`
+ *   position indicator.
  *
  * Exams read through the same conflict-resolution layer as the list view
  * (`resolveSlots` → `buildSchedule`), so a moved exam renders at its
@@ -154,14 +174,9 @@ function WeekGrid({
       }
       className="flex flex-col gap-2"
     >
-      <h3 className="flex flex-wrap items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-        {weekRangeLabel(week.days.map((d) => d.date))}
-        {week.late && (
-          <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-violet-900 dark:bg-violet-500/30 dark:text-violet-200">
-            Late testing
-          </span>
-        )}
-      </h3>
+      {/* The week range + late-testing badge render in the pager's position
+          indicator above this section, which doubles as the aria-live region
+          announcing week changes. */}
 
       {/* The grid may scroll horizontally INSIDE this container at narrow
           viewports; the page body itself never scrolls horizontally. */}
@@ -253,6 +268,135 @@ function WeekGrid({
   );
 }
 
+function ChevronIcon({ direction }: { direction: "left" | "right" }) {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      className="h-4 w-4 flex-none"
+    >
+      {direction === "left" ? (
+        <path
+          fillRule="evenodd"
+          d="M12.79 5.23a.75.75 0 0 1-.02 1.06L8.832 10l3.938 3.71a.75.75 0 1 1-1.04 1.08l-4.5-4.25a.75.75 0 0 1 0-1.08l4.5-4.25a.75.75 0 0 1 1.06.02Z"
+          clipRule="evenodd"
+        />
+      ) : (
+        <path
+          fillRule="evenodd"
+          d="M7.21 14.77a.75.75 0 0 1 .02-1.06L11.168 10 7.23 6.29a.75.75 0 1 1 1.04-1.08l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 0 1-1.06-.02Z"
+          clipRule="evenodd"
+        />
+      )}
+    </svg>
+  );
+}
+
+/** Shared style for the Previous/Next pager buttons (mirrors the view-switcher
+ *  chips: ≥44px touch target on mobile, focus-visible ring, AA contrast). */
+const PAGER_BUTTON_CLASS = [
+  "inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition sm:min-h-0",
+  "border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800",
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-950",
+  "disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-white dark:disabled:hover:bg-slate-900",
+].join(" ");
+
+/** Exam-count badge shown on a pager button when weeks in that direction hold
+ *  exams (the count is also folded into the button's aria-label). */
+function PagerBadge({ count }: { count: number }) {
+  return (
+    <span
+      aria-hidden="true"
+      className="rounded-full bg-blue-600 px-1.5 text-[10px] font-semibold leading-4 text-white dark:bg-blue-400 dark:text-slate-950"
+    >
+      {count}
+    </span>
+  );
+}
+
+function pagerLabel(direction: "Previous" | "Next", examCount: number): string {
+  if (examCount === 0) return `${direction} week`;
+  const noun = examCount === 1 ? "exam" : "exams";
+  const where = direction === "Previous" ? "earlier" : "later";
+  return `${direction} week (${examCount} ${noun} in ${where} weeks)`;
+}
+
+/**
+ * Prev/next week pager with an aria-live position indicator ("May 4 – May 8 ·
+ * Week 1 of 3"). Buttons are native `<button>`s (keyboard-operable), always
+ * visible, and DISABLED at the ends — no wrap-around (documented choice).
+ */
+function WeekPager({
+  week,
+  page,
+  weekCount,
+  examsBefore,
+  examsAfter,
+  onPage,
+}: {
+  week: CalendarWeekLayout;
+  page: number;
+  weekCount: number;
+  examsBefore: number;
+  examsAfter: number;
+  onPage: (index: number) => void;
+}) {
+  return (
+    <div
+      data-testid="calendar-pager"
+      className="flex flex-wrap items-center justify-between gap-2"
+    >
+      <button
+        type="button"
+        aria-label={pagerLabel("Previous", examsBefore)}
+        disabled={page === 0}
+        onClick={() => onPage(page - 1)}
+        className={PAGER_BUTTON_CLASS}
+      >
+        <ChevronIcon direction="left" />
+        <span className="hidden sm:inline">Previous week</span>
+        <span className="sm:hidden">Prev</span>
+        {examsBefore > 0 && <PagerBadge count={examsBefore} />}
+      </button>
+
+      {/* Position indicator = the aria-live region announcing week changes. */}
+      <p
+        data-testid="calendar-week-indicator"
+        aria-live="polite"
+        aria-atomic="true"
+        className="order-first flex w-full flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-sm text-slate-600 sm:order-none sm:w-auto sm:flex-1 dark:text-slate-300"
+      >
+        <span className="font-semibold text-slate-800 dark:text-slate-100">
+          {weekRangeLabel(week.days.map((d) => d.date))}
+        </span>
+        <span aria-hidden="true">·</span>
+        <span>
+          Week {page + 1} of {weekCount}
+        </span>
+        {week.late && (
+          <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-violet-900 dark:bg-violet-500/30 dark:text-violet-200">
+            Late testing
+          </span>
+        )}
+      </p>
+
+      <button
+        type="button"
+        aria-label={pagerLabel("Next", examsAfter)}
+        disabled={page === weekCount - 1}
+        onClick={() => onPage(page + 1)}
+        className={PAGER_BUTTON_CLASS}
+      >
+        {examsAfter > 0 && <PagerBadge count={examsAfter} />}
+        <span className="hidden sm:inline">Next week</span>
+        <span className="sm:hidden">Next</span>
+        <ChevronIcon direction="right" />
+      </button>
+    </div>
+  );
+}
+
 function offGridLabel(item: OffGridEntry): string {
   switch (item.reason) {
     case "portfolio":
@@ -285,6 +429,36 @@ export function CalendarView() {
     () => buildCalendarLayout(schedule, SESSION_START_TIMES, CATEGORIES_BY_ID),
     [schedule],
   );
+
+  // ---- Week pager state (issue-19 design bounce) --------------------------
+  const weekCount = layout.weeks.length;
+  const examCounts = useMemo(() => weekExamCounts(layout.weeks), [layout]);
+  const defaultIndex = useMemo(() => defaultWeekIndex(layout.weeks), [layout]);
+  const [pageIndex, setPageIndex] = useState(defaultIndex);
+  const userPaged = useRef(false);
+
+  // Follow the default (first week holding an exam) as the selection changes
+  // live — but only until the student pages manually; their position then
+  // wins for the life of this mounted view.
+  useEffect(() => {
+    if (!userPaged.current) setPageIndex(defaultIndex);
+  }, [defaultIndex]);
+
+  // Clamp defensively: weekCount is schema-derived and currently fixed, but a
+  // stale index must never render an undefined week.
+  const page = Math.min(Math.max(pageIndex, 0), Math.max(weekCount - 1, 0));
+  const currentWeek = layout.weeks[page];
+  const goToPage = (index: number) => {
+    userPaged.current = true;
+    setPageIndex(Math.min(Math.max(index, 0), weekCount - 1));
+  };
+  const examsBefore = examCounts
+    .slice(0, page)
+    .reduce((sum, count) => sum + count, 0);
+  const examsAfter = examCounts
+    .slice(page + 1)
+    .reduce((sum, count) => sum + count, 0);
+  // -------------------------------------------------------------------------
 
   const usedCategories = useMemo(() => {
     const used = new Set<Category>();
@@ -330,16 +504,23 @@ export function CalendarView() {
             </ul>
           )}
 
-          <div className="flex flex-col gap-6">
-            {layout.weeks.map((week) => (
+          {currentWeek && (
+            <>
+              <WeekPager
+                week={currentWeek}
+                page={page}
+                weekCount={weekCount}
+                examsBefore={examsBefore}
+                examsAfter={examsAfter}
+                onPage={goToPage}
+              />
               <WeekGrid
-                key={week.days[0]?.date ?? "empty"}
-                week={week}
+                week={currentWeek}
                 axisStartHour={layout.axisStartHour}
                 axisEndHour={layout.axisEndHour}
               />
-            ))}
-          </div>
+            </>
+          )}
 
           {(layout.offGrid.length > 0 || layout.undated.length > 0) && (
             <section

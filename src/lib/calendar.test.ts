@@ -3,11 +3,13 @@ import { LATE_TESTING_WINDOW, REGULAR_WINDOWS, type Category } from "../data/sch
 import {
   buildCalendarLayout,
   calendarWeeks,
+  defaultWeekIndex,
   enumerateDates,
   hourLabel,
   monthDayLabel,
   parseStartHour,
   weekdayLabel,
+  weekExamCounts,
   weekRangeLabel,
   NOMINAL_BLOCK_HOURS,
 } from "./calendar";
@@ -243,6 +245,55 @@ describe("buildCalendarLayout", () => {
     expect(layout.undated).toEqual([
       { id: "cyber", name: "AP Cybersecurity", reason: "2027" },
     ]);
+  });
+});
+
+describe("week pager helpers", () => {
+  it("counts placed exam blocks per week", () => {
+    const layout = buildCalendarLayout(
+      scheduleOf([
+        examEntry("bio", "2026-05-04", "AM"),
+        examEntry("euro", "2026-05-05", "PM"),
+        examEntry("latin", "2026-05-19", "PM", true),
+      ]),
+      START_TIMES,
+      CATEGORIES_BY_ID,
+    );
+    expect(weekExamCounts(layout.weeks)).toEqual([2, 0, 1]);
+  });
+
+  it("defaults the pager to the first week containing an exam", () => {
+    const layout = buildCalendarLayout(
+      scheduleOf([examEntry("euro", "2026-05-13", "PM")]),
+      START_TIMES,
+      CATEGORIES_BY_ID,
+    );
+    expect(defaultWeekIndex(layout.weeks)).toBe(1);
+  });
+
+  it("defaults to the late-testing week when it holds the only exam", () => {
+    const layout = buildCalendarLayout(
+      scheduleOf([examEntry("bio", "2026-05-20", "PM", true)]),
+      START_TIMES,
+      CATEGORIES_BY_ID,
+    );
+    expect(defaultWeekIndex(layout.weeks)).toBe(layout.weeks.length - 1);
+  });
+
+  it("falls back to week 1 when nothing is placed on the grid", () => {
+    const empty = buildCalendarLayout(scheduleOf([]), START_TIMES, CATEGORIES_BY_ID);
+    expect(defaultWeekIndex(empty.weeks)).toBe(0);
+    expect(weekExamCounts(empty.weeks)).toEqual(
+      empty.weeks.map(() => 0),
+    );
+
+    // Off-grid entries (portfolio deadlines) never influence the default.
+    const offGridOnly = buildCalendarLayout(
+      scheduleOf([portfolioEntry("bio", "2026-05-08")]),
+      START_TIMES,
+      CATEGORIES_BY_ID,
+    );
+    expect(defaultWeekIndex(offGridOnly.weeks)).toBe(0);
   });
 });
 
