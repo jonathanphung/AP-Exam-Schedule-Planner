@@ -3,15 +3,21 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 /**
- * super-board QA (issue #23) — Resources page of curated official College Board links.
+ * super-board QA (issue #23) — Resources sidebar of curated official College
+ * Board links.
+ *
+ * Per Jon's design bounce on PR #25, the resources no longer live on a dedicated
+ * `/resources` route. They render inside the main app as a persistent left
+ * sidebar on desktop (≥1024px) and a collapsed disclosure near the top of the
+ * page on mobile/tablet (<1024px). These specs assert both presentations.
  *
  * One observable assertion per acceptance-criterion clause:
  *   AC1 — grouped headings + real anchors with descriptive text (never "click here").
  *   AC2 — every link is a real https collegeboard.org URL; no placeholder/# hrefs.
  *   AC3 — links open in a new tab (target=_blank + rel=noopener noreferrer) with a
  *         visible ↗ and an assistive-tech "(opens in a new tab)" hint.
- *   AC4 — reachable from the home page's primary nav without breaking the
- *         single-page planner flow.
+ *   AC4 — reachable in the app's primary layout without breaking the single-page
+ *         planner flow: a persistent sidebar on desktop, a disclosure on mobile.
  *   AC5 — the "Not affiliated with College Board" footer notice stays visible.
  *   AC6 — cycle-labeled links read the cycle from apData.cycle (not hardcoded).
  *   AC7 — accessible + responsive at 375 / 1024 / 1920 px, no horizontal overflow,
@@ -27,23 +33,44 @@ const CYCLE = (
 
 const GROUP_HEADINGS = ["Exam logistics", "Scores", "Planning & deadlines"];
 
+const SIDEBAR = "aside[data-testid='resources-sidebar']";
+const RESOURCE_LINKS = `${SIDEBAR} a[target='_blank']`;
+
+const DESKTOP = { width: 1440, height: 900 };
+const MOBILE = { width: 375, height: 667 };
+
+/**
+ * On mobile the sidebar is a collapsed disclosure; expand it so its links are
+ * rendered/focusable. On desktop the panel is always shown, so this is a no-op.
+ */
+async function revealSidebar(page: import("@playwright/test").Page) {
+  const toggle = page.getByRole("button", { name: /^resources$/i });
+  if ((await toggle.count()) > 0 && (await toggle.isVisible())) {
+    const expanded = await toggle.getAttribute("aria-expanded");
+    if (expanded === "false") await toggle.click();
+  }
+}
+
 // ── AC1: grouped headings + descriptive anchors ─────────────────────────────
 test("AC1 — grouped headings with real, descriptively-labeled anchors", async ({
   page,
 }) => {
-  await page.goto("/resources");
+  await page.setViewportSize(DESKTOP);
+  await page.goto("/");
 
+  // Sidebar landmark + its "Resources" heading are present on the main app.
+  await expect(page.locator(SIDEBAR)).toBeVisible();
   await expect(
-    page.getByRole("heading", { level: 1, name: "Resources" }),
+    page.locator(`${SIDEBAR} h2:visible`, { hasText: "Resources" }),
   ).toBeVisible();
 
   for (const heading of GROUP_HEADINGS) {
     await expect(
-      page.getByRole("heading", { level: 2, name: heading }),
+      page.getByRole("heading", { level: 3, name: heading }),
     ).toBeVisible();
   }
 
-  const links = page.locator("main a[target='_blank']");
+  const links = page.locator(RESOURCE_LINKS);
   const count = await links.count();
   expect(count, "expected several curated resource links").toBeGreaterThanOrEqual(6);
 
@@ -58,10 +85,11 @@ test("AC1 — grouped headings with real, descriptively-labeled anchors", async 
 test("AC2 — every resource link is a real https collegeboard.org URL, no placeholders", async ({
   page,
 }) => {
-  await page.goto("/resources");
+  await page.setViewportSize(DESKTOP);
+  await page.goto("/");
 
-  const hrefs = await page.locator("main a[target='_blank']").evaluateAll(
-    (els) => els.map((el) => (el as HTMLAnchorElement).getAttribute("href") ?? ""),
+  const hrefs = await page.locator(RESOURCE_LINKS).evaluateAll((els) =>
+    els.map((el) => (el as HTMLAnchorElement).getAttribute("href") ?? ""),
   );
 
   expect(hrefs.length).toBeGreaterThanOrEqual(6);
@@ -82,10 +110,12 @@ test("AC2 — every resource link is a real https collegeboard.org URL, no place
 test("AC3 — links open in a new tab with rel=noopener noreferrer and an accessible ↗", async ({
   page,
 }) => {
-  await page.goto("/resources");
+  await page.setViewportSize(DESKTOP);
+  await page.goto("/");
 
-  const links = page.locator("main a[target='_blank']");
+  const links = page.locator(RESOURCE_LINKS);
   const count = await links.count();
+  expect(count).toBeGreaterThanOrEqual(6);
 
   for (let i = 0; i < count; i++) {
     const link = links.nth(i);
@@ -99,7 +129,7 @@ test("AC3 — links open in a new tab with rel=noopener noreferrer and an access
 
     // The indicator is decorative (aria-hidden) and the new-tab hint is
     // conveyed to assistive tech via visually-hidden text.
-    await expect(link.locator("[aria-hidden='true']")).toBeVisible();
+    await expect(link.locator("[aria-hidden='true']")).toHaveCount(1);
     await expect(
       link.getByText("(opens in a new tab)", { exact: false }),
     ).toHaveCount(1);
@@ -110,43 +140,69 @@ test("AC3 — links open in a new tab with rel=noopener noreferrer and an access
   }
 });
 
-// ── AC4: reachable from primary nav; single-page flow intact ────────────────
-test("AC4 — reachable from the home page primary nav without breaking the planner", async ({
+// ── AC4a: persistent sidebar beside the planner on desktop ──────────────────
+test("AC4 (desktop) — persistent sidebar renders beside the intact single-page planner", async ({
   page,
 }) => {
+  await page.setViewportSize(DESKTOP);
   await page.goto("/");
 
-  // Home page still renders the single-page planner (catalog + schedule).
-  await expect(page.getByRole("main")).toBeVisible();
+  // The single-page planner is intact: header, catalog, and schedule content.
+  await expect(
+    page.getByRole("heading", { level: 1, name: "AP Exam Planner" }),
+  ).toBeVisible();
+  await expect(page.getByRole("main", { name: "Exam planner" })).toBeVisible();
+
+  // The sidebar and its links are visible with no interaction (persistent).
+  const sidebar = page.locator(SIDEBAR);
+  await expect(sidebar).toBeVisible();
+  await expect(page.locator(RESOURCE_LINKS).first()).toBeVisible();
+
+  // No route change — still the single-page app.
+  await expect(page).toHaveURL(/\/$/);
+
+  // The mobile disclosure toggle is hidden at desktop width.
+  await expect(page.getByRole("button", { name: /^resources$/i })).toBeHidden();
+});
+
+// ── AC4b: collapsed disclosure on mobile ────────────────────────────────────
+test("AC4 (mobile) — resources collapse into an accessible disclosure near the top", async ({
+  page,
+}) => {
+  await page.setViewportSize(MOBILE);
+  await page.goto("/");
+
+  const toggle = page.getByRole("button", { name: /^resources$/i });
+  await expect(toggle).toBeVisible();
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  await expect(toggle).toHaveAttribute("aria-controls", "resources-panel");
+
+  // Collapsed by default: links are not yet shown.
+  await expect(page.locator(RESOURCE_LINKS).first()).toBeHidden();
+
+  // Expanding the disclosure reveals the same curated links.
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  await expect(page.locator(RESOURCE_LINKS).first()).toBeVisible();
+  expect(await page.locator(RESOURCE_LINKS).count()).toBeGreaterThanOrEqual(6);
+
+  // The planner content sits below the disclosure and stays intact.
   await expect(
     page.getByRole("heading", { level: 1, name: "AP Exam Planner" }),
   ).toBeVisible();
 
-  const nav = page.getByRole("navigation", { name: "Primary" });
-  const resourcesLink = nav.getByRole("link", { name: /resources/i });
-  await expect(resourcesLink).toBeVisible();
-
-  await resourcesLink.click();
-  await expect(page).toHaveURL(/\/resources$/);
-  await expect(
-    page.getByRole("heading", { level: 1, name: "Resources" }),
-  ).toBeVisible();
-
-  // A way back to the planner exists (does not trap the user off the SPA flow).
-  const backLink = page
-    .getByRole("navigation", { name: "Primary" })
-    .getByRole("link", { name: /AP Exam Planner/i });
-  await expect(backLink).toBeVisible();
-  await backLink.click();
-  await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByRole("heading", { level: 1, name: "AP Exam Planner" })).toBeVisible();
+  // Collapsible again.
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  await expect(page.locator(RESOURCE_LINKS).first()).toBeHidden();
 });
 
 // ── AC5: non-affiliation footer notice stays visible ────────────────────────
-test("AC5 — the non-affiliation footer notice is present on the Resources page", async ({
+test("AC5 — the non-affiliation footer notice is present on the home page", async ({
   page,
 }) => {
-  await page.goto("/resources");
+  await page.setViewportSize(DESKTOP);
+  await page.goto("/");
   const footer = page.locator('footer[data-testid="site-footer"]');
   await expect(footer).toBeVisible();
   await expect(
@@ -158,11 +214,10 @@ test("AC5 — the non-affiliation footer notice is present on the Resources page
 test("AC6 — cycle-labeled links read the cycle from the dataset metadata", async ({
   page,
 }) => {
-  await page.goto("/resources");
+  await page.setViewportSize(DESKTOP);
+  await page.goto("/");
   // The exam-dates and late-testing links are labeled with the dataset cycle.
-  const cycleLinks = page.locator("main a[target='_blank']", {
-    hasText: `${CYCLE} AP`,
-  });
+  const cycleLinks = page.locator(RESOURCE_LINKS, { hasText: `${CYCLE} AP` });
   expect(await cycleLinks.count()).toBeGreaterThanOrEqual(1);
   await expect(cycleLinks.first()).toContainText(CYCLE);
 });
@@ -179,18 +234,27 @@ for (const vp of viewports) {
     page,
   }) => {
     await page.setViewportSize({ width: vp.width, height: vp.height });
-    await page.goto("/resources", { waitUntil: "networkidle" });
+    await page.goto("/", { waitUntil: "networkidle" });
 
-    const scrollWidth = await page.evaluate(
-      () => document.documentElement.scrollWidth,
-    );
-    expect(
-      scrollWidth,
-      `Horizontal overflow at ${vp.width}px: scrollWidth=${scrollWidth}`,
-    ).toBeLessThanOrEqual(vp.width + 1);
+    const overflows = async (label: string) => {
+      const scrollWidth = await page.evaluate(
+        () => document.documentElement.scrollWidth,
+      );
+      expect(
+        scrollWidth,
+        `Horizontal overflow (${label}) at ${vp.width}px: scrollWidth=${scrollWidth}`,
+      ).toBeLessThanOrEqual(vp.width + 1);
+    };
+
+    // No overflow in the default (collapsed on mobile) state...
+    await overflows("default");
+
+    // ...nor once the resource links are revealed (long descriptions wrap).
+    await revealSidebar(page);
+    await overflows("sidebar-open");
 
     // First resource link is keyboard-focusable (real anchor, receives focus).
-    const firstLink = page.locator("main a[target='_blank']").first();
+    const firstLink = page.locator(RESOURCE_LINKS).first();
     await firstLink.focus();
     const focused = await page.evaluate(() => {
       const el = document.activeElement as HTMLElement | null;
@@ -205,7 +269,9 @@ for (const vp of viewports) {
 }
 
 // ── Clean render (no console/page errors) ───────────────────────────────────
-test("Resources page renders without console or page errors", async ({ page }) => {
+test("Home page with the resources sidebar renders without console or page errors", async ({
+  page,
+}) => {
   const consoleErrors: string[] = [];
   page.on("console", (msg) => {
     if (msg.type() === "error") consoleErrors.push(msg.text());
@@ -213,8 +279,12 @@ test("Resources page renders without console or page errors", async ({ page }) =
   const pageErrors: string[] = [];
   page.on("pageerror", (err) => pageErrors.push(err.message));
 
-  await page.goto("/resources");
-  await expect(page.getByRole("heading", { level: 1, name: "Resources" })).toBeVisible();
+  await page.setViewportSize(DESKTOP);
+  await page.goto("/");
+  await expect(page.locator(SIDEBAR)).toBeVisible();
+  await expect(
+    page.getByRole("heading", { level: 1, name: "AP Exam Planner" }),
+  ).toBeVisible();
 
   expect(pageErrors, `page errors: ${pageErrors.join(", ")}`).toEqual([]);
   const meaningful = consoleErrors.filter((t) => !/favicon/i.test(t));
