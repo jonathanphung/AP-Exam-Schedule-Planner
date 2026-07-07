@@ -27,7 +27,6 @@ import {
   ConflictDialog,
   nameList,
 } from "@/components/ConflictDialog";
-import { ExportButton } from "@/components/ExportButton";
 import { SubjectName } from "@/components/SubjectName";
 
 // The dataset ships bundled and is validated by `pnpm test:data`; the JSON
@@ -37,9 +36,8 @@ const SUBJECTS: readonly ApSubject[] = dataset.subjects;
 const SUBJECTS_BY_ID: ReadonlyMap<string, ApSubject> = new Map(
   SUBJECTS.map((subject) => [subject.id, subject]),
 );
-// The banner reads the cycle from dataset metadata — never hardcoded, so a
-// dataset swap (May 2027) re-labels the schedule automatically.
-const CYCLE = dataset.cycle;
+// The cycle banner moved up into ScheduleViews (issue #19 second bounce,
+// item B) so it is shared by the list and calendar views.
 
 function ScheduleRow({ entry }: { entry: ScheduleEntry }) {
   const isPortfolio = entry.kind === "portfolio";

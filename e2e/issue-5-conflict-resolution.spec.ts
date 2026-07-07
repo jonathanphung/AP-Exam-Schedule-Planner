@@ -319,8 +319,11 @@ test.describe("issue #5 — same-slot conflicts resolve to official late-testing
       [BIOLOGY.id, LATIN.id].sort(),
     );
 
-    // Survives reload: no prompt, exam still on the late date.
+    // Survives reload: no prompt, exam still on the late date. The reload
+    // resets the view switcher to its calendar default (#19 bounce B6), so
+    // re-open the list where these rows and the would-be prompt live.
     await page.reload();
+    await openList(page);
     await expect(prompt(page)).toHaveCount(0);
     await expect(rowsIn(page, BIOLOGY.lateTesting!.date)).toHaveCount(1);
 

@@ -64,6 +64,19 @@ async function select(page: Page, name: string) {
   await expect(c).toHaveAttribute("aria-pressed", "true");
 }
 
+/**
+ * The CALENDAR is now the default view (issue #19 bounce item B6); the
+ * schedule LIST rows and the auto-raised conflict prompt these tests assert
+ * against live in the list view, so switch to it first.
+ */
+async function openList(page: Page) {
+  await page
+    .getByRole("group", { name: "Schedule view" })
+    .getByRole("button", { name: "List" })
+    .click();
+  await expect(schedule(page)).toBeVisible();
+}
+
 test.describe("issue #20 — decorative subject emoji everywhere the name shows", () => {
   test("AC1 — every catalog card renders a non-blank leading emoji (complete coverage, all 42)", async ({
     page,
@@ -134,6 +147,7 @@ test.describe("issue #20 — decorative subject emoji everywhere the name shows"
     // both populates the schedule AND raises the conflict prompt (issue #5).
     await select(page, "AP Biology");
     await select(page, "AP Latin");
+    await openList(page);
 
     // Schedule list rows carry the emoji next to the name.
     await expect(schedule(page)).toContainText(BIOLOGY_EMOJI);
@@ -187,6 +201,7 @@ test.describe("issue #20 — decorative subject emoji everywhere the name shows"
       // emoji across the catalog, the schedule rows, and the conflict prompt.
       await select(page, "AP Biology");
       await select(page, "AP Latin");
+      await openList(page);
       await expect(conflictPrompt(page)).toBeVisible();
       await page.screenshot({
         path: `${EVIDENCE_DIR}/${vp.name}.png`,

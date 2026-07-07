@@ -264,6 +264,11 @@ async function openCalendar(page: Page) {
   const chip = calendarChip(page);
   if ((await chip.getAttribute("aria-pressed")) !== "true") await chip.click();
   await expect(calendarView(page)).toBeVisible();
+  // Navigate to the section the way a user does: since the calendar is now
+  // the default (no chip click to auto-scroll) and the #25 resources layout
+  // keeps the catalog above it, bring the view on-screen before assertions
+  // that check what is visible within the viewport.
+  await calendarView(page).scrollIntoViewIfNeeded();
 }
 
 async function openList(page: Page) {
