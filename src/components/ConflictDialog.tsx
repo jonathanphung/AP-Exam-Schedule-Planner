@@ -54,6 +54,14 @@ export interface ConflictDialogProps {
    * modal dialog (focus-trapped, Escape-dismissable) until dismissed.
    */
   modalCandidate: boolean;
+  /**
+   * Notified when the modal presentation is dismissed (Escape / close /
+   * backdrop). Hosts that mount the dialog on demand (the calendar view's
+   * click-a-conflicted-event flow, issue #19) unmount it here instead of
+   * leaving the inline fallback behind; ScheduleView omits it and keeps the
+   * issue-#5 inline behavior unchanged.
+   */
+  onDismiss?: () => void;
 }
 
 interface ConflictBodyProps {
@@ -140,6 +148,7 @@ export function ConflictDialog({
   subjectsById,
   onKeep,
   modalCandidate,
+  onDismiss,
 }: ConflictDialogProps) {
   const headingId = useId();
   const [dismissed, setDismissed] = useState(false);
@@ -154,7 +163,13 @@ export function ConflictDialog({
 
   if (!modalCandidate || dismissed) return body;
   return (
-    <ConflictModal headingId={headingId} onDismiss={() => setDismissed(true)}>
+    <ConflictModal
+      headingId={headingId}
+      onDismiss={() => {
+        setDismissed(true);
+        onDismiss?.();
+      }}
+    >
       {body}
     </ConflictModal>
   );

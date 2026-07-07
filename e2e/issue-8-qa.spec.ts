@@ -88,6 +88,19 @@ async function seed(page: Page, ids: string[], resolutions?: unknown[]) {
  * app has no infinite animations, but the 2s race is a safety valve so a
  * future one can never hang the scan.
  */
+/**
+ * Issue #19 (second bounce) made the CALENDAR the default view; the states
+ * this spec captures (conflict modal-on-load, moved badge, late-collision
+ * warning) live in the LIST view, so those tests switch to it first.
+ */
+async function openList(page: Page) {
+  await page
+    .getByRole("group", { name: "Schedule view" })
+    .getByRole("button", { name: "List" })
+    .click();
+  await expect(page.locator('section[aria-label="My schedule"]')).toBeVisible();
+}
+
 async function settleAnimations(page: Page) {
   await page.evaluate(async () => {
     const done = Promise.all(
@@ -178,6 +191,7 @@ test.describe("issue #8 QA evidence", () => {
       const page = await ctx.newPage();
       await seed(page, RESOLVED_IDS, RESOLUTIONS);
       await page.goto("/");
+      await openList(page);
       await expect(
         page.getByText("Moved to late testing").first(),
       ).toBeVisible();
@@ -210,6 +224,7 @@ test.describe("issue #8 QA evidence", () => {
   }) => {
     await seed(page, [BIOLOGY.id, LATIN.id]);
     await page.goto("/");
+    await openList(page); // the modal-on-collision behavior lives in the list view
     const modal = page.getByRole("dialog");
     await expect(modal).toBeVisible();
     await expect(modal).toHaveAttribute("aria-modal", "true");
@@ -268,6 +283,7 @@ test.describe("issue #8 QA evidence", () => {
     const conflict = await ctx2.newPage();
     await seed(conflict, [BIOLOGY.id, LATIN.id]);
     await conflict.goto("/");
+    await openList(conflict);
     await expect(conflict.getByRole("dialog")).toBeVisible();
     await scan(conflict, "conflict-dialog-open");
     await ctx2.close();
@@ -286,6 +302,7 @@ test.describe("issue #8 QA evidence", () => {
     const dark = await ctx4.newPage();
     await seed(dark, RESOLVED_IDS, RESOLUTIONS);
     await dark.goto("/");
+    await openList(dark);
     await expect(dark.getByTestId("late-collision-warning")).toBeVisible();
     await scan(dark, "resolved-dark");
     await dark.screenshot({
@@ -311,6 +328,7 @@ test.describe("issue #8 QA evidence", () => {
       const page = await ctx.newPage();
       await seed(page, [BIOLOGY.id, LATIN.id]);
       await page.goto("/");
+      await openList(page);
       await expect(page.getByTestId("conflict-prompt")).toBeVisible();
 
       const promptBody = await contrastRatio(
@@ -331,6 +349,7 @@ test.describe("issue #8 QA evidence", () => {
       const resolved = await ctx2.newPage();
       await seed(resolved, RESOLVED_IDS, RESOLUTIONS);
       await resolved.goto("/");
+      await openList(resolved);
       await expect(
         resolved.getByText("Moved to late testing").first(),
       ).toBeVisible();
@@ -374,6 +393,7 @@ test.describe("issue #8 QA evidence", () => {
     const page = await ctx.newPage();
     await seed(page, [BIOLOGY.id, LATIN.id]);
     await page.goto("/");
+    await openList(page);
     await expect(page.getByRole("dialog")).toBeVisible();
     expect(
       await page.evaluate(

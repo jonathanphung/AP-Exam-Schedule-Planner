@@ -148,17 +148,9 @@ export function ScheduleView() {
 
   return (
     <section aria-label="My schedule" className="flex flex-col gap-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-lg font-semibold tracking-tight">My Schedule</h2>
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="inline-flex w-fit items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-800 dark:border-blue-500/40 dark:bg-blue-950/40 dark:text-blue-200">
-            <span aria-hidden="true">📅</span>
-            Dates reflect the {CYCLE} AP exam cycle.
-          </p>
-          <ExportButton />
-        </div>
-      </div>
-
+      {/* The "My Schedule" heading, cycle banner, and Export button moved to
+          the shared ScheduleViews header (issue-19 second bounce, item B) so
+          they are present on both the list and calendar views. */}
       {unresolved.map((group, index) => (
         <ConflictDialog
           // Keyed by slot: a re-created collision mounts a fresh dialog (and

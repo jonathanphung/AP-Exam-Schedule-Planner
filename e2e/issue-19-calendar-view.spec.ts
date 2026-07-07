@@ -7,39 +7,48 @@ import {
 
 /**
  * super-board QA (issue #19) — week-paged calendar grid view for selected
- * exams (v2 design after the human bounce: one week at a time with visible
- * Previous/Next pager buttons; the pager replaces month scrolling).
+ * exams (v3 design after the SECOND human bounce: the week pager stays; block
+ * heights are duration-proportional — published `format.totalMinutes` from
+ * the session start plus a visually distinct 30-minute setup buffer; the
+ * "My Schedule" header + Export button live above the switcher on BOTH views;
+ * the switcher chips read "List"/"Calendar"; the CALENDAR is the default
+ * view; and blocks are interactive — details popup, conflict-dialog-first for
+ * conflicted events, switch-back/swap for moved-to-late events).
  *
  * One observable, browser-level test per acceptance criterion, plus pager
  * coverage (week 1 → next → late-testing week, indicator text, a11y
- * semantics, default page) and screenshot capture at the three standard
- * super-board viewports (desktop 1920x1080, tablet 1024x768, mobile 375x667).
- * Screenshots land in the run evidence folder and are committed to the issue
- * branch so they render inline on the issue / PR.
+ * semantics, default page), bounce-item coverage (A/B/C above), and
+ * screenshot capture at the three standard super-board viewports (desktop
+ * 1920x1080, tablet 1024x768, mobile 375x667). Screenshots land in the run
+ * evidence folder and are committed to the issue branch so they render inline
+ * on the issue / PR.
  *
  * Dataset-driven fixtures (asserted from the shipped JSON, never hardcoded
  * beyond ids):
  *   - AP Biology        STEM        2026-05-04 AM → late 2026-05-20 PM
  *   - AP Latin          Languages   2026-05-04 AM (collides with Biology)
  *   - AP Chemistry      STEM        2026-05-05 AM (same category as Biology)
+ *   - AP European History Humanities 2026-05-04 PM, 195 min (axis-extension)
  *   - AP Spanish Literature and Culture  Languages  2026-05-13 PM (conflict-free)
  *   - AP Seminar        Humanities  2026-05-11 PM + portfolio 2026-04-30
  *   - AP Drawing        Arts        portfolio-only, deadline 2026-05-08
  *   - AP Cybersecurity  Career Kickstart — no exam, no portfolio (undated)
  *
  * Fixture rule: tests that seed selections via localStorage use CONFLICT-FREE
- * sets — an unresolved same-slot conflict opens issue #5's modal dialog
- * (deliberately blocking, Escape-dismissable), which would intercept the
- * view-switcher click. The conflict pair (Biology+Latin) is only used in AC3,
- * which tests exactly that path through the UI.
+ * sets unless the test targets the conflict path itself. On the CALENDAR view
+ * an unresolved conflict does NOT auto-open a modal (the documented v3
+ * choice: the calendar surfaces issue #5's dialog when a conflicted event is
+ * interacted with — bounce item C8); on the LIST view the issue-#5
+ * modal-on-mount behavior is unchanged.
  */
 
 // Env-overridable so a re-verification pass writes a fresh evidence set
 // instead of rewriting a prior run's committed screenshots.
 const EVIDENCE_DIR =
-  process.env.QA_EVIDENCE_DIR ?? "docs/super-board/runs/issue-19-qa-v2";
+  process.env.QA_EVIDENCE_DIR ?? "docs/super-board/runs/issue-19-qa-v3";
 
 const SELECTION_KEY = "apx.selection.v1";
+const RESOLUTIONS_KEY = "apx.resolutions.v1";
 
 type Subject = {
   id: string;
@@ -48,6 +57,7 @@ type Subject = {
   exam: { date: string; session: "AM" | "PM" } | null;
   lateTesting: { date: string; session: "AM" | "PM" } | null;
   portfolio: { deadline: string } | null;
+  format: { totalMinutes: number | "pending" };
 };
 
 const DATASET = apData as {
@@ -64,6 +74,7 @@ const byId = (id: string): Subject => {
 const BIOLOGY = byId("biology");
 const LATIN = byId("latin");
 const CHEMISTRY = byId("chemistry");
+const EURO_HISTORY = byId("european-history");
 const SPANISH_LIT = byId("spanish-literature-and-culture");
 const SEMINAR = byId("seminar");
 const DRAWING = byId("drawing");
@@ -87,7 +98,7 @@ if (REGULAR_WINDOWS.length + 1 < 3)
     "fixture drift: fewer than 3 testing weeks — pager tests assume week 3 exists",
   );
 {
-  // The seeded (non-AC3) sets must stay conflict-free — see fixture rule above.
+  // The seeded (non-conflict) sets must stay conflict-free — see fixture rule.
   const slots = [BIOLOGY, CHEMISTRY, SPANISH_LIT, SEMINAR].map(
     (s) => `${s.exam!.date}:${s.exam!.session}`,
   );
@@ -96,6 +107,26 @@ if (REGULAR_WINDOWS.length + 1 < 3)
   if (SPANISH_LIT.category !== "Languages")
     throw new Error("fixture drift: spanish-literature category changed");
 }
+// Duration fixtures (bounce item A): the length assertions need PUBLISHED
+// numeric lengths, two of them different; the axis-extension check needs a
+// PM exam long enough that exam + buffer passes 4 PM (>= 181 min from 12:00).
+for (const s of [BIOLOGY, CHEMISTRY, LATIN, EURO_HISTORY]) {
+  if (typeof s.format.totalMinutes !== "number" || s.format.totalMinutes <= 0)
+    throw new Error(`fixture drift: ${s.id} no longer publishes totalMinutes`);
+}
+if (BIOLOGY.format.totalMinutes === CHEMISTRY.format.totalMinutes)
+  throw new Error(
+    "fixture drift: biology/chemistry lengths equal — proportionality check needs two different lengths",
+  );
+if (
+  EURO_HISTORY.exam!.session !== "PM" ||
+  (EURO_HISTORY.format.totalMinutes as number) < 181
+)
+  throw new Error(
+    "fixture drift: european-history no longer a >3h PM exam — re-pick the axis-extension fixture",
+  );
+if (!LATIN.lateTesting)
+  throw new Error("fixture drift: latin lost its late-testing slot");
 
 // ---------------------------------------------------------------------------
 // Locators
@@ -104,10 +135,13 @@ if (REGULAR_WINDOWS.length + 1 < 3)
 const switcher = (page: Page) =>
   page.getByRole("group", { name: "Schedule view" });
 const listChip = (page: Page) =>
-  switcher(page).getByRole("button", { name: "My Schedule" });
+  switcher(page).getByRole("button", { name: "List" });
 const calendarChip = (page: Page) =>
   switcher(page).getByRole("button", { name: "Calendar" });
 const calendarView = (page: Page) => page.getByTestId("calendar-view");
+const scheduleHeading = (page: Page) =>
+  page.getByRole("heading", { level: 2, name: "My Schedule" });
+const exportButton = (page: Page) => page.getByTestId("export-ics-button");
 const weekSections = (page: Page) =>
   calendarView(page).locator(
     'section[aria-label^="Week of"], section[aria-label^="Late-testing week"]',
@@ -209,17 +243,70 @@ async function seedSelection(page: Page, ids: string[]) {
   );
 }
 
+/** Seed conflict resolutions (issue #5 store) before any app script runs. */
+async function seedResolutions(
+  page: Page,
+  resolutions: Array<{
+    date: string;
+    session: "AM" | "PM";
+    keeperId: string;
+    memberIds: string[];
+  }>,
+) {
+  await page.addInitScript(
+    ([key, value]) => window.localStorage.setItem(key, value),
+    [RESOLUTIONS_KEY, JSON.stringify(resolutions)] as const,
+  );
+}
+
+/** The calendar is the DEFAULT view (bounce item B6) — click only if needed. */
 async function openCalendar(page: Page) {
-  await calendarChip(page).click();
+  const chip = calendarChip(page);
+  if ((await chip.getAttribute("aria-pressed")) !== "true") await chip.click();
   await expect(calendarView(page)).toBeVisible();
 }
 
+async function openList(page: Page) {
+  await listChip(page).click();
+  await expect(
+    page.locator('section[aria-label="My schedule"]'),
+  ).toBeVisible();
+}
+
+// ---- Clock-label helpers (mirror src/lib/calendar.ts, dataset-driven) ------
+
+/** Parse "8 a.m. local time" / "12 p.m. local time" into fractional hours. */
+function parseHourOf(label: string): number {
+  const m = /(\d{1,2})(?::(\d{2}))?\s*([ap])\.?\s*m\.?/i.exec(label);
+  if (!m) throw new Error(`unparseable session label: "${label}"`);
+  let hour = Number(m[1]) % 12;
+  if (m[3].toLowerCase() === "p") hour += 12;
+  return hour + (m[2] ? Number(m[2]) : 0) / 60;
+}
+
+/** "8:00 AM" / "11:15 AM" for a fractional hour. */
+function clockOf(hour: number): string {
+  const total = Math.round(hour * 60);
+  const h24 = Math.floor(total / 60) % 24;
+  const minutes = total % 60;
+  const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+  return `${h12}:${String(minutes).padStart(2, "0")} ${h24 < 12 ? "AM" : "PM"}`;
+}
+
+const startHourOf = (s: Subject) =>
+  parseHourOf(DATASET.sessionStartTimes[s.exam!.session]);
+const startClockOf = (s: Subject) => clockOf(startHourOf(s));
+const endClockOf = (s: Subject) =>
+  clockOf(startHourOf(s) + (s.format.totalMinutes as number) / 60);
+
 // ---------------------------------------------------------------------------
-// AC1 — view switcher: keyboard-operable, obvious selected state, defaults
-//       to the list view so existing behavior is unchanged on first load.
+// AC1 (v3) — view switcher: keyboard-operable, obvious selected state,
+//       CALENDAR is the default view (bounce item B6), chips read
+//       "List"/"Calendar" (B5), the shared "My Schedule" header + Export
+//       button sit ABOVE the switcher and are present on BOTH views (B4/B5).
 // ---------------------------------------------------------------------------
 
-test("AC1 — switcher defaults to list, toggles by keyboard, exposes pressed state", async ({
+test("AC1 — calendar is the default; List/Calendar chips toggle by keyboard under a shared header", async ({
   page,
 }) => {
   // Reduced-motion-safe (issue #8 a11y bar): the switcher must work
@@ -228,40 +315,60 @@ test("AC1 — switcher defaults to list, toggles by keyboard, exposes pressed st
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/");
 
-  // Default = list view: My Schedule pressed, calendar not mounted.
-  await expect(listChip(page)).toHaveAttribute("aria-pressed", "true");
-  await expect(calendarChip(page)).toHaveAttribute("aria-pressed", "false");
-  await expect(
-    page.getByRole("heading", { level: 2, name: "My Schedule" }),
-  ).toBeVisible();
-  await expect(calendarView(page)).toHaveCount(0);
+  // Default = CALENDAR view: Calendar pressed, list not mounted.
+  await expect(calendarChip(page)).toHaveAttribute("aria-pressed", "true");
+  await expect(listChip(page)).toHaveAttribute("aria-pressed", "false");
+  await expect(calendarView(page)).toBeVisible();
+  await expect(page.locator('section[aria-label="My schedule"]')).toHaveCount(
+    0,
+  );
+
+  // Shared header on the calendar view: "My Schedule" heading + Export button
+  // both visible (B4/B5), with the switcher BELOW the heading (B5).
+  await expect(scheduleHeading(page)).toBeVisible();
+  await expect(exportButton(page)).toBeVisible();
+  const [headingBox, switcherBox] = await Promise.all([
+    scheduleHeading(page).boundingBox(),
+    switcher(page).boundingBox(),
+  ]);
+  expect(headingBox && switcherBox).toBeTruthy();
+  expect(
+    switcherBox!.y,
+    "the view switcher must sit below the My Schedule header",
+  ).toBeGreaterThan(headingBox!.y + headingBox!.height - 1);
 
   // Obvious selected state: the pressed chip paints a different background
   // than the unpressed one (blue-600 vs white), not just an ARIA flag.
   const bg = (locator: ReturnType<typeof listChip>) =>
     locator.evaluate((el) => getComputedStyle(el).backgroundColor);
-  expect(await bg(listChip(page))).not.toBe(await bg(calendarChip(page)));
-
-  // Keyboard: focus the Calendar chip and activate with Enter.
-  await calendarChip(page).focus();
-  // Focus-visible ring (a11y bar): keyboard focus paints a ring shadow.
-  await page.keyboard.press("Enter");
-  await expect(calendarChip(page)).toHaveAttribute("aria-pressed", "true");
-  await expect(listChip(page)).toHaveAttribute("aria-pressed", "false");
-  await expect(calendarView(page)).toBeVisible();
-  await expect(
-    page.getByRole("heading", { level: 2, name: "My Schedule" }),
-  ).toHaveCount(0);
+  expect(await bg(calendarChip(page))).not.toBe(await bg(listChip(page)));
 
   await page.screenshot({
-    path: `${EVIDENCE_DIR}/ac1-switcher-calendar-active-desktop.png`,
+    path: `${EVIDENCE_DIR}/ac1-switcher-calendar-default-desktop.png`,
   });
 
-  // Space toggles back to the list view.
+  // Keyboard: focus the List chip and activate with Enter → list view, with
+  // the SAME header (heading + Export) still visible above the switcher.
   await listChip(page).focus();
-  await page.keyboard.press("Space");
+  await page.keyboard.press("Enter");
   await expect(listChip(page)).toHaveAttribute("aria-pressed", "true");
+  await expect(calendarChip(page)).toHaveAttribute("aria-pressed", "false");
   await expect(calendarView(page)).toHaveCount(0);
+  await expect(
+    page.locator('section[aria-label="My schedule"]'),
+  ).toBeVisible();
+  await expect(scheduleHeading(page)).toBeVisible();
+  await expect(exportButton(page)).toBeVisible();
+
+  await page.screenshot({
+    path: `${EVIDENCE_DIR}/ac1-switcher-list-active-desktop.png`,
+  });
+
+  // Space toggles back to the calendar view.
+  await calendarChip(page).focus();
+  await page.keyboard.press("Space");
+  await expect(calendarChip(page)).toHaveAttribute("aria-pressed", "true");
+  await expect(calendarView(page)).toBeVisible();
 });
 
 // ---------------------------------------------------------------------------
@@ -359,9 +466,11 @@ test("AC3 — resolved conflict places the moved exam at its late-testing slot i
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/");
 
-  // Drive the real resolution flow in the list view (dialogs live there):
-  // Biology and Latin share 2026-05-04 AM; keeping Latin moves Biology to
-  // its official late slot (2026-05-20 PM per the dataset).
+  // Drive the real resolution flow in the LIST view (where issue #5's
+  // modal-on-collision behavior lives; the calendar-native path is covered by
+  // the Bounce C tests below): Biology and Latin share 2026-05-04 AM; keeping
+  // Latin moves Biology to its official late slot (2026-05-20 PM).
+  await openList(page);
   await select(page, BIOLOGY.name);
   await select(page, LATIN.name);
   const prompt = page.getByTestId("conflict-prompt");
@@ -410,11 +519,13 @@ test("AC3 — resolved conflict places the moved exam at its late-testing slot i
 
   // Reopening the calendar re-derives the default page: Latin (the keeper)
   // is now the earliest placed exam, so the view opens on week 1 with Latin
-  // at its regular AM slot — and Biology's block is NOT on this page.
+  // at its regular AM slot — and Biology's block is NOT on this page. The
+  // block label carries the true exam span (start – published end).
   await expect(indicator(page)).toContainText(`Week 1 of ${WEEK_COUNT}`);
   const latinBlock = blockFor(page, LATIN.id);
   await expect(latinBlock).toHaveCount(1);
-  await expect(latinBlock).toContainText(DATASET.sessionStartTimes.AM);
+  await expect(latinBlock).toContainText(startClockOf(LATIN));
+  await expect(latinBlock).toContainText(endClockOf(LATIN));
   await expect(blockFor(page, BIOLOGY.id)).toHaveCount(0);
 
   // Page to the late-testing week (the pager, not scrolling, reaches it).
@@ -430,7 +541,11 @@ test("AC3 — resolved conflict places the moved exam at its late-testing slot i
   await expect(bioBlock).toHaveCount(1);
   await expect(lateSection.getByTestId("calendar-block")).toHaveCount(1);
   await expect(bioBlock).toContainText(BIOLOGY.name);
-  await expect(bioBlock).toContainText(DATASET.sessionStartTimes.PM);
+  // Late slot is a PM session: the block anchors at the PM start read from
+  // the dataset, spanning Biology's published length from there.
+  await expect(bioBlock).toContainText(
+    clockOf(parseHourOf(DATASET.sessionStartTimes.PM)),
+  );
   await expect(bioBlock).toContainText("Moved to late testing");
   // ...and inside the May 20 day column specifically.
   const may20Exams = lateSection.locator(
@@ -471,12 +586,17 @@ test("AC4 — blocks are category-colored with a legend, showing subject name an
     await gotoWeek(page, weekIndexOf(s.exam!.date) + 1);
     const b = blockFor(page, s.id);
     await expect(b).toHaveCount(1);
-    // Every block shows its subject name + its session start label.
+    // Every block shows its subject name + its session start time (v3: the
+    // clock-format span label, e.g. "8:00 AM – 11:00 AM").
     await expect(b).toContainText(s.name);
-    await expect(b).toContainText(DATASET.sessionStartTimes[s.exam!.session]);
+    await expect(b).toContainText(startClockOf(s));
+    // The category color paints the block's interactive button (v3: the
+    // whole block is a real <button>), so measure the computed style there.
     bgBySubject.set(
       s.id,
-      await b.evaluate((el) => getComputedStyle(el).backgroundColor),
+      await b
+        .locator("button")
+        .evaluate((el) => getComputedStyle(el).backgroundColor),
     );
   }
 
@@ -597,17 +717,20 @@ test("AC6 — empty selection renders a hint instead of a blank grid", async ({
 // AC7 — banner states the cycle, read from dataset metadata.
 // ---------------------------------------------------------------------------
 
-test("AC7 — banner names the dataset cycle", async ({ page }) => {
+test("AC7 — banner names the dataset cycle on both views", async ({ page }) => {
   await page.goto("/");
   await openCalendar(page);
 
   // Asserted against the JSON the app ships — if the dataset cycle changes,
   // this expectation changes with it (nothing hardcoded to "May 2026").
-  await expect(
-    calendarView(page).getByText(
-      `Dates reflect the ${DATASET.cycle} AP exam cycle.`,
-    ),
-  ).toBeVisible();
+  // v3: the banner lives in the shared "My Schedule" header, so it is
+  // visible on the calendar view AND the list view.
+  const banner = page.getByText(
+    `Dates reflect the ${DATASET.cycle} AP exam cycle.`,
+  );
+  await expect(banner).toBeVisible();
+  await openList(page);
+  await expect(banner).toBeVisible();
 });
 
 // ---------------------------------------------------------------------------
@@ -652,6 +775,9 @@ for (const vp of viewports) {
     await expect(prevButton(page)).toBeVisible();
     await expect(nextButton(page)).toBeVisible();
     await expect(indicator(page)).toContainText(`of ${WEEK_COUNT}`);
+
+    // Export stays visible on the calendar view at every viewport (B4).
+    await expect(exportButton(page)).toBeVisible();
 
     // Page body NEVER scrolls horizontally.
     const bodyOverflow = await page.evaluate(
@@ -844,4 +970,278 @@ test("Pager a11y — keyboard-operable buttons with accessible names and an aria
   await page.screenshot({
     path: `${EVIDENCE_DIR}/pager-keyboard-week2-desktop.png`,
   });
+});
+
+// ---------------------------------------------------------------------------
+// Bounce A (second bounce) — duration-proportional blocks: each block spans
+// its subject's PUBLISHED `format.totalMinutes` from the session start, plus
+// a visually distinct 30-minute setup-buffer segment (deliberate product
+// padding, excluded from the labeled exam span); the hour axis extends far
+// enough that the longest selected exam + buffer fits.
+// ---------------------------------------------------------------------------
+
+test("Bounce A — blocks span published exam lengths plus a distinct setup buffer, and the axis fits the longest", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  // Conflict-free set inside week 1; European History is the >3h PM exam
+  // that forces the axis past 4 PM (12:00 + 195 min + 30 min buffer).
+  await seedSelection(page, [BIOLOGY.id, CHEMISTRY.id, EURO_HISTORY.id]);
+  await page.goto("/");
+  await openCalendar(page);
+
+  // The label carries the TRUE published span only (start – published end).
+  const bio = blockFor(page, BIOLOGY.id);
+  await expect(bio).toContainText(
+    `${startClockOf(BIOLOGY)} – ${endClockOf(BIOLOGY)}`,
+  );
+  await expect(bio).toContainText(BIOLOGY.name);
+
+  // The setup buffer renders as its own labeled segment INSIDE the block —
+  // inspectable product padding, not silently inflated published data.
+  await expect(bio.getByTestId("block-setup-buffer")).toBeVisible();
+  await expect(bio.getByTestId("block-setup-buffer")).toContainText(
+    "+30 min setup",
+  );
+  // Neither fixture is length-pending, so nothing is marked approximate.
+  await expect(
+    page.locator('[data-testid="calendar-block"][data-approximate="true"]'),
+  ).toHaveCount(0);
+
+  // Height is proportional to (published minutes + buffer): Biology (180)
+  // must render shorter than Chemistry (195) in exactly that ratio.
+  const bioBox = await bio.locator("button").boundingBox();
+  const chemBox = await blockFor(page, CHEMISTRY.id)
+    .locator("button")
+    .boundingBox();
+  expect(bioBox && chemBox).toBeTruthy();
+  const expectedRatio =
+    ((BIOLOGY.format.totalMinutes as number) + 30) /
+    ((CHEMISTRY.format.totalMinutes as number) + 30);
+  expect(bioBox!.height).toBeLessThan(chemBox!.height);
+  expect(bioBox!.height / chemBox!.height).toBeGreaterThan(
+    expectedRatio - 0.05,
+  );
+  expect(bioBox!.height / chemBox!.height).toBeLessThan(expectedRatio + 0.05);
+
+  // Axis extension (A3): European History runs 12:00 PM – 3:15 PM + buffer,
+  // so a "3 PM" hour tick must exist (the pre-bounce fixed axis ended with
+  // "2 PM" as its last tick) and the block's full span label is rendered.
+  const euro = blockFor(page, EURO_HISTORY.id);
+  await expect(euro).toContainText(
+    `${startClockOf(EURO_HISTORY)} – ${endClockOf(EURO_HISTORY)}`,
+  );
+  const section = weekSections(page).first();
+  await expect(section.getByText("3 PM", { exact: true })).toBeVisible();
+  // The euro block (tallest) still bottoms out inside the grid — no clipping.
+  const euroBox = await euro.locator("button").boundingBox();
+  const gridBox = await section.boundingBox();
+  expect(euroBox!.y + euroBox!.height).toBeLessThanOrEqual(
+    gridBox!.y + gridBox!.height + 1,
+  );
+
+  await page.screenshot({
+    path: `${EVIDENCE_DIR}/bounceA-duration-blocks-desktop.png`,
+    fullPage: true,
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Bounce C7 (second bounce) — calendar events are interactive: activating a
+// block opens the SAME exam-details popup as the catalog's info button
+// (shared InfoPanel), focus-trapped with Escape-close + focus restore.
+// ---------------------------------------------------------------------------
+
+test("Bounce C7 — activating a block opens the shared exam-details popup; Escape closes and restores focus", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await seedSelection(page, [BIOLOGY.id]);
+  await page.goto("/");
+  await openCalendar(page);
+
+  const blockButton = blockFor(page, BIOLOGY.id).locator("button");
+  await blockButton.click();
+
+  // Shared InfoPanel content: modal dialog titled with the subject, carrying
+  // the same detail rows as the catalog's info button (e.g. "Exam length").
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await expect(
+    dialog.getByRole("heading", { name: BIOLOGY.name }),
+  ).toBeVisible();
+  await expect(dialog.getByText("Exam length")).toBeVisible();
+
+  await page.screenshot({
+    path: `${EVIDENCE_DIR}/bounceC7-block-details-popup-desktop.png`,
+  });
+
+  // Escape closes (C10 a11y bar) and focus returns to the activating block.
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(blockButton).toBeFocused();
+});
+
+// ---------------------------------------------------------------------------
+// Bounce C8 — a block that is part of an UNRESOLVED time conflict surfaces
+// the issue-#5 conflict dialog FIRST, so the conflict is resolvable from the
+// calendar view; the resolution routes through the shared store (list view
+// reflects it identically).
+// ---------------------------------------------------------------------------
+
+test("Bounce C8 — activating a conflicted block opens the conflict dialog; resolving from the calendar moves the loser", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await seedSelection(page, [BIOLOGY.id, LATIN.id]);
+  await page.goto("/");
+  await openCalendar(page);
+
+  // Documented v3 choice: the calendar does NOT auto-open the conflict modal
+  // on load — the conflict stays visible as lane-split blocks and the dialog
+  // surfaces on interaction (the list view keeps issue #5's modal-on-mount).
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(blocks(page)).toHaveCount(2);
+
+  // Activating either conflicted block surfaces the conflict prompt first —
+  // NOT the details popup.
+  await blockFor(page, BIOLOGY.id).locator("button").click();
+  const prompt = page.getByTestId("conflict-prompt");
+  await expect(prompt).toBeVisible();
+  await expect(page.getByRole("dialog")).toBeVisible();
+
+  await page.screenshot({
+    path: `${EVIDENCE_DIR}/bounceC8-conflict-dialog-from-calendar-desktop.png`,
+  });
+
+  // Resolve from the calendar: keep Biology → Latin moves to late testing.
+  await prompt
+    .getByRole("button", { name: `Keep ${BIOLOGY.name} at the regular time` })
+    .click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+
+  // Calendar truth: Biology stays on week 1; Latin left the week-1 page...
+  await expect(blockFor(page, BIOLOGY.id)).toHaveCount(1);
+  await expect(blockFor(page, LATIN.id)).toHaveCount(0);
+  // ...and sits marked on its late-testing page.
+  await gotoWeek(page, weekIndexOf(LATIN.lateTesting!.date) + 1);
+  const latinBlock = blockFor(page, LATIN.id);
+  await expect(latinBlock).toHaveCount(1);
+  await expect(latinBlock).toContainText("Moved to late testing");
+
+  // Shared-store truth: the LIST view shows the same effective schedule.
+  await openList(page);
+  await expect(
+    page
+      .locator('section[aria-label="My schedule"] ol > li')
+      .filter({ hasText: monthDayOf(LATIN.lateTesting!.date) })
+      .filter({ hasText: LATIN.name }),
+  ).toHaveCount(1);
+});
+
+// ---------------------------------------------------------------------------
+// Bounce C9 — a block MOVED to late testing offers: (a) switch back to the
+// regular slot, which re-prompts the conflict dialog (the slot re-collides);
+// (b) swap — keep this exam at the regular time and move the OTHER conflicting
+// exam to late testing instead. Both route through the shared resolutions
+// store.
+// ---------------------------------------------------------------------------
+
+const MOVED_BIO_SEED = [
+  {
+    date: BIOLOGY.exam!.date,
+    session: BIOLOGY.exam!.session,
+    keeperId: LATIN.id,
+    memberIds: [BIOLOGY.id, LATIN.id],
+  },
+];
+
+test("Bounce C9 — swap: keep the moved exam at the regular time and move the other exam instead", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await seedSelection(page, [BIOLOGY.id, LATIN.id]);
+  await seedResolutions(page, MOVED_BIO_SEED);
+  await page.goto("/");
+  await openCalendar(page);
+
+  // Biology was moved to its late slot by the seeded resolution.
+  await gotoWeek(page, weekIndexOf(BIOLOGY.lateTesting!.date) + 1);
+  const bioBlock = blockFor(page, BIOLOGY.id);
+  await expect(bioBlock).toContainText("Moved to late testing");
+
+  // Activating it opens the moved-to-late action dialog...
+  await bioBlock.locator("button").click();
+  const lateDialog = page.getByTestId("late-testing-dialog");
+  await expect(lateDialog).toBeVisible();
+
+  // ...which is Escape-dismissable (C10) and reopenable.
+  await page.keyboard.press("Escape");
+  await expect(lateDialog).toHaveCount(0);
+  await bioBlock.locator("button").click();
+  await expect(lateDialog).toBeVisible();
+
+  await page.screenshot({
+    path: `${EVIDENCE_DIR}/bounceC9-late-testing-dialog-desktop.png`,
+  });
+
+  // Swap: Biology returns to the regular slot; Latin moves to late instead.
+  await lateDialog.getByTestId("late-swap").click();
+  await expect(lateDialog).toHaveCount(0);
+
+  // Still on the late-testing page (manual paging wins): Latin is here now,
+  // Biology is not.
+  const latinBlock = blockFor(page, LATIN.id);
+  await expect(latinBlock).toHaveCount(1);
+  await expect(latinBlock).toContainText("Moved to late testing");
+  await expect(blockFor(page, BIOLOGY.id)).toHaveCount(0);
+
+  // Week 1 shows Biology back at its regular slot, unmarked.
+  await gotoWeek(page, weekIndexOf(BIOLOGY.exam!.date) + 1);
+  await expect(blockFor(page, BIOLOGY.id)).toHaveCount(1);
+  await expect(blockFor(page, BIOLOGY.id)).not.toContainText(
+    "Moved to late testing",
+  );
+  await expect(blockFor(page, LATIN.id)).toHaveCount(0);
+});
+
+test("Bounce C9 — switch back re-opens the conflict prompt so the collision is re-resolved", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await seedSelection(page, [BIOLOGY.id, LATIN.id]);
+  await seedResolutions(page, MOVED_BIO_SEED);
+  await page.goto("/");
+  await openCalendar(page);
+
+  await gotoWeek(page, weekIndexOf(BIOLOGY.lateTesting!.date) + 1);
+  await blockFor(page, BIOLOGY.id).locator("button").click();
+  const lateDialog = page.getByTestId("late-testing-dialog");
+  await expect(lateDialog).toBeVisible();
+
+  // Switch back to the regular time: the regular slot re-collides, so the
+  // issue-#5 conflict prompt re-opens immediately for a fresh choice.
+  await lateDialog.getByTestId("late-switch-back").click();
+  await expect(lateDialog).toHaveCount(0);
+  const prompt = page.getByTestId("conflict-prompt");
+  await expect(prompt).toBeVisible();
+
+  await page.screenshot({
+    path: `${EVIDENCE_DIR}/bounceC9-switch-back-reprompts-desktop.png`,
+  });
+
+  // Re-resolve, keeping Biology this time: Latin moves to late testing —
+  // the same round-trip the list view's prompt would apply.
+  await prompt
+    .getByRole("button", { name: `Keep ${BIOLOGY.name} at the regular time` })
+    .click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+
+  // Current (late) page now shows Latin moved; Biology returned to week 1.
+  await expect(blockFor(page, LATIN.id)).toContainText(
+    "Moved to late testing",
+  );
+  await expect(blockFor(page, BIOLOGY.id)).toHaveCount(0);
+  await gotoWeek(page, weekIndexOf(BIOLOGY.exam!.date) + 1);
+  await expect(blockFor(page, BIOLOGY.id)).toHaveCount(1);
 });

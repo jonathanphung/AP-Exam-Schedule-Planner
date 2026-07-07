@@ -17,12 +17,17 @@ import type { Schedule, ScheduleEntry, UndatedSubject } from "./schedule";
  * no vertical month scrolling); {@link defaultWeekIndex} and
  * {@link weekExamCounts} feed that pager.
  *
- * Design decision (documented per the issue): the dataset publishes session
- * START times only ("8 a.m. local time" / "12 p.m. local time") and no exam
- * durations — durations are not to be invented. We render a full hourly axis
- * (option (a) in the issue) where each exam is a block of FIXED NOMINAL HEIGHT
- * ({@link NOMINAL_BLOCK_HOURS} axis-hours) anchored at its real start time.
- * The nominal height is purely presentational — no end time is ever shown.
+ * Block-height design (issue-19 second bounce, item A): each exam block spans
+ * its subject's PUBLISHED `format.totalMinutes` from the session start (a
+ * 195-minute exam starting 8:00 AM spans 8:00–11:15), plus an explicit
+ * {@link SETUP_BUFFER_MINUTES} display allowance for the setup time testing
+ * usually needs. The buffer is deliberate product padding, NOT published data:
+ * the block's label shows only the true exam span; the visual block extends
+ * the extra 30 minutes as a visibly distinct segment, keeping the distinction
+ * inspectable rather than silently inflating published durations. Subjects
+ * whose `totalMinutes` is `"pending"` (or unusable, e.g. 0) fall back to a
+ * fixed {@link NOMINAL_EXAM_MINUTES} block marked `approximate` — never a
+ * per-subject invented duration, and no end time is shown for them.
  *
  * Data rule (PRD §7.5): nothing here fabricates a date or time. Start hours
  * are parsed from the dataset's `sessionStartTimes` strings; if a label can't
@@ -32,8 +37,20 @@ import type { Schedule, ScheduleEntry, UndatedSubject } from "./schedule";
  * always off-grid entries.
  */
 
-/** Presentational block height in axis-hours (no published durations exist). */
-export const NOMINAL_BLOCK_HOURS = 2;
+/**
+ * Extra visual allowance appended below every exam block for the setup time
+ * testing usually needs (issue-19 second bounce). Display-only product
+ * padding — never added to the labeled exam span.
+ */
+export const SETUP_BUFFER_MINUTES = 30;
+
+/**
+ * Documented nominal length used ONLY when a subject's published
+ * `format.totalMinutes` is `"pending"` (or unusable): the block renders at
+ * this fixed height and is flagged `approximate` so the view can mark it
+ * visually. One shared constant — never a per-subject guess (PRD §7.5).
+ */
+export const NOMINAL_EXAM_MINUTES = 120;
 
 export interface CalendarWeek {
   /** ISO dates of every day in the window, in order (Mon–Fri for 2026). */
@@ -55,12 +72,43 @@ export interface CalendarBlock {
   startLabel: string;
   /** Parsed start in fractional hours (e.g. 8, 12). Anchor for the block top. */
   startHour: number;
+  /**
+   * The subject's published exam length in minutes, or `null` when the
+   * dataset says `"pending"` / has no usable value (the block then renders at
+   * {@link NOMINAL_EXAM_MINUTES} and `approximate` is true).
+   */
+  examMinutes: number | null;
+  /** True when the block height is the nominal fallback, not published data. */
+  approximate: boolean;
+  /**
+   * Exam end in fractional hours: `startHour` + published minutes (or the
+   * nominal fallback). Excludes the setup buffer — the buffer is view chrome.
+   */
+  endHour: number;
+  /** Clock label of the real start, e.g. "8:00 AM". */
+  startClock: string;
+  /**
+   * Clock label of the published exam end, e.g. "11:15 AM" — only meaningful
+   * when `approximate` is false (an approximate end must not be displayed).
+   */
+  endClock: string;
   /** True when a conflict resolution moved this exam to its late-testing slot. */
   movedToLate: boolean;
   /** Horizontal lane when several blocks share one day+start (0-based). */
   laneIndex: number;
   /** Total lanes sharing this block's day+start. */
   laneCount: number;
+}
+
+/**
+ * Per-subject inputs the layout needs beyond the schedule entry: the category
+ * (block color) and the PUBLISHED exam length (block height). Kept as a small
+ * map instead of the full subject so the layout stays pure and unit-testable.
+ */
+export interface SubjectCalendarInfo {
+  category: Category;
+  /** The dataset's `format.totalMinutes` — a published number or "pending". */
+  totalMinutes: number | "pending";
 }
 
 export interface CalendarDay {
@@ -140,16 +188,35 @@ export function parseStartHour(label: string): number | null {
 }
 
 /**
+ * Bottom edge of a block as RENDERED: the exam end plus the setup-buffer
+ * display allowance. Used for lane overlap and the axis range so the buffer
+ * segment never collides with a neighbor or falls off the grid.
+ */
+export function blockVisualEndHour(block: Pick<CalendarBlock, "endHour">): number {
+  return block.endHour + SETUP_BUFFER_MINUTES / 60;
+}
+
+/** "8:00 AM" / "11:15 AM" / "3:45 PM" for a fractional hour. */
+export function clockLabel(hour: number): string {
+  const totalMinutes = Math.round(hour * 60);
+  const h24 = Math.floor(totalMinutes / 60) % 24;
+  const minutes = totalMinutes % 60;
+  const meridiem = h24 < 12 ? "AM" : "PM";
+  const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+  return `${h12}:${String(minutes).padStart(2, "0")} ${meridiem}`;
+}
+
+/**
  * Build the full calendar layout from an already-built {@link Schedule}.
  *
  * `sessionStartTimes` is the dataset's `{ AM, PM }` label pair — start hours
- * are parsed from it here, never hardcoded. `categoriesById` maps subject id →
- * category (schedule entries don't carry the category).
+ * are parsed from it here, never hardcoded. `subjectInfoById` maps subject id →
+ * category + published exam length (schedule entries carry neither).
  */
 export function buildCalendarLayout(
   schedule: Schedule,
   sessionStartTimes: { AM: string; PM: string },
-  categoriesById: ReadonlyMap<string, Category>,
+  subjectInfoById: ReadonlyMap<string, SubjectCalendarInfo>,
 ): CalendarLayout {
   const weeks = calendarWeeks();
   const gridDates = new Set(weeks.flatMap((w) => w.days));
@@ -179,14 +246,28 @@ export function buildCalendarLayout(
         offGrid.push({ entry, reason: "outside-windows" });
         continue;
       }
+      const info = subjectInfoById.get(entry.subjectId);
+      // Only a positive published number is a usable length; "pending" (or a
+      // missing/zero value) falls back to the documented nominal block and is
+      // flagged approximate — never a per-subject invention (PRD §7.5).
+      const examMinutes =
+        info && typeof info.totalMinutes === "number" && info.totalMinutes > 0
+          ? info.totalMinutes
+          : null;
+      const endHour = startHour + (examMinutes ?? NOMINAL_EXAM_MINUTES) / 60;
       const block: CalendarBlock = {
         key: entry.key,
         subjectId: entry.subjectId,
         subjectName: entry.subjectName,
-        category: categoriesById.get(entry.subjectId) ?? null,
+        category: info?.category ?? null,
         session,
         startLabel: sessionStartTimes[session],
         startHour,
+        examMinutes,
+        approximate: examMinutes === null,
+        endHour,
+        startClock: clockLabel(startHour),
+        endClock: clockLabel(endHour),
         movedToLate: entry.movedToLate,
         laneIndex: 0,
         laneCount: 1,
@@ -197,42 +278,71 @@ export function buildCalendarLayout(
     }
   }
 
-  // Assign horizontal lanes: blocks sharing a day + start hour split the
-  // column side by side (an unresolved same-slot conflict stays visible as
-  // two blocks in one slot, matching the list view's pre-resolution state).
+  // Assign horizontal lanes: blocks whose RENDERED spans (exam + buffer)
+  // overlap on one day split the column side by side. Same-slot conflicts
+  // (identical start) always overlap, so an unresolved conflict stays visible
+  // as two blocks in one slot, matching the list view's pre-resolution state;
+  // duration-proportional heights mean a long AM exam that runs into a PM
+  // start also lane-splits instead of hiding the later block.
   for (const blocks of blocksByDate.values()) {
     blocks.sort(
       (a, b) =>
         a.startHour - b.startHour ||
         a.subjectName.localeCompare(b.subjectName),
     );
-    const byStart = new Map<number, CalendarBlock[]>();
+    // Greedy interval coloring per cluster of transitively-overlapping
+    // blocks; every cluster member shares the cluster's lane count so the
+    // side-by-side widths line up.
+    let cluster: CalendarBlock[] = [];
+    let laneEnds: number[] = [];
+    let clusterEnd = -Infinity;
+    const closeCluster = () => {
+      for (const member of cluster) member.laneCount = laneEnds.length;
+      cluster = [];
+      laneEnds = [];
+      clusterEnd = -Infinity;
+    };
     for (const block of blocks) {
-      const lane = byStart.get(block.startHour);
-      if (lane) lane.push(block);
-      else byStart.set(block.startHour, [block]);
+      if (cluster.length > 0 && block.startHour >= clusterEnd) closeCluster();
+      const visualEnd = blockVisualEndHour(block);
+      let lane = laneEnds.findIndex((end) => end <= block.startHour);
+      if (lane === -1) {
+        lane = laneEnds.length;
+        laneEnds.push(visualEnd);
+      } else {
+        laneEnds[lane] = visualEnd;
+      }
+      block.laneIndex = lane;
+      cluster.push(block);
+      clusterEnd = Math.max(clusterEnd, visualEnd);
     }
-    for (const lane of byStart.values()) {
-      lane.forEach((block, index) => {
-        block.laneIndex = index;
-        block.laneCount = lane.length;
-      });
-    }
+    closeCluster();
   }
 
-  // Axis range: derived from the parsed session starts so a dataset swap
-  // (different published times) re-ranges the axis automatically. The
-  // fallback (8–15) only applies when NO session label is parseable — in that
-  // state every exam is off-grid and the axis is empty chrome, not data.
+  // Axis range: starts at the earliest parsed session start; ends at the
+  // bottom of the tallest RENDERED block (longest selected exam + setup
+  // buffer, bounce item A3), so nothing is ever clipped. With no placed
+  // blocks the end falls back to the latest session start plus the nominal
+  // block + buffer; the 8-o'clock fallback only applies when NO session label
+  // is parseable — in that state every exam is off-grid and the axis is empty
+  // chrome, not data.
+  const placed = Array.from(blocksByDate.values()).flat();
   const parsed = [startHours.AM, startHours.PM].filter(
     (h): h is number => h !== null,
   );
   const axisStartHour =
     parsed.length > 0 ? Math.floor(Math.min(...parsed)) : 8;
-  const axisEndHour =
-    parsed.length > 0
-      ? Math.ceil(Math.max(...parsed)) + NOMINAL_BLOCK_HOURS + 1
-      : 8 + NOMINAL_BLOCK_HOURS + 1 + 4;
+  const fallbackEnd =
+    (parsed.length > 0 ? Math.max(...parsed) : 8) +
+    (NOMINAL_EXAM_MINUTES + SETUP_BUFFER_MINUTES) / 60;
+  const axisEndHour = Math.max(
+    Math.ceil(
+      placed.length > 0
+        ? Math.max(...placed.map(blockVisualEndHour))
+        : fallbackEnd,
+    ),
+    axisStartHour + 1,
+  );
 
   return {
     weeks: weeks.map((week) => ({

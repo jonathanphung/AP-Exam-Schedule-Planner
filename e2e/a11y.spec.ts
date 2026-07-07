@@ -69,6 +69,19 @@ async function seedSelection(page: Page, ids: string[]) {
   );
 }
 
+/**
+ * Issue #19 (second bounce) made the CALENDAR the default view. States that
+ * live in the LIST view (the modal-on-collision conflict dialog, the
+ * moved-to-late badge, the late-collision warning) switch to it first.
+ */
+async function openList(page: Page) {
+  await page
+    .getByRole("group", { name: "Schedule view" })
+    .getByRole("button", { name: "List" })
+    .click();
+  await expect(page.locator('section[aria-label="My schedule"]')).toBeVisible();
+}
+
 /** Seed a stored resolution: keep `keeperId`, move the rest to late testing. */
 async function seedResolutions(
   page: Page,
@@ -177,6 +190,7 @@ test.describe("AC2 — axe-core scans report zero serious/critical violations", 
   test("conflict dialog open", async ({ page }) => {
     await seedSelection(page, [BIOLOGY.id, LATIN.id]);
     await page.goto("/");
+    await openList(page);
     await expect(dialog(page)).toBeVisible();
     await expect(conflictPrompt(page)).toBeVisible();
     await expectNoSeriousViolations(page, "conflict-dialog-open");
@@ -201,6 +215,7 @@ test.describe("AC2 — axe-core scans report zero serious/critical violations", 
     ]);
     await seedResolutions(page, [RESOLVED_BIO_LATIN, RESOLVED_CHEM_HGEO]);
     await page.goto("/");
+    await openList(page);
     await expect(page.getByTestId("late-collision-warning")).toBeVisible();
     await expect(
       page.getByText("Moved to late testing").first(),
@@ -217,6 +232,7 @@ test.describe("AC2 — axe-core scans report zero serious/critical violations", 
     ]);
     await seedResolutions(dark, [RESOLVED_BIO_LATIN, RESOLVED_CHEM_HGEO]);
     await dark.goto("/");
+    await openList(dark);
     await expect(dark.getByTestId("late-collision-warning")).toBeVisible();
     await expectNoSeriousViolations(dark, "resolved-dark");
     await darkCtx.close();
@@ -240,7 +256,7 @@ async function focusedDescriptor(page: Page) {
       pressed: el.hasAttribute("aria-pressed"),
       inChipGroup: !!el.closest('[role="group"][aria-label="Filter by category"]'),
       inCatalog: !!el.closest('section[aria-label="Subject catalog"]'),
-      inSchedule: !!el.closest('section[aria-label="My schedule"]'),
+      inSchedule: !!el.closest('section[aria-label="My exams"]'),
       text: (el.textContent ?? "").trim().slice(0, 40),
     };
   });
@@ -320,18 +336,28 @@ test.describe("AC1 — keyboard operability", () => {
     );
     await expectVisibleFocusIndicator(page, "details affordance");
 
-    // Then the schedule view switcher (issue #19): its two toggle chips —
-    // "My Schedule" (the pressed default) then "Calendar" — sit between the
-    // catalog and the schedule content in the tab order. (`pressed` here
-    // means the aria-pressed attribute exists, not that it is "true".)
+    // Then the shared "My Schedule" header (issue #19 second bounce): the
+    // Export button sits in the header row ABOVE the view switcher, so it is
+    // the next stop after the catalog.
     await page.keyboard.press("Tab");
     d = await focusedDescriptor(page);
-    expect(d, "next stop: the My Schedule view chip").toMatchObject({
-      text: "My Schedule",
+    expect(d, "next stop: the export button").toMatchObject({
+      testid: "export-ics-button",
+      inSchedule: true,
+    });
+    await expectVisibleFocusIndicator(page, "export button");
+
+    // Then the view switcher's two toggle chips — "List" then "Calendar"
+    // (the pressed default view). (`pressed` here means the aria-pressed
+    // attribute exists, not that it is "true".)
+    await page.keyboard.press("Tab");
+    d = await focusedDescriptor(page);
+    expect(d, "next stop: the List view chip").toMatchObject({
+      text: "List",
       pressed: true,
       inCatalog: false,
     });
-    await expectVisibleFocusIndicator(page, "My Schedule view chip");
+    await expectVisibleFocusIndicator(page, "List view chip");
 
     await page.keyboard.press("Tab");
     d = await focusedDescriptor(page);
@@ -341,15 +367,6 @@ test.describe("AC1 — keyboard operability", () => {
       inCatalog: false,
     });
     await expectVisibleFocusIndicator(page, "Calendar view chip");
-
-    // Then into the schedule section: the export control.
-    await page.keyboard.press("Tab");
-    d = await focusedDescriptor(page);
-    expect(d, "next stop: the export button").toMatchObject({
-      testid: "export-ics-button",
-      inSchedule: true,
-    });
-    await expectVisibleFocusIndicator(page, "export button");
   });
 
   test("conflict dialog: modal, focus-trapped, Escape closes (prompt stays available inline)", async ({
@@ -357,6 +374,7 @@ test.describe("AC1 — keyboard operability", () => {
   }) => {
     await seedSelection(page, [BIOLOGY.id, LATIN.id]);
     await page.goto("/");
+    await openList(page);
 
     // Opens as a real modal dialog with focus inside.
     const modal = dialog(page);
@@ -402,6 +420,7 @@ test.describe("AC1 — keyboard operability", () => {
   }) => {
     await seedSelection(page, [BIOLOGY.id, LATIN.id]);
     await page.goto("/");
+    await openList(page);
     const modal = dialog(page);
     await expect(modal).toBeVisible();
 
@@ -508,6 +527,7 @@ test.describe("AC3 — conflict + moved-to-late styles measure ≥ 4.5:1", () =>
       // Unresolved conflict → prompt (modal) text.
       await seedSelection(page, [BIOLOGY.id, LATIN.id]);
       await page.goto("/");
+      await openList(page);
       await expect(conflictPrompt(page)).toBeVisible();
       const promptBody = await contrastRatio(
         page,
@@ -549,6 +569,7 @@ test.describe("AC3 — conflict + moved-to-late styles measure ≥ 4.5:1", () =>
         RESOLVED_CHEM_HGEO,
       ]);
       await resolved.goto("/");
+      await openList(resolved);
 
       await expect(
         resolved.getByText("Moved to late testing").first(),
@@ -629,6 +650,7 @@ test.describe("AC4 — 375×667 layout", () => {
     const conflict = await ctx.newPage();
     await seedSelection(conflict, [BIOLOGY.id, LATIN.id]);
     await conflict.goto("/");
+    await openList(conflict);
     await expect(dialog(conflict)).toBeVisible();
     expect(
       await noHorizontalScroll(conflict),
@@ -673,6 +695,7 @@ test.describe("AC4 — 375×667 layout", () => {
     const conflict = await ctx.newPage();
     await seedSelection(conflict, [BIOLOGY.id, LATIN.id]);
     await conflict.goto("/");
+    await openList(conflict);
     await expect(dialog(conflict)).toBeVisible();
     await expectTapTarget(
       dialog(conflict)
@@ -720,6 +743,7 @@ test.describe("AC5 — landmarks and labels", () => {
     await seedSelection(page, [BIOLOGY.id, LATIN.id]);
     await seedResolutions(page, [RESOLVED_BIO_LATIN]);
     await page.goto("/");
+    await openList(page); // the moved-to-late text badge renders in the list
 
     // Selected card: aria-pressed for AT + a visible ✓ glyph for sighted users.
     const bioCard = page

@@ -125,6 +125,19 @@ async function keep(page: Page, name: string) {
     .click();
 }
 
+/**
+ * Issue #19 (second bounce) made the CALENDAR the default view; this suite
+ * exercises the LIST view (where issue #5's modal-on-collision behavior
+ * lives), so every test switches to it via the "List" chip after load.
+ */
+async function openList(page: Page) {
+  await page
+    .getByRole("group", { name: "Schedule view" })
+    .getByRole("button", { name: "List" })
+    .click();
+  await expect(schedule(page)).toBeVisible();
+}
+
 /** Seed localStorage before any app script runs (persisted-load path). */
 async function seedSelection(page: Page, ids: string[]) {
   await page.addInitScript(
@@ -212,6 +225,7 @@ test.describe("issue #5 — same-slot conflicts resolve to official late-testing
   }) => {
     // Path 1: collision created by selecting the second subject.
     await page.goto("/");
+    await openList(page);
     await select(page, BIOLOGY.name);
     await expect(prompt(page)).toHaveCount(0); // one subject → no conflict
     await select(page, LATIN.name);
@@ -245,6 +259,7 @@ test.describe("issue #5 — same-slot conflicts resolve to official late-testing
     const fresh = await isolated.newPage();
     await seedSelection(fresh, [BIOLOGY.id, LATIN.id]);
     await fresh.goto("/");
+    await openList(fresh);
     await expect(prompt(fresh)).toHaveCount(1);
     await expect(prompt(fresh)).toContainText(BIOLOGY.name);
     await expect(prompt(fresh)).toContainText(LATIN.name);
@@ -256,6 +271,7 @@ test.describe("issue #5 — same-slot conflicts resolve to official late-testing
   }) => {
     await seedSelection(page, [BIOLOGY.id, LATIN.id]);
     await page.goto("/");
+    await openList(page);
     await keep(page, LATIN.name);
 
     await expect(prompt(page)).toHaveCount(0);
@@ -283,6 +299,7 @@ test.describe("issue #5 — same-slot conflicts resolve to official late-testing
   }) => {
     await seedSelection(page, [BIOLOGY.id, LATIN.id]);
     await page.goto("/");
+    await openList(page);
     await keep(page, LATIN.name);
     await expect(rowsIn(page, BIOLOGY.lateTesting!.date)).toHaveCount(1);
 
@@ -346,6 +363,7 @@ test.describe("issue #5 — same-slot conflicts resolve to official late-testing
       HUMAN_GEO.id,
     ]);
     await page.goto("/");
+    await openList(page);
 
     // Two independent conflicts (May 4 AM, May 5 AM) → two prompts.
     await expect(prompt(page)).toHaveCount(2);
@@ -384,6 +402,7 @@ test.describe("issue #5 — same-slot conflicts resolve to official late-testing
   }) => {
     await seedSelection(page, [BIOLOGY.id, LATIN.id]);
     await page.goto("/");
+    await openList(page);
 
     await expect(prompt(page)).toContainText(COORDINATOR_NOTE);
 
@@ -398,6 +417,7 @@ test.describe("issue #5 — same-slot conflicts resolve to official late-testing
   }) => {
     await seedSelection(page, [DRAWING.id, TWO_D.id]);
     await page.goto("/");
+    await openList(page);
 
     // Both portfolio-only subjects render their deadline on the shared date...
     const portfolioRows = rowsIn(page, DRAWING.portfolio!.deadline);
@@ -431,6 +451,7 @@ test.describe("issue #5 — same-slot conflicts resolve to official late-testing
       HUMAN_GEO.id,
     ]);
     await page.goto("/");
+    await openList(page);
 
     // Contrast of the unresolved-prompt body text, light mode.
     const promptText = '[data-testid="conflict-prompt"] p';
@@ -476,6 +497,7 @@ test.describe("issue #5 — same-slot conflicts resolve to official late-testing
     const fresh = await isolated.newPage();
     await seedSelection(fresh, [BIOLOGY.id, LATIN.id]);
     await fresh.goto("/");
+    await openList(fresh);
     await expect(prompt(fresh)).toHaveCount(1);
     const darkPrompt = await contrastRatio(fresh, promptText);
     expect(
@@ -509,6 +531,7 @@ for (const vp of viewports) {
     await page.setViewportSize({ width: vp.width, height: vp.height });
     await seedSelection(page, [BIOLOGY.id, LATIN.id]);
     await page.goto("/");
+    await openList(page);
     await expect(prompt(page)).toBeVisible();
     await prompt(page).scrollIntoViewIfNeeded();
     await page.screenshot({
@@ -525,6 +548,7 @@ test("evidence — resolved state (moved tag) and late-late warning at desktop",
   await page.setViewportSize({ width: 1920, height: 1080 });
   await seedSelection(page, [BIOLOGY.id, LATIN.id]);
   await page.goto("/");
+  await openList(page);
   await keep(page, LATIN.name);
   await expect(
     rowsIn(page, BIOLOGY.lateTesting!.date).first(),
@@ -545,6 +569,7 @@ test("evidence — resolved state (moved tag) and late-late warning at desktop",
     HUMAN_GEO.id,
   ]);
   await fresh.goto("/");
+  await openList(fresh);
   await keep(fresh, LATIN.name);
   await keep(fresh, HUMAN_GEO.name);
   await expect(lateWarning(fresh)).toBeVisible();
