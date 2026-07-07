@@ -1,11 +1,12 @@
 import { CatalogGrid } from "@/components/CatalogGrid";
 import { ScheduleView } from "@/components/ScheduleView";
+import { ResourcesSidebar } from "@/components/ResourcesSidebar";
 
 export default function Home() {
   return (
     <>
       <header className="border-b border-slate-200 dark:border-slate-800">
-        <div className="mx-auto max-w-5xl px-6 py-6">
+        <div className="mx-auto max-w-6xl px-6 py-6">
           <h1 className="text-2xl font-semibold tracking-tight">
             AP Exam Planner
           </h1>
@@ -14,13 +15,18 @@ export default function Home() {
           </p>
         </div>
       </header>
-      <main
-        className="mx-auto flex max-w-5xl flex-col gap-12 px-6 py-10"
-        aria-label="Exam planner"
-      >
-        <CatalogGrid />
-        <ScheduleView />
-      </main>
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-10 lg:flex-row lg:items-start lg:gap-10">
+        {/* Persistent left column on desktop; a collapsed disclosure near the
+            top on mobile/tablet (see ResourcesSidebar). */}
+        <ResourcesSidebar />
+        <main
+          className="flex min-w-0 flex-1 flex-col gap-12"
+          aria-label="Exam planner"
+        >
+          <CatalogGrid />
+          <ScheduleView />
+        </main>
+      </div>
     </>
   );
 }
