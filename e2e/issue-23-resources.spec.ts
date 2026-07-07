@@ -249,7 +249,7 @@ for (const vp of viewports) {
     // No overflow in the default (collapsed on mobile) state...
     await overflows("default");
 
-    // ...nor once the resource links are revealed (long descriptions wrap).
+    // ...nor once the resource links are revealed.
     await revealSidebar(page);
     await overflows("sidebar-open");
 

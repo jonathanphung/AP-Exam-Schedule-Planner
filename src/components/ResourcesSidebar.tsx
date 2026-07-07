@@ -43,9 +43,6 @@ function ExternalResourceLink({ link }: { link: ResourceLink }) {
         <span aria-hidden="true">↗</span>
         <span className="sr-only"> (opens in a new tab)</span>
       </a>
-      <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400">
-        {link.description}
-      </p>
     </li>
   );
 }
@@ -63,7 +60,7 @@ function ResourceGroups() {
             >
               {group.heading}
             </h3>
-            <ul className="mt-2 flex flex-col gap-3">
+            <ul className="mt-2 flex flex-col gap-2">
               {group.links.map((link) => (
                 <ExternalResourceLink key={link.href} link={link} />
               ))}

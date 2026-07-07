@@ -81,7 +81,6 @@ describe("resources data", () => {
       const label = resolveLabel(link.label).trim();
       expect(label.length).toBeGreaterThan(3);
       expect(label.toLowerCase()).not.toMatch(/click here|read more|learn more|^link$|^here$/);
-      expect(link.description.trim().length).toBeGreaterThan(0);
     }
   });
 

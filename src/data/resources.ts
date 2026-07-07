@@ -37,8 +37,6 @@ export interface ResourceLink {
   label: string;
   /** Verified official College Board URL (https, official host). */
   href: string;
-  /** One-line description of what the page is. */
-  description: string;
 }
 
 export interface ResourceGroup {
@@ -58,26 +56,18 @@ export const RESOURCE_GROUPS: readonly ResourceGroup[] = [
       {
         label: "{cycle} AP Exam dates",
         href: "https://apcentral.collegeboard.org/exam-administration-ordering-scores/exam-dates",
-        description:
-          "Official regular-testing calendar with morning and afternoon session start times.",
       },
       {
         label: "{cycle} AP late-testing dates",
         href: "https://apcentral.collegeboard.org/exam-administration-ordering-scores/exam-dates/late-testing-dates",
-        description:
-          "When make-up exams are administered, and for whom — arranged through your AP coordinator.",
       },
       {
         label: "AP Exams calculator policy",
         href: "https://apstudents.collegeboard.org/exam-policies-guidelines/calculator-policies",
-        description:
-          "Which exams permit calculators and which brands and models are approved.",
       },
       {
         label: "Digital AP Exams and Bluebook exam modes",
         href: "https://apcentral.collegeboard.org/exam-administration-ordering-scores/administering-exams/digital-ap-exams/exam-modes",
-        description:
-          "Which exams are fully digital in Bluebook, hybrid, or paper this year.",
       },
     ],
   },
@@ -87,8 +77,6 @@ export const RESOURCE_GROUPS: readonly ResourceGroup[] = [
       {
         label: "AP Score distributions",
         href: "https://apstudents.collegeboard.org/about-ap-scores/score-distributions",
-        description:
-          "Published percentage of students earning each score (1–5) for every AP Exam.",
       },
     ],
   },
@@ -98,20 +86,14 @@ export const RESOURCE_GROUPS: readonly ResourceGroup[] = [
       {
         label: "AP coordinator key dates and deadlines",
         href: "https://apcentral.collegeboard.org/about-ap/ap-coordinators/calendar-deadlines",
-        description:
-          "Ordering, portfolio-submission, and coordinator deadlines across the AP year.",
       },
       {
         label: "AP Students hub",
         href: "https://apstudents.collegeboard.org/",
-        description:
-          "College Board's official home base for AP students — scores, courses, and exam-day guidance.",
       },
       {
         label: "AP course and exam index (all 42 subjects)",
         href: "https://apstudents.collegeboard.org/course-index-page",
-        description:
-          "Official course and exam pages for every AP subject.",
       },
     ],
   },
