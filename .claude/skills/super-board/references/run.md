@@ -100,6 +100,15 @@ Reviewer:  Review → Done
 
 This means a board with 30 cards in `Ready` and zero elsewhere does **not** start 3 Builder sessions. It starts one Builder. As that Builder moves its card to `QA` and exits, the next tick can start one new Builder for the next `Ready` card and one Tester for the first `QA` card, because those are different lanes.
 
+## Promotion gate — review approval, not human merge (Jon, 2026-07-08; default for every run)
+
+On `human_approves_merge: true` boards, a card is **pipeline-complete when the Reviewer approves it** (PR marked ready, card in Done). The orchestrator must NOT hold the next promotion/wave waiting for the human's merge click:
+
+- As soon as the current wave reconciles, promote the next Backlog card(s) and launch their wave — even while earlier approved PRs sit unmerged.
+- Human merges are tracked with a monitor **for reconciliation, not gating**: when an earlier PR merges and a later in-flight/approved branch goes `CONFLICTING`, rebase that branch onto the new main (`--force-with-lease`) and re-verify — do not block new work on it.
+- Caveat: if a next card's build literally needs an earlier card's unmerged code, the Builder branches from that PR's branch (stacked) or waits for that one merge — this is the only exception, and it is per-dependency, not a global gate.
+- Phase D (deploy) still requires everything merged; only intermediate promotions are un-gated.
+
 ## Branch + PR model — one branch, one PR per issue
 
 Format: **`issue-<N>-<kebab-title>`** (no lane prefix).
