@@ -33,6 +33,10 @@ const toggle = (page: Page, name: string) =>
     .locator("button[aria-pressed]");
 const infoButton = (page: Page, name: string) =>
   page.getByRole("button", { name: `View exam details for ${name}` });
+// Issue #22 mobile IA: at <640px the details button lives inside a chip's
+// expanded Tier-1 panel, revealed by this per-subject expand affordance.
+const expandButton = (page: Page, name: string) =>
+  page.getByRole("button", { name: `Show exam dates for ${name}` });
 const dialog = (page: Page) => page.getByRole("dialog");
 const selectedCount = (page: Page) => page.getByText(/^\d+ selected$/);
 
@@ -169,6 +173,9 @@ test.describe("issue #6 — exam info panel", () => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto("/");
 
+    // Issue #22 mobile IA: expand the chip (Tier 1), then open the details
+    // dialog (Tier 2) from the revealed panel.
+    await expandButton(page, "AP Biology").click();
     await infoButton(page, "AP Biology").click();
     const panel = dialog(page);
     await expect(panel).toBeVisible();
@@ -202,6 +209,11 @@ for (const vp of viewports) {
     await page.setViewportSize({ width: vp.width, height: vp.height });
     await page.goto("/");
 
+    // Issue #22 mobile IA: the details button is inside the chip's expanded
+    // Tier-1 panel at <640px; desktop/tablet keep the per-card affordance.
+    if (vp.width < 640) {
+      await expandButton(page, "AP Biology").click();
+    }
     await infoButton(page, "AP Biology").click();
     await expect(dialog(page)).toBeVisible();
     await expect(

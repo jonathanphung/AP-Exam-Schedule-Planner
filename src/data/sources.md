@@ -83,6 +83,31 @@ They are therefore listed with `exam: null`, `lateTesting: null`, a sourced
 the 2027 first administration) are included as College Board publishes them
 today.
 
+## Official course/exam pages (issue #22 — Tier 3 links)
+
+The UI links each subject to its official College Board page from
+`src/lib/college-board-links.ts` (the single source of truth for these URLs —
+no scattered hardcoded strings). The pattern is
+`https://apcentral.collegeboard.org/courses/ap-<id>/exam`, where `<id>` is the
+dataset subject id. **Every linked URL was individually verified with an
+HTTP request on 2026-07-07**: 37 of the 42 subjects returned 200 from the
+patterned URL (including AP Cybersecurity, whose exam page exists ahead of
+its May 2027 first administration). Five subjects do not follow the pattern
+and carry an individually verified exception URL instead:
+
+| Subject id | Verified official page | Why the pattern fails |
+|---|---|---|
+| `business-with-personal-finance` | <https://apcentral.collegeboard.org/courses/ap-business-personal-finance/exam> | College Board's slug drops "with" |
+| `world-history-modern` | <https://apcentral.collegeboard.org/courses/ap-world-history/exam> | official page has no "-modern" suffix |
+| `2-d-art-and-design` | <https://apcentral.collegeboard.org/courses/ap-2-d-art-and-design/portfolio> | portfolio-only course — no `/exam` page |
+| `3-d-art-and-design` | <https://apcentral.collegeboard.org/courses/ap-3-d-art-and-design/portfolio> | portfolio-only course — no `/exam` page |
+| `drawing` | <https://apcentral.collegeboard.org/courses/ap-drawing/portfolio> | portfolio-only course — no `/exam` page |
+
+Per the data rule, an unverifiable link is omitted (the helper returns
+`null`), never guessed. A unit test (`src/lib/college-board-links.test.ts`)
+pins full coverage for every shipped subject, so an id added to a future
+dataset without re-verification fails CI instead of shipping a guessed link.
+
 ## Annual swap (PRD §8)
 
 The May 2027 calendar is unpublished — no 2027 dates are projected anywhere

@@ -9,8 +9,14 @@ import {
   type Category,
 } from "@/data/schema";
 import { useSelection } from "@/lib/selection";
+import { useMediaQuery } from "@/lib/use-media-query";
+import { groupSubjectsByCategory } from "@/lib/catalog-groups";
 import { InfoPanel } from "@/components/InfoPanel";
 import { SubjectName } from "@/components/SubjectName";
+import {
+  CategorySection,
+  categoryHeadingId,
+} from "@/components/CategorySection";
 
 // The dataset ships bundled and is validated by `pnpm test:data`; the JSON
 // module's inferred type is widened, so re-assert the schema's types here.
@@ -150,11 +156,33 @@ function SubjectCard({
   );
 }
 
+/** Scroll to a category section and move focus to its heading (issue #22). */
+function jumpToCategory(category: Category): void {
+  const heading = document.getElementById(categoryHeadingId(category));
+  if (!heading) return;
+  // Reduced-motion bar from issue #8: no smooth scrolling for users who ask
+  // for reduced motion.
+  const reduceMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
+  heading.scrollIntoView({
+    behavior: reduceMotion ? "auto" : "smooth",
+    block: "start",
+  });
+  heading.focus({ preventScroll: true });
+}
+
 export function CatalogGrid() {
   const { isSelected, toggle, selectedCount } = useSelection();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<CategoryFilter>("All");
   const [detailsSubject, setDetailsSubject] = useState<ApSubject | null>(null);
+
+  // Mobile (< Tailwind `sm`) swaps the flat filterable grid for the
+  // category-sectioned chip layout (issue #22). Exactly one layout is mounted
+  // at a time, so assistive tech never sees a duplicate hidden catalog and
+  // the desktop DOM is unchanged.
+  const isMobile = useMediaQuery("(max-width: 639px)");
 
   const normalizedQuery = query.trim().toLowerCase();
 
@@ -169,6 +197,13 @@ export function CatalogGrid() {
         return matchesQuery && matchesCategory;
       }),
     [normalizedQuery, category],
+  );
+
+  // Sectioned mobile view: identical query semantics, grouped in canonical
+  // category order with empty categories dropped (no dead whitespace).
+  const groups = useMemo(
+    () => (isMobile ? groupSubjectsByCategory(SUBJECTS, query) : []),
+    [isMobile, query],
   );
 
   return (
@@ -200,38 +235,82 @@ export function CatalogGrid() {
           </p>
         </div>
 
-        <div
-          role="group"
-          aria-label="Filter by category"
-          className="flex flex-wrap gap-2"
-        >
-          {CATEGORY_FILTERS.map((option) => {
-            const active = category === option;
-            return (
-              <button
-                key={option}
-                type="button"
-                aria-pressed={active}
-                onClick={() => setCategory(option)}
-                className={[
-                  // ≥44px tall tap target at phone widths (issue #8 AC4);
-                  // desktop keeps the original compact chip.
-                  "inline-flex min-h-11 items-center rounded-full border px-4 py-1 text-sm transition sm:min-h-0 sm:px-3",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-950",
-                  // blue-600: white chip text needs ≥4.5:1 (blue-500 was 3.68:1).
-                  active
-                    ? "border-blue-600 bg-blue-600 text-white dark:border-blue-400 dark:bg-blue-400 dark:text-slate-950"
-                    : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800",
-                ].join(" ")}
-              >
-                {option}
-              </button>
-            );
-          })}
-        </div>
+        {!isMobile && (
+          <div
+            role="group"
+            aria-label="Filter by category"
+            className="flex flex-wrap gap-2"
+          >
+            {CATEGORY_FILTERS.map((option) => {
+              const active = category === option;
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => setCategory(option)}
+                  className={[
+                    // ≥44px tall tap target at phone widths (issue #8 AC4);
+                    // desktop keeps the original compact chip.
+                    "inline-flex min-h-11 items-center rounded-full border px-4 py-1 text-sm transition sm:min-h-0 sm:px-3",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-950",
+                    // blue-600: white chip text needs ≥4.5:1 (blue-500 was 3.68:1).
+                    active
+                      ? "border-blue-600 bg-blue-600 text-white dark:border-blue-400 dark:bg-blue-400 dark:text-slate-950"
+                      : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800",
+                  ].join(" ")}
+                >
+                  {option}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {visibleSubjects.length === 0 ? (
+      {isMobile ? (
+        groups.length === 0 ? (
+          <p className="rounded-lg border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
+            No subjects match your search.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {/* Sticky quick-jump nav (issue #22 design decision): sections
+                stay always-expanded for scannability, and this bar reaches
+                any category without scrolling the whole catalog. */}
+            <nav
+              aria-label="Jump to category"
+              className="sticky top-0 z-30 -mx-6 border-b border-slate-200 bg-white/95 px-6 py-2 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-950/95"
+            >
+              <ul className="flex gap-2 overflow-x-auto">
+                {groups.map((group) => (
+                  <li key={group.category} className="flex-none">
+                    <button
+                      type="button"
+                      onClick={() => jumpToCategory(group.category)}
+                      className="inline-flex min-h-11 items-center whitespace-nowrap rounded-full border border-slate-300 bg-white px-4 py-1 text-sm text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+                    >
+                      {group.category}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+
+            {groups.map((group) => (
+              <CategorySection
+                key={group.category}
+                category={group.category}
+                subjects={group.subjects}
+                isSelected={isSelected}
+                onToggle={toggle}
+                onShowDetails={setDetailsSubject}
+                sessionStartTimes={dataset.sessionStartTimes}
+              />
+            ))}
+          </div>
+        )
+      ) : visibleSubjects.length === 0 ? (
         <p className="rounded-lg border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
           No subjects match your search.
         </p>

@@ -3,6 +3,7 @@
 import { type ReactNode, useId, useRef } from "react";
 import type { ApSubject } from "@/data/schema";
 import { useModalDialog } from "@/lib/modal";
+import { officialCollegeBoardUrl } from "@/lib/college-board-links";
 import { SubjectName } from "@/components/SubjectName";
 
 /**
@@ -97,6 +98,10 @@ export function InfoPanel({ subject, onClose }: InfoPanelProps) {
   useModalDialog(panelRef, onClose, closeButtonRef);
 
   const { format, portfolio } = subject;
+
+  // Tier 3 (issue #22): verified official College Board page — `null` (link
+  // omitted) for any subject without an individually verified URL.
+  const officialUrl = officialCollegeBoardUrl(subject.id);
 
   const whenLabel = subject.exam
     ? `Exam ${new Intl.DateTimeFormat("en-US", {
@@ -273,6 +278,22 @@ export function InfoPanel({ subject, onClose }: InfoPanelProps) {
             <p className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs leading-relaxed text-slate-600 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-300">
               {subject.noExamReason}
             </p>
+          )}
+
+          {/* Tier 3 (issue #22): the subject's official College Board page.
+              Opens externally in a new tab; the ↗ glyph is the visible
+              affordance and the sr-only text announces it to AT. */}
+          {officialUrl && (
+            <a
+              href={officialUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-5 flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-blue-700 transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:border-slate-700 dark:text-blue-300 dark:hover:bg-slate-800"
+            >
+              Official College Board page
+              <span aria-hidden="true">↗</span>
+              <span className="sr-only">(opens in a new tab)</span>
+            </a>
           )}
         </div>
       </div>

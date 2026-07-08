@@ -62,6 +62,10 @@ const dialog = (page: Page) => page.getByRole("dialog");
 const exportButton = (page: Page) => page.getByTestId("export-ics-button");
 const infoButton = (page: Page, name: string) =>
   page.getByRole("button", { name: `View exam details for ${name}` });
+// Issue #22 mobile IA: at <640px the details button lives inside a chip's
+// expanded Tier-1 panel, revealed by this per-subject expand affordance.
+const expandButton = (page: Page, name: string) =>
+  page.getByRole("button", { name: `Show exam dates for ${name}` });
 
 async function seedSelection(page: Page, ids: string[]) {
   await page.addInitScript(
@@ -638,6 +642,13 @@ test.describe("AC4 — 375×667 layout", () => {
     await expect(exportButton(page)).toBeEnabled();
     expect(await noHorizontalScroll(page), "base page overflows").toBe(true);
 
+    // Issue #22 mobile IA: expand the chip (Tier 1), then open the details
+    // dialog (Tier 2) from the revealed panel.
+    await expandButton(page, "AP Biology").click();
+    expect(
+      await noHorizontalScroll(page),
+      "expanded chip panel overflows",
+    ).toBe(true);
     await infoButton(page, "AP Biology").click();
     await expect(dialog(page)).toBeVisible();
     expect(await noHorizontalScroll(page), "info panel overflows").toBe(true);
@@ -663,20 +674,30 @@ test.describe("AC4 — 375×667 layout", () => {
     await page.goto("/");
 
     await expectTapTarget(page.getByLabel("Search subjects"), "search input");
+    // Issue #22 mobile IA: the sticky quick-jump chip replaces the flat
+    // category filter, and the chip's expand affordance replaces the per-card
+    // info button (the details button lives in the expanded Tier-1 panel).
     await expectTapTarget(
-      page.getByRole("button", { name: "All", exact: true }),
-      "category chip",
+      page
+        .getByRole("navigation", { name: "Jump to category" })
+        .getByRole("button", { name: "STEM", exact: true }),
+      "category quick-jump chip",
     );
+    await expectTapTarget(
+      expandButton(page, "AP Biology"),
+      "expand affordance",
+    );
+    await expandButton(page, "AP Biology").click();
     await expectTapTarget(
       infoButton(page, "AP Biology"),
       "details affordance",
     );
-    // The select toggle is the whole card — comfortably larger than 44px.
+    // The select toggle is the whole chip body — ≥44px tall.
     await expectTapTarget(
       page
         .locator('section[aria-label="Subject catalog"] button[aria-pressed]')
         .first(),
-      "subject card toggle",
+      "subject chip toggle",
     );
     await expectTapTarget(exportButton(page), "export button");
 

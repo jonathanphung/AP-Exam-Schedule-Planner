@@ -190,22 +190,32 @@ test.describe("issue #3 — subject catalog", () => {
     expect(ring).not.toBe("none");
   });
 
-  test("AC7 — responsive columns: 1–2 at 375px with no h-scroll, multiple at 1920px", async ({
+  // Issue #22 redesigned the mobile IA: at <640px the flat grid is replaced
+  // by category-grouped sections (real headings + a sticky quick-jump nav)
+  // with one chip per subject. Desktop keeps the original multi-column grid.
+  test("AC7 — responsive: category-sectioned chips at 375px with no h-scroll, multi-column grid at 1920px", async ({
     page,
   }) => {
-    const grid = catalog(page).locator("ul");
-
-    // Mobile: 1–2 columns, no horizontal overflow.
+    // Mobile: the sectioned view — quick-jump nav, all five category
+    // headings, every subject present as a chip, no horizontal overflow.
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto("/");
-    const mobileCols = await grid.evaluate(
-      (el) =>
-        getComputedStyle(el)
-          .gridTemplateColumns.split(" ")
-          .filter(Boolean).length,
-    );
-    expect(mobileCols).toBeGreaterThanOrEqual(1);
-    expect(mobileCols).toBeLessThanOrEqual(2);
+
+    await expect(
+      catalog(page).getByRole("navigation", { name: "Jump to category" }),
+    ).toBeVisible();
+    for (const name of [
+      "STEM",
+      "Humanities",
+      "Languages",
+      "Arts",
+      "Career Kickstart",
+    ]) {
+      await expect(
+        catalog(page).getByRole("heading", { name: new RegExp(`^${name}`) }),
+      ).toBeVisible();
+    }
+    await expect(cards(page)).toHaveCount(TOTAL_SUBJECTS);
 
     const noHScroll = await page.evaluate(
       () =>
@@ -214,8 +224,10 @@ test.describe("issue #3 — subject catalog", () => {
     );
     expect(noHScroll).toBe(true);
 
-    // Desktop: multiple columns.
+    // Desktop: the flat grid with multiple columns (unchanged by issue #22).
     await page.setViewportSize({ width: 1920, height: 1080 });
+    const grid = catalog(page).locator("ul.grid");
+    await expect(grid).toBeVisible();
     const desktopCols = await grid.evaluate(
       (el) =>
         getComputedStyle(el)
