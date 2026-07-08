@@ -141,7 +141,9 @@ const calendarChip = (page: Page) =>
   switcher(page).getByRole("button", { name: "Calendar" });
 const calendarView = (page: Page) => page.getByTestId("calendar-view");
 const scheduleHeading = (page: Page) =>
-  page.getByRole("heading", { level: 2, name: "My Schedule" });
+  // exact: true — the #29 sidebar's "My schedules" heading would otherwise
+  // also match this substring.
+  page.getByRole("heading", { level: 2, name: "My Schedule", exact: true });
 const exportButton = (page: Page) => page.getByTestId("export-ics-button");
 const weekSections = (page: Page) =>
   calendarView(page).locator(

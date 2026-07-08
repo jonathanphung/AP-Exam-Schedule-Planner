@@ -1,128 +1,58 @@
 import { useCallback, useSyncExternalStore } from "react";
+import {
+  getActiveSelection,
+  setActiveSelection,
+  subscribeSchedules,
+} from "./schedules";
 
 /**
- * "My Exams" selection store.
+ * "My Exams" selection store — since issue #29 a view onto the ACTIVE
+ * schedule in the multi-schedule store (`src/lib/schedules.ts`).
  *
- * A tiny module-level store (no React context/provider needed) exposing the
- * set of selected AP subject ids, persisted to localStorage under
- * `apx.selection.v1`. Every component that calls {@link useSelection} shares
- * the same state via `useSyncExternalStore`, so later cards (schedule,
- * conflicts, ICS export) can read/mutate the same selection.
- *
- * SSR-safe: the server and the first client render both see an empty snapshot,
- * so there is no hydration mismatch; the persisted selection is loaded on the
- * client immediately after mount.
+ * The public API is unchanged from the original single-plan store (issue #3):
+ * components keep calling {@link useSelection} and the mutators exactly as
+ * before, and the app-wide invariants hold — every caller shares the same
+ * state, SSR sees an empty snapshot, cross-tab edits sync via the `storage`
+ * event. What changed underneath: the ids now live inside the active
+ * schedule under `apx.schedules.v1`, and switching schedules swaps the whole
+ * selection at once. The legacy `apx.selection.v1` key is still written as a
+ * mirror of the active schedule (see schedules.ts) and is the migration
+ * source for pre-#29 visitors.
  */
 
-/** localStorage key — versioned per PROJECT.md ("apx.<name>.vN"). */
+/** Legacy localStorage key (pre-#29) — migration source + active-schedule mirror. */
 export const SELECTION_STORAGE_KEY = "apx.selection.v1";
-
-type Listener = () => void;
 
 const EMPTY: readonly string[] = Object.freeze([]);
 
-/** Canonical client-side selection. Replaced (never mutated) on every change. */
-let current: readonly string[] = EMPTY;
-let hydrated = false;
-const listeners = new Set<Listener>();
-
-function readStorage(): readonly string[] {
-  if (typeof window === "undefined") return EMPTY;
-  try {
-    const raw = window.localStorage.getItem(SELECTION_STORAGE_KEY);
-    if (!raw) return EMPTY;
-    const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return EMPTY;
-    const ids = Array.from(
-      new Set(parsed.filter((v): v is string => typeof v === "string")),
-    );
-    return ids.length ? Object.freeze(ids) : EMPTY;
-  } catch {
-    // Corrupt/unavailable storage — start from an empty selection.
-    return EMPTY;
-  }
-}
-
-function writeStorage(ids: readonly string[]): void {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(SELECTION_STORAGE_KEY, JSON.stringify(ids));
-  } catch {
-    // Storage unavailable (private mode / quota) — selection stays in-memory.
-  }
-}
-
-function emit(): void {
-  for (const listener of listeners) listener();
-}
-
-function ensureHydrated(): void {
-  if (hydrated) return;
-  hydrated = true;
-  current = readStorage();
-}
-
-function setSelection(ids: readonly string[]): void {
-  current = ids.length ? Object.freeze([...ids]) : EMPTY;
-  writeStorage(current);
-  emit();
-}
-
-function subscribe(listener: Listener): () => void {
-  // Hydrate from localStorage on the first subscription. React re-reads the
-  // snapshot immediately after subscribe runs, so the persisted selection
-  // appears on the first commit without any hydration mismatch.
-  ensureHydrated();
-  listeners.add(listener);
-
-  const onStorage = (event: StorageEvent) => {
-    if (event.key === SELECTION_STORAGE_KEY) {
-      current = readStorage();
-      emit();
-    }
-  };
-  window.addEventListener("storage", onStorage);
-
-  return () => {
-    listeners.delete(listener);
-    window.removeEventListener("storage", onStorage);
-  };
-}
-
-function getSnapshot(): readonly string[] {
-  return current;
-}
-
-function getServerSnapshot(): readonly string[] {
-  return EMPTY;
-}
-
-/** Add `id` to the selection (no-op if already selected). */
+/** Add `id` to the active schedule's selection (no-op if already selected). */
 export function addSelection(id: string): void {
-  ensureHydrated();
+  const current = getActiveSelection();
   if (current.includes(id)) return;
-  setSelection([...current, id]);
+  setActiveSelection([...current, id]);
 }
 
-/** Remove `id` from the selection (no-op if not selected). */
+/** Remove `id` from the active schedule's selection (no-op if not selected). */
 export function removeSelection(id: string): void {
-  ensureHydrated();
+  const current = getActiveSelection();
   if (!current.includes(id)) return;
-  setSelection(current.filter((existing) => existing !== id));
+  setActiveSelection(current.filter((existing) => existing !== id));
 }
 
 /** Toggle `id`: select it if absent, deselect it if present. */
 export function toggleSelection(id: string): void {
-  ensureHydrated();
-  if (current.includes(id)) removeSelection(id);
+  if (getActiveSelection().includes(id)) removeSelection(id);
   else addSelection(id);
 }
 
-/** Clear the entire selection. */
+/** Clear the active schedule's entire selection. */
 export function clearSelection(): void {
-  ensureHydrated();
-  if (current.length === 0) return;
-  setSelection(EMPTY);
+  if (getActiveSelection().length === 0) return;
+  setActiveSelection(EMPTY);
+}
+
+function getServerSnapshot(): readonly string[] {
+  return EMPTY;
 }
 
 export interface SelectionApi {
@@ -143,13 +73,14 @@ export interface SelectionApi {
 }
 
 /**
- * React hook returning the shared "My Exams" selection and its mutators.
- * Safe to call from any client component; all callers stay in sync.
+ * React hook returning the shared "My Exams" selection (of the ACTIVE
+ * schedule) and its mutators. Safe to call from any client component; all
+ * callers stay in sync.
  */
 export function useSelection(): SelectionApi {
   const selectedIds = useSyncExternalStore(
-    subscribe,
-    getSnapshot,
+    subscribeSchedules,
+    getActiveSelection,
     getServerSnapshot,
   );
 

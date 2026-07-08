@@ -66,7 +66,9 @@ export const RESOURCE_GROUPS: readonly ResourceGroup[] = [
         href: "https://apstudents.collegeboard.org/exam-policies-guidelines/calculator-policies",
       },
       {
-        label: "Digital AP Exams and Bluebook exam modes",
+        // Shortened from "…and Bluebook exam modes" so the label fits on a
+        // single line in the expanded sidebar (issue #29 link polish).
+        label: "Digital AP Exams and Bluebook modes",
         href: "https://apcentral.collegeboard.org/exam-administration-ordering-scores/administering-exams/digital-ap-exams/exam-modes",
       },
     ],
@@ -84,7 +86,9 @@ export const RESOURCE_GROUPS: readonly ResourceGroup[] = [
     heading: "Planning & deadlines",
     links: [
       {
-        label: "AP coordinator key dates and deadlines",
+        // Shortened from "AP coordinator key dates and deadlines" to fit on
+        // one line in the expanded sidebar (issue #29 link polish).
+        label: "AP coordinator dates and deadlines",
         href: "https://apcentral.collegeboard.org/about-ap/ap-coordinators/calendar-deadlines",
       },
       {
@@ -92,7 +96,9 @@ export const RESOURCE_GROUPS: readonly ResourceGroup[] = [
         href: "https://apstudents.collegeboard.org/",
       },
       {
-        label: "AP course and exam index (all 42 subjects)",
+        // Parenthesis-free per issue #29's label audit — the "(all 42
+        // subjects)" qualifier folded into the label itself.
+        label: "All AP courses and exams index",
         href: "https://apstudents.collegeboard.org/course-index-page",
       },
     ],
