@@ -92,11 +92,22 @@ test.describe("issue #22 — mobile category-grouped chips + progressive disclos
       await expect(region.locator("button[aria-pressed]")).toHaveCount(count);
     }
 
-    // All 42 subjects present overall; the flat desktop grid is NOT mounted.
+    // All 42 subjects present overall. Since issue #24 the sectioned layout
+    // is one shared grid at every width; on mobile each section's list is a
+    // SINGLE column of full-width cards (not the flat multi-column desktop
+    // grid, and not a width-jumping pill flow — expansion is vertical-only).
     await expect(catalog(page).locator("button[aria-pressed]")).toHaveCount(
       TOTAL_SUBJECTS,
     );
-    await expect(catalog(page).locator("ul.grid")).toHaveCount(0);
+    const mobileCols = await catalog(page)
+      .getByRole("region", { name: /^STEM/ })
+      .locator("ul")
+      .evaluate(
+        (el) =>
+          getComputedStyle(el).gridTemplateColumns.split(" ").filter(Boolean)
+            .length,
+      );
+    expect(mobileCols).toBe(1);
   });
 
   test("AC2 — chip: emoji + name, unmistakable selected state, ≥44px tap targets", async ({
