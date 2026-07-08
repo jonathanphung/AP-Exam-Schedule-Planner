@@ -115,10 +115,23 @@ const HOUR_PX = 44;
 const BLOCK_GAP_PX = 4;
 
 /**
- * Category → block/legend colors. Every text/background pair meets WCAG AA
- * (≥4.5:1): *-900 on *-100 in light mode, *-100 on *-950 in dark mode.
- * There is no prior category color-coding in the app (categories render as
- * plain text in the catalog), so this map establishes the palette.
+ * Category → block/legend colors — a soft PASTEL scheme (issue #30): low-
+ * saturation fills carry a darker same-hue text + a soft same-hue left accent
+ * bar, so the calendar reads like a calm planner rather than a saturated alert
+ * board. Orange is deliberately NOT a category hue — it is reserved for the
+ * unresolved-conflict style below, so a conflict block can never be confused
+ * with a category one.
+ *
+ * Recipe (identical numeric shades across every hue, for cohesion):
+ *   - Light: `bg-{h}-100` fill · `text-{h}-900` text · `border-{h}-400` accent.
+ *   - Dark:  `bg-{h}-900` deep desaturated fill · `text-{h}-50` light text ·
+ *            `border-{h}-500` accent — a muted dark treatment (NOT the light
+ *            pastels inverted), and -900 (not near-black -950) keeps the five
+ *            categories distinguishable from one another in dark mode.
+ *
+ * Every text/fill pair clears WCAG AA (≥4.5:1) in BOTH themes; the exact
+ * measured ratios are asserted live from the rendered colors in
+ * e2e/issue-30-calendar-palette.spec.ts and captured in the QA evidence.
  */
 const CATEGORY_STYLES: Record<
   Category,
@@ -126,33 +139,51 @@ const CATEGORY_STYLES: Record<
 > = {
   STEM: {
     block:
-      "border-emerald-600 bg-emerald-100 text-emerald-900 dark:border-emerald-400 dark:bg-emerald-950 dark:text-emerald-100",
-    dot: "bg-emerald-600 dark:bg-emerald-400",
+      "border-emerald-400 bg-emerald-100 text-emerald-900 dark:border-emerald-500 dark:bg-emerald-900 dark:text-emerald-50",
+    dot: "bg-emerald-500 dark:bg-emerald-400",
   },
   Humanities: {
     block:
-      "border-indigo-600 bg-indigo-100 text-indigo-900 dark:border-indigo-400 dark:bg-indigo-950 dark:text-indigo-100",
-    dot: "bg-indigo-600 dark:bg-indigo-400",
+      "border-indigo-400 bg-indigo-100 text-indigo-900 dark:border-indigo-500 dark:bg-indigo-900 dark:text-indigo-50",
+    dot: "bg-indigo-500 dark:bg-indigo-400",
   },
   Languages: {
     block:
-      "border-rose-600 bg-rose-100 text-rose-900 dark:border-rose-400 dark:bg-rose-950 dark:text-rose-100",
-    dot: "bg-rose-600 dark:bg-rose-400",
+      "border-rose-400 bg-rose-100 text-rose-900 dark:border-rose-500 dark:bg-rose-900 dark:text-rose-50",
+    dot: "bg-rose-500 dark:bg-rose-400",
   },
   Arts: {
     block:
-      "border-fuchsia-600 bg-fuchsia-100 text-fuchsia-900 dark:border-fuchsia-400 dark:bg-fuchsia-950 dark:text-fuchsia-100",
-    dot: "bg-fuchsia-600 dark:bg-fuchsia-400",
+      "border-fuchsia-400 bg-fuchsia-100 text-fuchsia-900 dark:border-fuchsia-500 dark:bg-fuchsia-900 dark:text-fuchsia-50",
+    dot: "bg-fuchsia-500 dark:bg-fuchsia-400",
   },
   "Career Kickstart": {
     block:
-      "border-cyan-600 bg-cyan-100 text-cyan-900 dark:border-cyan-400 dark:bg-cyan-950 dark:text-cyan-100",
-    dot: "bg-cyan-600 dark:bg-cyan-400",
+      "border-cyan-400 bg-cyan-100 text-cyan-900 dark:border-cyan-500 dark:bg-cyan-900 dark:text-cyan-50",
+    dot: "bg-cyan-500 dark:bg-cyan-400",
   },
 };
 
 const FALLBACK_BLOCK_STYLE =
-  "border-slate-600 bg-slate-100 text-slate-900 dark:border-slate-400 dark:bg-slate-800 dark:text-slate-100";
+  "border-slate-400 bg-slate-100 text-slate-900 dark:border-slate-500 dark:bg-slate-800 dark:text-slate-50";
+
+/**
+ * Shared ORANGE conflict style (issue #30). Every block in an UNRESOLVED
+ * same-slot conflict renders in this style INSTEAD of its category style —
+ * both/all members go orange regardless of subject category, so an unresolved
+ * clash reads as a single "action needed" cluster. It is set apart from the
+ * calm pastel categories on three axes, not colour alone (WCAG "colour is
+ * never the only signal"): (a) the reserved orange hue, (b) a full 2px orange
+ * outline versus the categories' single left accent bar, and (c) a ⚠️ marker +
+ * a "Time conflict" caption on the block, with the conflict also spelled out
+ * in the block's accessible name. Text/fill clears AA in both themes.
+ *
+ * Orange means ONLY "unresolved conflict": the moment a conflict is resolved
+ * (a member moved to late testing) the blocks fall back to their category
+ * styling — see `resolveSlots`/`unresolvedConflicts` feeding this component.
+ */
+const CONFLICT_BLOCK_STYLE =
+  "border-2 border-orange-500 bg-orange-200 text-orange-900 dark:border-orange-400 dark:bg-orange-900 dark:text-orange-50";
 
 /** "3 h 15 min" / "2 h" / "45 min" for a whole-minute duration. */
 function minutesLabel(total: number): string {
@@ -175,19 +206,30 @@ function minutesLabel(total: number): string {
 function ExamBlock({
   block,
   axisStartHour,
+  conflicted,
   onActivate,
 }: {
   block: CalendarBlock;
   axisStartHour: number;
+  /**
+   * True when this block is a member of an UNRESOLVED same-slot conflict
+   * (computed in {@link CalendarView} from the issue-#5 conflicts layer). It
+   * overrides the category style with the shared orange {@link
+   * CONFLICT_BLOCK_STYLE} and adds the ⚠️ marker + "time conflict" wording.
+   */
+  conflicted: boolean;
   onActivate: (block: CalendarBlock) => void;
 }) {
   const top = (block.startHour - axisStartHour) * HOUR_PX;
   const examHeight = (block.endHour - block.startHour) * HOUR_PX;
   const bufferHeight = (SETUP_BUFFER_MINUTES / 60) * HOUR_PX - BLOCK_GAP_PX;
   const widthPct = 100 / block.laneCount;
-  const style = block.category
-    ? CATEGORY_STYLES[block.category].block
-    : FALLBACK_BLOCK_STYLE;
+  // Unresolved conflict wins over the category hue: both members go orange.
+  const style = conflicted
+    ? CONFLICT_BLOCK_STYLE
+    : block.category
+      ? CATEGORY_STYLES[block.category].block
+      : FALLBACK_BLOCK_STYLE;
 
   const spanLabel = block.approximate
     ? `${block.startClock} · length pending`
@@ -195,8 +237,11 @@ function ExamBlock({
   const spokenSpan = block.approximate
     ? `starts ${block.startClock}, exam length pending, approximate block`
     : `${block.startClock} to ${block.endClock} (${minutesLabel(block.examMinutes!)})`;
+  // The conflict is carried in WORDS in the accessible name — never by the
+  // orange fill or the ⚠️ glyph alone (both are aria-hidden decoration).
   const accessibleName = [
     block.subjectName,
+    conflicted ? "unresolved time conflict, action needed" : null,
     `${block.session} session`,
     spokenSpan,
     `plus ${SETUP_BUFFER_MINUTES} minutes setup buffer`,
@@ -231,9 +276,21 @@ function ExamBlock({
           style={{ height: `${examHeight}px` }}
         >
           <span className="block font-semibold break-words">
+            {conflicted && (
+              // Decorative caution glyph — a SHAPE cue, not colour; the words
+              // live in the button's accessible name and the caption below.
+              <span aria-hidden="true" data-testid="block-conflict-marker">
+                ⚠️{" "}
+              </span>
+            )}
             {block.subjectName}
           </span>
           <span className="mt-0.5 block">{spanLabel}</span>
+          {conflicted && (
+            <span className="mt-0.5 block font-medium italic">
+              Time conflict
+            </span>
+          )}
           {block.approximate && (
             <span className="mt-0.5 block italic">Length pending</span>
           )}
@@ -266,11 +323,14 @@ function WeekGrid({
   week,
   axisStartHour,
   axisEndHour,
+  conflictedSubjectIds,
   onActivateBlock,
 }: {
   week: CalendarWeekLayout;
   axisStartHour: number;
   axisEndHour: number;
+  /** Subject ids currently in an unresolved same-slot conflict (orange). */
+  conflictedSubjectIds: ReadonlySet<string>;
   onActivateBlock: (block: CalendarBlock) => void;
 }) {
   const hours: number[] = [];
@@ -367,6 +427,7 @@ function WeekGrid({
                         key={block.key}
                         block={block}
                         axisStartHour={axisStartHour}
+                        conflicted={conflictedSubjectIds.has(block.subjectId)}
                         onActivate={onActivateBlock}
                       />
                     ))}
@@ -681,6 +742,16 @@ export function CalendarView() {
     () => unresolvedConflicts(conflicts, validResolutions),
     [conflicts, validResolutions],
   );
+  // Every subject sitting in an UNRESOLVED conflict → its block renders orange
+  // (issue #30). Reuses the issue-#5 conflicts layer verbatim: once a conflict
+  // is resolved it drops out of `unresolved`, so both members return to their
+  // pastel category styling automatically — orange strictly means "unresolved".
+  const conflictedSubjectIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const group of unresolved)
+      for (const id of group.subjectIds) ids.add(id);
+    return ids;
+  }, [unresolved]);
   const resolvedSlots = useMemo(
     () => resolveSlots(SUBJECTS, selectedIds, validResolutions),
     [selectedIds, validResolutions],
@@ -853,6 +924,7 @@ export function CalendarView() {
                 week={currentWeek}
                 axisStartHour={layout.axisStartHour}
                 axisEndHour={layout.axisEndHour}
+                conflictedSubjectIds={conflictedSubjectIds}
                 onActivateBlock={activateBlock}
               />
             </>
