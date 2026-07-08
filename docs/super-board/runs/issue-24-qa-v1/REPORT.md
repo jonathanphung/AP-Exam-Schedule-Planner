@@ -21,6 +21,19 @@ Spec: `e2e/issue-24-qa.spec.ts` — 14 tests (7 AC tests + AC8 geometry at 4 vie
 - Full suite (145 tests): run 1 — 141 pass / 4 fail; run 2 (`--workers=4`) — 143 pass / 2 fail. **Failure sets disjoint between runs** (issue-8 axe evidence, issue-9 footer ×2, qa-evidence console, issue-5 evidence) and **all 6 pass in isolated reruns** → machine-load flakes (two concurrent super-board lanes were running builds/e2e on this host, load avg ~79), not regressions. Every one of the 145 tests passed at least once this session; `issue-24-qa.spec.ts` passed in every completed run.
 - `pnpm lint` PASS · `pnpm test:unit` PASS (93) · `pnpm test:data` PASS (42) — logs in this folder.
 
+## Verification re-run (reporting QA lane, 2026-07-08, fresh worktree, PORT=3457)
+
+The lane that authored this suite was interrupted before reporting; the reporting QA lane
+re-verified everything independently from a clean `pnpm install`:
+
+- `PORT=3457 pnpm test:e2e e2e/issue-24-qa.spec.ts` — **14/14 pass** (19.8s)
+- `PORT=3457 pnpm test:e2e` (full suite) — **145/145 pass** (55.3s) — no flakes this run,
+  confirming the v1 report's failures were machine-load artifacts, not regressions
+- `pnpm lint` PASS · `pnpm test:unit` 93/93 · `pnpm test:data` 42/42
+- Committed screenshots refreshed from this verified run (identical UI, same code @ 211d896);
+  desktop.png and geometry-1920-expanded.png visually spot-checked — grouped sections in
+  canonical order, expansion vertical-only, chevron position stable.
+
 ## Evidence
 
 - `desktop.png` / `tablet.png` / `mobile.png` — grouped catalog, 1 selected + 1 expanded (1920×1080 / 1024×768 / 375×667, full page)
