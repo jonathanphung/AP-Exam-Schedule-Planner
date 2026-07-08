@@ -34,7 +34,7 @@ const CYCLE = (
 const GROUP_HEADINGS = ["Exam logistics", "Scores", "Planning & deadlines"];
 
 const SIDEBAR = "aside[data-testid='resources-sidebar']";
-const RESOURCE_LINKS = `${SIDEBAR} a[target='_blank']`;
+const RESOURCE_LINKS = `${SIDEBAR} #resources-panel a[target='_blank']`; // scoped: the #29 footer row added non-resource links to the sidebar
 
 const DESKTOP = { width: 1440, height: 900 };
 const MOBILE = { width: 375, height: 667 };

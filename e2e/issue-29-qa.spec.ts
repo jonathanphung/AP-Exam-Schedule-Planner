@@ -61,7 +61,7 @@ const RESOLUTIONS_KEY = "apx.resolutions.v1";
 const SIDEBAR_KEY = "apx.sidebar.v1";
 
 const SIDEBAR = "aside[data-testid='resources-sidebar']";
-const RESOURCE_LINKS = `${SIDEBAR} a[target='_blank']`;
+const RESOURCE_LINKS = `${SIDEBAR} #resources-panel a[target='_blank']`; // scoped: the #29 footer row added non-resource links to the sidebar
 /** 4 exam-logistics + 1 scores + 3 planning links (src/data/resources.ts). */
 const EXPECTED_LINK_COUNT = 8;
 
