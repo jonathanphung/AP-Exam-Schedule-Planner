@@ -24,11 +24,12 @@ import { pressViewChip } from "./support/view-chip";
  *     that never render grid blocks in these fixtures) carry the SAME pastel
  *     accent classes as the block scheme, light + dark variants.
  *
- * Screenshots land in docs/super-board/runs/issue-30-qa-v1/ and are committed
- * to the issue branch so they render inline on the issue / PR.
+ * Screenshots land in docs/super-board/runs/issue-30-qa-v2/ and are committed
+ * to the issue branch so they render inline on the issue / PR. (v2 re-captures
+ * the light+dark evidence after Jon's exact-hex palette bounce on PR #34.)
  */
 
-const EVIDENCE_DIR = "docs/super-board/runs/issue-30-qa-v1";
+const EVIDENCE_DIR = "docs/super-board/runs/issue-30-qa-v2";
 const SELECTION_KEY = "apx.selection.v1";
 const RESOLUTIONS_KEY = "apx.resolutions.v1";
 
