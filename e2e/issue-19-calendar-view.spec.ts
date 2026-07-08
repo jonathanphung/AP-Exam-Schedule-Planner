@@ -951,10 +951,14 @@ test("Pager a11y — keyboard-operable buttons with accessible names and an aria
   await expect(indicator(page)).toHaveAttribute("aria-atomic", "true");
   await expect(indicator(page)).toContainText(`Week 1 of ${WEEK_COUNT}`);
 
-  // Real Tab traversal reaches the pager: with Previous disabled on week 1
-  // (disabled buttons are skipped), the next stop after the Calendar chip is
-  // the Next button — and keyboard focus paints a :focus-visible ring.
+  // Real Tab traversal reaches the pager. Since issue #31's one-row toolbar
+  // the Export button trails the switcher (List → Calendar → Export), so it
+  // takes focus right after the Calendar chip; then, with Previous disabled
+  // on week 1 (disabled buttons are skipped), the next stop is the Next
+  // button — and keyboard focus paints a :focus-visible ring.
   await calendarChip(page).focus();
+  await page.keyboard.press("Tab");
+  await expect(page.getByTestId("export-ics-button")).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(nextButton(page)).toBeFocused();
   const shadow = await nextButton(page).evaluate(
