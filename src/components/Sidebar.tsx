@@ -24,8 +24,9 @@ import { toggleSidebarCollapsed, useSidebarCollapsed } from "@/lib/sidebar";
  *      never the trailing ↗.
  *
  * Presentation:
- *   • Desktop (≥1024px / `lg`): a persistent left column (18rem when
- *     expanded). The collapse toggle (`aria-expanded`, keyboard-operable)
+ *   • Desktop (≥1024px / `lg`): a persistent left column (20rem when
+ *     expanded, sized so the longest resource label fits on one line). The
+ *     collapse toggle (`aria-expanded`, keyboard-operable)
  *     shrinks it to a slim rail so the main content widens; the choice is
  *     remembered client-side in `apx.sidebar.v1`. Builder's documented call:
  *     the toggle exists only where the persistent column exists (desktop) —

@@ -66,9 +66,10 @@ export const RESOURCE_GROUPS: readonly ResourceGroup[] = [
         href: "https://apstudents.collegeboard.org/exam-policies-guidelines/calculator-policies",
       },
       {
-        // Shortened from "…and Bluebook exam modes" so the label fits on a
-        // single line in the expanded sidebar (issue #29 link polish).
-        label: "Digital AP Exams and Bluebook modes",
+        // Shortened from "Digital AP Exams and Bluebook exam modes" so the
+        // label fits on a single line everywhere — including the 375px mobile
+        // disclosure card (issue #29 link polish).
+        label: "Bluebook digital exam modes",
         href: "https://apcentral.collegeboard.org/exam-administration-ordering-scores/administering-exams/digital-ap-exams/exam-modes",
       },
     ],
