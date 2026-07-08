@@ -11,6 +11,13 @@ import { SubjectChip } from "@/components/SubjectChip";
  * here (`tabIndex={-1}` on the heading; `scroll-mt` clears the sticky bar).
  * The chips flow 1–2 per row by name length inside a wrapping list, matching
  * the Fiveable reference's grouped-card scannability.
+ *
+ * Issue #24 makes this section the desktop layout too: at `sm` and up the
+ * chip list swaps the wrapping flex flow for a responsive CSS grid (2
+ * columns, 3 at `xl`) so wider viewports get more columns of uniform-width
+ * chips while the markup — and therefore search, selection, and disclosure
+ * behavior — stays identical to mobile. (`sm:grid` is a different class
+ * token than `grid`, so below `sm` the list keeps its flex flow.)
  */
 
 /** DOM id for a category's section heading (quick-jump scroll/focus target). */
@@ -53,7 +60,7 @@ export function CategorySection({
           {subjects.length} {subjects.length === 1 ? "subject" : "subjects"}
         </span>
       </h2>
-      <ul className="mt-3 flex flex-wrap gap-2">
+      <ul className="mt-3 flex flex-wrap gap-2 sm:grid sm:grid-cols-2 xl:grid-cols-3">
         {subjects.map((subject) => (
           <SubjectChip
             key={subject.id}

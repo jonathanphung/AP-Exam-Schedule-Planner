@@ -87,22 +87,26 @@ export function SubjectChip({
 
   // scroll-mt clears the sticky quick-jump bar when the chip is scrolled
   // back into view from below (e.g. keyboard focus or test automation).
+  // In the desktop grid (issue #24, `sm+` in CategorySection) an expanded
+  // chip spans the full row — the same "grow to full width" behavior as the
+  // mobile flex flow — and `h-full` keeps collapsed chips uniform within a
+  // grid row (grid items stretch; in the mobile flex flow it is a no-op).
   return (
     <li
       className={[
         "min-w-0 max-w-full scroll-mt-20",
-        expanded ? "w-full" : "",
+        expanded ? "w-full sm:col-span-full" : "",
       ].join(" ")}
     >
       <div
         className={[
-          "overflow-hidden rounded-xl border transition",
+          "flex h-full flex-col overflow-hidden rounded-xl border transition",
           selected
             ? "border-blue-600 bg-blue-50 dark:border-blue-400 dark:bg-blue-950/40"
             : "border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-900",
         ].join(" ")}
       >
-        <div className="flex items-stretch">
+        <div className="flex flex-1 items-stretch">
           {/* Select toggle — the whole chip body, ≥44px tall. */}
           <button
             type="button"
