@@ -60,7 +60,8 @@ const conflictPrompt = (page: Page) =>
 
 async function select(page: Page, name: string) {
   const c = card(page, name);
-  await c.scrollIntoViewIfNeeded();
+  // No explicit scrollIntoViewIfNeeded: click() auto-scrolls and retries if
+  // the element detaches while the issue #22 mobile layout mounts post-hydration.
   await c.click();
   await expect(c).toHaveAttribute("aria-pressed", "true");
 }

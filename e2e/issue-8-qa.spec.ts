@@ -415,9 +415,24 @@ test.describe("issue #8 QA evidence", () => {
     await base.goto("/");
     await expect(base.getByTestId("export-ics-button")).toBeEnabled();
 
+    // Issue #22 mobile IA: the flat category filter is replaced by a sticky
+    // quick-jump nav, and the per-card info button by a chip expand affordance
+    // whose Tier-1 panel holds the details button — measure the new controls.
+    await base
+      .getByRole("button", { name: "Show exam dates for AP Biology" })
+      .click();
     const targets: Array<[string, ReturnType<Page["locator"]>]> = [
       ["search input", base.getByLabel("Search subjects")],
-      ["category chip 'All'", base.getByRole("button", { name: "All", exact: true })],
+      [
+        "category quick-jump chip 'STEM'",
+        base
+          .getByRole("navigation", { name: "Jump to category" })
+          .getByRole("button", { name: "STEM", exact: true }),
+      ],
+      [
+        "expand affordance",
+        base.getByRole("button", { name: "Show exam dates for AP Biology" }),
+      ],
       [
         "details affordance",
         base.getByRole("button", { name: "View exam details for AP Biology" }),
