@@ -3,6 +3,7 @@ import AxeBuilder from "@axe-core/playwright";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import apData from "../src/data/ap-2026.json";
+import { pressViewChip } from "./support/view-chip";
 
 /**
  * super-board QA (issue #8) — Tester evidence spec.
@@ -88,6 +89,17 @@ async function seed(page: Page, ids: string[], resolutions?: unknown[]) {
  * app has no infinite animations, but the 2s race is a safety valve so a
  * future one can never hang the scan.
  */
+/**
+ * Issue #19 (second bounce) made the CALENDAR the default view; the states
+ * this spec captures (conflict modal-on-load, moved badge, late-collision
+ * warning) live in the LIST view, so those tests switch to it first.
+ * The press is hydration-safe (see e2e/support/view-chip.ts).
+ */
+async function openList(page: Page) {
+  await pressViewChip(page, "List");
+  await expect(page.locator('section[aria-label="My schedule"]')).toBeVisible();
+}
+
 async function settleAnimations(page: Page) {
   await page.evaluate(async () => {
     const done = Promise.all(
@@ -178,6 +190,7 @@ test.describe("issue #8 QA evidence", () => {
       const page = await ctx.newPage();
       await seed(page, RESOLVED_IDS, RESOLUTIONS);
       await page.goto("/");
+      await openList(page);
       await expect(
         page.getByText("Moved to late testing").first(),
       ).toBeVisible();
@@ -210,6 +223,7 @@ test.describe("issue #8 QA evidence", () => {
   }) => {
     await seed(page, [BIOLOGY.id, LATIN.id]);
     await page.goto("/");
+    await openList(page); // the modal-on-collision behavior lives in the list view
     const modal = page.getByRole("dialog");
     await expect(modal).toBeVisible();
     await expect(modal).toHaveAttribute("aria-modal", "true");
@@ -253,6 +267,14 @@ test.describe("issue #8 QA evidence", () => {
     const withSel = await ctx1.newPage();
     await seed(withSel, ["biology", "seminar", "drawing", "cybersecurity"]);
     await withSel.goto("/");
+    // Close the remaining settleAnimations race: wait for the hydration flip
+    // (export button disabled -> enabled) so its `transition-colors` run has
+    // STARTED before settleAnimations awaits it — otherwise, under parallel
+    // load, the settle can complete before the transition begins and axe
+    // samples mid-blend colors (same false positive as the PR #18 thread).
+    // The other seeded states already gate on hydration-dependent UI
+    // (conflict dialog / late-collision warning) before their scans.
+    await expect(withSel.getByTestId("export-ics-button")).toBeEnabled();
     await scan(withSel, "with-selections");
     await ctx1.close();
 
@@ -260,6 +282,7 @@ test.describe("issue #8 QA evidence", () => {
     const conflict = await ctx2.newPage();
     await seed(conflict, [BIOLOGY.id, LATIN.id]);
     await conflict.goto("/");
+    await openList(conflict);
     await expect(conflict.getByRole("dialog")).toBeVisible();
     await scan(conflict, "conflict-dialog-open");
     await ctx2.close();
@@ -278,6 +301,7 @@ test.describe("issue #8 QA evidence", () => {
     const dark = await ctx4.newPage();
     await seed(dark, RESOLVED_IDS, RESOLUTIONS);
     await dark.goto("/");
+    await openList(dark);
     await expect(dark.getByTestId("late-collision-warning")).toBeVisible();
     await scan(dark, "resolved-dark");
     await dark.screenshot({
@@ -303,6 +327,7 @@ test.describe("issue #8 QA evidence", () => {
       const page = await ctx.newPage();
       await seed(page, [BIOLOGY.id, LATIN.id]);
       await page.goto("/");
+      await openList(page);
       await expect(page.getByTestId("conflict-prompt")).toBeVisible();
 
       const promptBody = await contrastRatio(
@@ -323,6 +348,7 @@ test.describe("issue #8 QA evidence", () => {
       const resolved = await ctx2.newPage();
       await seed(resolved, RESOLVED_IDS, RESOLUTIONS);
       await resolved.goto("/");
+      await openList(resolved);
       await expect(
         resolved.getByText("Moved to late testing").first(),
       ).toBeVisible();
@@ -366,6 +392,7 @@ test.describe("issue #8 QA evidence", () => {
     const page = await ctx.newPage();
     await seed(page, [BIOLOGY.id, LATIN.id]);
     await page.goto("/");
+    await openList(page);
     await expect(page.getByRole("dialog")).toBeVisible();
     expect(
       await page.evaluate(

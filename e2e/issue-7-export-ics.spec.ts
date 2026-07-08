@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
+import { pressViewChip } from "./support/view-chip";
 
 /**
  * super-board QA (issue #7) — export selected exams as an ICS calendar file.
@@ -20,7 +21,20 @@ const EVIDENCE_DIR = "docs/super-board/runs/issue-7-qa-v1";
 
 const schedule = (page: Page) =>
   page.locator('section[aria-label="My schedule"]');
+// The shared "My Schedule" header (heading + Export) lives in the outer
+// "My exams" section since issue #19's second bounce, present on BOTH views.
+const myExams = (page: Page) =>
+  page.locator('section[aria-label="My exams"]');
 const exportButton = (page: Page) => page.getByTestId("export-ics-button");
+
+/**
+ * Issue #19 made the calendar the default view; switch to the list.
+ * The press is hydration-safe (see e2e/support/view-chip.ts).
+ */
+async function openList(page: Page) {
+  await pressViewChip(page, "List");
+  await expect(schedule(page)).toBeVisible();
+}
 
 const catalog = (page: Page) =>
   page.locator('section[aria-label="Subject catalog"]');
@@ -42,11 +56,17 @@ test.describe("issue #7 — export to calendar", () => {
   }) => {
     await page.goto("/");
 
-    // Rendered *near My Schedule*: the button is inside the My Schedule section,
-    // in the same header row as the section heading.
-    const btn = schedule(page).getByTestId("export-ics-button");
+    // Rendered *near My Schedule*: the button sits in the shared header row
+    // beside the "My Schedule" heading — visible on the default (calendar)
+    // view AND after switching to the list (issue #19 second bounce, item B4).
+    const btn = myExams(page).getByTestId("export-ics-button");
     await expect(btn).toBeVisible();
     await expect(btn).toHaveText(/Export to Calendar/i);
+    await expect(
+      myExams(page).getByRole("heading", { level: 2, name: "My Schedule" }),
+    ).toBeVisible();
+    await openList(page);
+    await expect(btn).toBeVisible();
 
     // Zero selections → disabled.
     await expect(page.getByText(/^0 selected$/)).toBeVisible();
@@ -143,7 +163,9 @@ for (const vp of viewports) {
     await select(page, "AP Biology"); // exam
     await select(page, "AP Seminar"); // exam + portfolio
 
-    // The export affordance is present and enabled in the working state.
+    // The export affordance is present and enabled in the working state —
+    // asserted on the LIST view (the populated-schedule evidence shot).
+    await openList(page);
     await expect(exportButton(page)).toBeEnabled();
     await expect(schedule(page).getByText("Portfolio due").first()).toBeVisible();
 

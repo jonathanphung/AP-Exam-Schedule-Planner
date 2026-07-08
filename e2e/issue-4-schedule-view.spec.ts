@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import apData from "../src/data/ap-2026.json";
+import { pressViewChip } from "./support/view-chip";
 
 /**
  * super-board QA (issue #4) — personal schedule view grouped by date & session
@@ -45,14 +46,29 @@ async function select(page: Page, name: string) {
   await expect(c).toHaveAttribute("aria-pressed", "true");
 }
 
+/**
+ * Issue #19 (second bounce) made the CALENDAR the default view and moved the
+ * "My Schedule" heading + cycle banner + Export button into a header shared
+ * by both views. This suite targets the LIST view, so every test switches to
+ * it via the "List" chip first.
+ * The press is hydration-safe (see e2e/support/view-chip.ts).
+ */
+async function openList(page: Page) {
+  await pressViewChip(page, "List");
+  await expect(schedule(page)).toBeVisible();
+}
+
 test.describe("issue #4 — my schedule", () => {
   test("AC1 — entries render grouped by date ascending, AM before PM, with subject name + session", async ({
     page,
   }) => {
     await page.goto("/");
+    await openList(page);
 
+    // The heading lives in the shared header above the view switcher since
+    // issue #19's second bounce (visible on both views).
     await expect(
-      schedule(page).getByRole("heading", { level: 2, name: "My Schedule" }),
+      page.getByRole("heading", { level: 2, name: "My Schedule" }),
     ).toBeVisible();
 
     // Two exams on 2026-05-04 (Biology AM, European History PM) + one on
@@ -87,6 +103,7 @@ test.describe("issue #4 — my schedule", () => {
     page,
   }) => {
     await page.goto("/");
+    await openList(page);
 
     // AP Seminar has BOTH a sit-down exam (2026-05-11 PM) and a portfolio
     // deadline (2026-04-30) → two entries.
@@ -124,6 +141,7 @@ test.describe("issue #4 — my schedule", () => {
     page,
   }) => {
     await page.goto("/");
+    await openList(page);
 
     // AP Drawing is portfolio-only (no sit-down exam).
     await select(page, "AP Drawing");
@@ -148,8 +166,14 @@ test.describe("issue #4 — my schedule", () => {
     // dataset swap re-labels the banner without a code change.
     const cycle = apData.cycle; // e.g. "May 2026"
     expect(cycle).toMatch(/^May \d{4}$/);
+    // The banner lives in the shared "My Schedule" header (issue #19 second
+    // bounce) so it is visible regardless of the active view.
     await expect(
-      schedule(page).getByText(new RegExp(`${cycle}\\s+AP exam cycle`)),
+      page.getByText(new RegExp(`${cycle}\\s+AP exam cycle`)),
+    ).toBeVisible();
+    await openList(page);
+    await expect(
+      page.getByText(new RegExp(`${cycle}\\s+AP exam cycle`)),
     ).toBeVisible();
   });
 
@@ -157,6 +181,7 @@ test.describe("issue #4 — my schedule", () => {
     page,
   }) => {
     await page.goto("/");
+    await openList(page);
 
     await expect(page.getByText(/^0 selected$/)).toBeVisible();
     // No entry rows are rendered.
@@ -171,6 +196,7 @@ test.describe("issue #4 — my schedule", () => {
     page,
   }) => {
     await page.goto("/");
+    await openList(page);
 
     // AP Cybersecurity has no May 2026 exam and no portfolio → it must not be
     // silently dropped; it appears under the "No May 2026 exam date" note.
@@ -192,6 +218,7 @@ test.describe("issue #4 — my schedule", () => {
     }) => {
       await page.setViewportSize({ width, height: 900 });
       await page.goto("/");
+      await openList(page);
 
       // Populate a rich schedule (exam rows, portfolio row, undated note).
       await select(page, "AP Biology");
@@ -225,6 +252,7 @@ for (const vp of viewports) {
   }) => {
     await page.setViewportSize({ width: vp.width, height: vp.height });
     await page.goto("/");
+    await openList(page);
 
     // A selection that exercises every entry kind at once: two same-day exams,
     // a subject with both an exam and a portfolio, a portfolio-only subject,
