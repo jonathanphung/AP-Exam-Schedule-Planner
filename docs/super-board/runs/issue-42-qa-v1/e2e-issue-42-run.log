@@ -1,0 +1,56 @@
+
+> ap-exam-planner@0.1.0 test:e2e /Users/jon/repos/AP-Exam-Planner/.worktrees/issue-42-qa
+> playwright test e2e/issue-42-feedback-dialog.spec.ts
+
+
+[2mRunning [22m23[2m tests using [22m4[2m workers[22m
+
+  [32m✓[39m  [2m 1 [22m[chromium] › e2e/issue-42-feedback-dialog.spec.ts:131:5 › AC1 — opens from the mobile presentation too (375px)[2m (2.6s)[22m
+  [32m✓[39m  [2m 2 [22m[chromium] › e2e/issue-42-feedback-dialog.spec.ts:106:5 › AC1 — footer 'Send us Feedback' is a real <button> that opens the dialog without navigating; the GitHub icon still links to the repo[2m (2.7s)[22m
+  [32m✓[39m  [2m 3 [22m[chromium] › e2e/issue-42-feedback-dialog.spec.ts:182:5 › AC3 — invalid email blocks submission with an inline, aria-tied error; no transport is touched[2m (2.8s)[22m
+  [32m✓[39m  [2m 4 [22m[chromium] › e2e/issue-42-feedback-dialog.spec.ts:139:5 › AC2 — dialog contents match the card: heading, blurb, labeled optional email, labeled textarea w/ placeholder, Cancel + Send Feedback + ✕[2m (3.1s)[22m
+  [32m✓[39m  [2m 7 [22m[chromium] › e2e/issue-42-feedback-dialog.spec.ts:276:5 › AC4 — 2000-char cap is enforced (maxLength) and the live counter appears near the cap, turning emphatic at it[2m (1.4s)[22m
+  [32m✓[39m  [2m 5 [22m[chromium] › e2e/issue-42-feedback-dialog.spec.ts:208:5 › AC3 — empty email submits fine (email is optional); any-domain email is accepted and rides along[2m (1.7s)[22m
+  [32m✓[39m  [2m 8 [22m[chromium] › e2e/issue-42-feedback-dialog.spec.ts:309:5 › AC5 — pending: submit disabled w/ busy indicator, dialog not dismissable mid-flight (Cancel, ✕, Escape, backdrop all inert)[2m (1.4s)[22m
+  [32m✓[39m  [2m 6 [22m[chromium] › e2e/issue-42-feedback-dialog.spec.ts:239:5 › AC4 — empty and whitespace-only messages are rejected inline (role=alert, aria-describedby, focus moves to the field); no transport[2m (1.7s)[22m
+  [32m✓[39m  [2m12 [22m[chromium] › e2e/issue-42-feedback-dialog.spec.ts:437:5 › AC6 — it's a real form: Enter from the email field submits[2m (1.0s)[22m
+  [32m✓[39m  [2m10 [22m[chromium] › e2e/issue-42-feedback-dialog.spec.ts:373:5 › AC5 — failure (blocked pop-up): error surfaces, the user's text is preserved, and retry succeeds — the UI never claims success on failure[2m (1.2s)[22m
+  [32m✓[39m  [2m 9 [22m[chromium] › e2e/issue-42-feedback-dialog.spec.ts:344:5 › AC5 — success: thank-you view uses the adapter's own notice and never claims delivery the interim path can't guarantee[2m (1.5s)[22m
+  [32m✓[39m  [2m11 [22m[chromium] › e2e/issue-42-feedback-dialog.spec.ts:402:5 › AC6 — focus management: initial focus in the dialog, Tab is trapped, and Cancel / Escape / ✕ each restore focus to the trigger[2m (1.4s)[22m
+  [32m✓[39m  [2m16 [22m[chromium] › e2e/issue-42-feedback-dialog.spec.ts:500:7 › AC7 — dialog works at 320×568 with no horizontal page scroll[2m (1.0s)[22m
+  [32m✓[39m  [2m13 [22m[chromium] › e2e/issue-42-feedback-dialog.spec.ts:449:5 › AC6 — ≥44×44px touch targets on mobile (trigger, ✕, Cancel, Send)[2m (1.4s)[22m
+  [32m✓[39m  [2m15 [22m[chromium] › e2e/issue-42-feedback-dialog.spec.ts:471:7 › AC6 — axe: the open dialog has no WCAG violations (dark)[2m (1.5s)[22m
+  [32m✓[39m  [2m14 [22m[chromium] › e2e/issue-42-feedback-dialog.spec.ts:471:7 › AC6 — axe: the open dialog has no WCAG violations (light)[2m (1.8s)[22m
+  [32m✓[39m  [2m17 [22m[chromium] › e2e/issue-42-feedback-dialog.spec.ts:500:7 › AC7 — dialog works at 375×667 with no horizontal page scroll[2m (959ms)[22m
+  [32m✓[39m  [2m18 [22m[chromium] › e2e/issue-42-feedback-dialog.spec.ts:500:7 › AC7 — dialog works at 1024×768 with no horizontal page scroll[2m (934ms)[22m
+  [32m✓[39m  [2m19 [22m[chromium] › e2e/issue-42-feedback-dialog.spec.ts:500:7 › AC7 — dialog works at 1920×1080 with no horizontal page scroll[2m (846ms)[22m
+  [31m✘[39m  [2m20 [22m[31m[chromium] › e2e/issue-42-feedback-dialog.spec.ts:517:5 › AC7 — desktop presentation: the modal overlay covers the sticky catalog filter bar (QA v1 FAIL — issue-29 R6 regression class)[39m[2m (917ms)[22m
+  [32m✓[39m  [2m21 [22m[chromium] › e2e/issue-42-feedback-dialog.spec.ts:561:5 › AC7 — the dialog itself scrolls on short viewports (footer actions stay reachable)[2m (971ms)[22m
+  [32m✓[39m  [2m23 [22m[chromium] › e2e/issue-42-feedback-dialog.spec.ts:582:9 › AC7 — evidence: dark theme dialog at 375×667[2m (716ms)[22m
+  [32m✓[39m  [2m22 [22m[chromium] › e2e/issue-42-feedback-dialog.spec.ts:582:9 › AC7 — evidence: dark theme dialog at 1920×1080[2m (1.1s)[22m
+
+
+[31m  1) [chromium] › e2e/issue-42-feedback-dialog.spec.ts:517:5 › AC7 — desktop presentation: the modal overlay covers the sticky catalog filter bar (QA v1 FAIL — issue-29 R6 regression class) [39m
+
+    Error: filter chip must be covered by the dialog backdrop, not hittable above it
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32mfalse[39m
+    Received: [31mtrue[39m
+
+    [0m [90m 546 |[39m     chipIsTopmost[33m,[39m
+     [90m 547 |[39m     [32m"filter chip must be covered by the dialog backdrop, not hittable above it"[39m[33m,[39m
+    [31m[1m>[22m[39m[90m 548 |[39m   )[33m.[39mtoBe([36mfalse[39m)[33m;[39m
+     [90m     |[39m     [31m[1m^[22m[39m
+     [90m 549 |[39m
+     [90m 550 |[39m   [90m// And the overlay must not live inside the sticky aside's stacking context.[39m
+     [90m 551 |[39m   [36mconst[39m dialogInsideAside [33m=[39m [36mawait[39m page[33m.[39mevaluate(() [33m=>[39m {[0m
+    [2m    at /Users/jon/repos/AP-Exam-Planner/.worktrees/issue-42-qa/e2e/issue-42-feedback-dialog.spec.ts:548:5[22m
+
+[2m    Error Context: test-results/issue-42-feedback-dialog-A-38335-sue-29-R6-regression-class--chromium/error-context.md[22m
+
+[31m  1 failed[39m
+[31m    [chromium] › e2e/issue-42-feedback-dialog.spec.ts:517:5 › AC7 — desktop presentation: the modal overlay covers the sticky catalog filter bar (QA v1 FAIL — issue-29 R6 regression class) [39m
+[32m  22 passed[39m[2m (12.1s)[22m
+[41m[30m ELIFECYCLE [39m[49m [31mCommand failed with exit code 1.[39m
