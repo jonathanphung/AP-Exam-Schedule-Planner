@@ -84,6 +84,16 @@ describe("resources data", () => {
     }
   });
 
+  it("keeps labels parenthesis-free (issue #29 link-label audit)", () => {
+    for (const link of allLinks) {
+      const label = resolveLabel(link.label);
+      expect(
+        label,
+        `"${label}" should fold parenthetical info into the label`,
+      ).not.toMatch(/[()]/);
+    }
+  });
+
   it("keeps every verified backbone URL from sources.md in the list", () => {
     const hrefs = new Set(allLinks.map((l) => l.href));
     for (const url of VERIFIED_BACKBONE) {
