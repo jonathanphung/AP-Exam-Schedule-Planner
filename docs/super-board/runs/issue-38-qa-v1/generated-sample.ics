@@ -1,0 +1,52 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//AP Exam Planner//AP Exam Planner v1//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:seminar-portfolio@ap-exam-planner
+DTSTAMP:20260705T133000Z
+DTSTART;VALUE=DATE:20260430
+SUMMARY:AP Seminar portfolio due
+DESCRIPTION:Two performance tasks submitted as final in the AP Digital Port
+ folio by 11:59 p.m. ET: Team Project and Presentation (20%) and Individual
+  Research-Based Essay and Presentation (35%). The end-of-course exam is th
+ e remaining 45%.
+END:VEVENT
+BEGIN:VEVENT
+UID:biology-exam@ap-exam-planner
+DTSTAMP:20260705T133000Z
+DTSTART:20260504T080000
+DTEND:20260504T113000
+SUMMARY:AP Biology exam
+DESCRIPTION:MCQ: 60 Questions | 90 Minutes\nFRQ: 6 Questions | 90 Minutes\n
+ Total Length: 180 Minutes\n+ 30 minutes for exam setup time
+END:VEVENT
+BEGIN:VEVENT
+UID:united-states-history-exam@ap-exam-planner
+DTSTAMP:20260705T133000Z
+DTSTART:20260508T080000
+DTEND:20260508T114500
+SUMMARY:AP United States History exam
+DESCRIPTION:MCQ: 55 Questions | 55 Minutes\nFRQ: 5 Questions | Duration pen
+ ding\nTotal Length: 195 Minutes\n+ 30 minutes for exam setup time
+END:VEVENT
+BEGIN:VEVENT
+UID:seminar-exam@ap-exam-planner
+DTSTAMP:20260705T133000Z
+DTSTART:20260511T120000
+DTEND:20260511T143000
+SUMMARY:AP Seminar exam
+DESCRIPTION:FRQ: 4 Questions | 120 Minutes\nTotal Length: 120 Minutes\n+ 30
+  minutes for exam setup time
+END:VEVENT
+BEGIN:VEVENT
+UID:latin-exam@ap-exam-planner
+DTSTAMP:20260705T133000Z
+DTSTART:20260518T120000
+DTEND:20260518T153000
+SUMMARY:AP Latin exam
+DESCRIPTION:MCQ: 52 Questions | 65 Minutes\nFRQ: 5 Questions | 115 Minutes\
+ nTotal Length: 180 Minutes\n+ 30 minutes for exam setup time
+END:VEVENT
+END:VCALENDAR

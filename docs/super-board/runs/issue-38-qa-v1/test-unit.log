@@ -1,0 +1,14 @@
+========== pnpm test:unit ==========
+
+> ap-exam-planner@0.1.0 test:unit /Users/jon/repos/AP-Exam-Planner/.worktrees/issue-38-qa
+> vitest run src/lib
+
+
+ RUN  v4.1.9 /Users/jon/repos/AP-Exam-Planner/.worktrees/issue-38-qa
+
+
+ Test Files  8 passed (8)
+      Tests  100 passed (100)
+   Start at  23:41:20
+   Duration  861ms (transform 907ms, setup 0ms, import 1.71s, tests 128ms, environment 1ms)
+
