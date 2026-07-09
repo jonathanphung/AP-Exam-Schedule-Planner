@@ -32,7 +32,7 @@ import { pressViewChip } from "./support/view-chip";
  * ac7-list-view-mobile.png (toolbar identical on the List view).
  */
 
-const EVIDENCE_DIR = "docs/super-board/runs/issue-31-qa-v1";
+const EVIDENCE_DIR = "docs/super-board/runs/issue-31-qa-v2";
 
 const SELECTION_KEY = "apx.selection.v1";
 // Non-conflicting selection (same as a11y.spec.ts) so Export is enabled.
