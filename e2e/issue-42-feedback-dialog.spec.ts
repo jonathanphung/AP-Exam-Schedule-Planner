@@ -22,7 +22,7 @@ import AxeBuilder from "@axe-core/playwright";
  * null) to drive the failure state.
  */
 
-const EVIDENCE_DIR = "docs/super-board/runs/issue-42-qa-v1";
+const EVIDENCE_DIR = "docs/super-board/runs/issue-42-qa-v2";
 const REPO_URL = "https://github.com/jonathanphung/AP-Exam-Planner";
 const THEME_KEY = "apx.theme.v1";
 const MAX_LEN = 2000;
@@ -556,6 +556,10 @@ test("AC7 — desktop presentation: the modal overlay covers the sticky catalog 
     dialogInsideAside,
     "feedback dialog overlay must be portaled out of the sticky <aside> (MySchedules pattern)",
   ).toBe(false);
+
+  // Evidence: fixed state — the filter bar sits dimmed UNDER the backdrop
+  // (pairs with issue-42-qa-v1/broken-filterbar-desktop.png).
+  await page.screenshot({ path: `${EVIDENCE_DIR}/fixed-filterbar-desktop.png` });
 });
 
 test("AC7 — the dialog itself scrolls on short viewports (footer actions stay reachable)", async ({
