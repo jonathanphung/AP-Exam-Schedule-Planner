@@ -144,20 +144,51 @@ describe("ap-2026.json — 2026 digital-redesign question-count corrections (iss
     }
   });
 
-  it("keeps unsourced language-exam durations as pending, never a fabricated total", () => {
-    // College Board prints no combined total for these six; asserting one would
-    // sum sub-parts into an unprinted parent (forbidden, PRD §7.5/§8/§11).
-    for (const id of [
-      "french-language-and-culture",
-      "german-language-and-culture",
-      "italian-language-and-culture",
-      "spanish-language-and-culture",
-      "chinese-language-and-culture",
-      "japanese-language-and-culture",
-    ]) {
+  // The six language exams' overall duration IS published — on the AP Students
+  // assessment page's "Exam Duration" (AP Central omits the total; the two pages
+  // are complementary). The first build wrongly wrote "pending" over four of
+  // these; pin the published integers so the regression cannot recur.
+  const PUBLISHED_LANGUAGE_TOTALS: Record<string, number> = {
+    "french-language-and-culture": 150, // "Approximately 2hrs 30mins"
+    "german-language-and-culture": 150, // "Approximately 2hrs 30mins"
+    "italian-language-and-culture": 150, // "Approximately 2hrs 30mins"
+    "spanish-language-and-culture": 150, // "Approximately 2hrs 30mins"
+    "chinese-language-and-culture": 120, // "Approximately 2hrs"
+    "japanese-language-and-culture": 120, // "Approximately 2hrs"
+  };
+
+  it("pins the six language-exam durations to their published AP Students totals", () => {
+    for (const [id, minutes] of Object.entries(PUBLISHED_LANGUAGE_TOTALS)) {
       expect(byId.get(id)?.format.totalMinutes, `${id} totalMinutes`).toBe(
-        "pending",
+        minutes,
       );
+    }
+  });
+
+  // Portfolio-only subjects have no sit-down exam and store 0. EVERY other
+  // subject publishes an "Exam Duration" (verified against
+  // docs/super-board/research/collegeboard-2026/ after commit 171cb15), so its
+  // totalMinutes must be a positive number — never "pending", which would drop
+  // the calendar block length (calendar.ts) and suppress the ICS DTEND (ics.ts).
+  const PORTFOLIO_ONLY = new Set([
+    "research",
+    "drawing",
+    "2-d-art-and-design",
+    "3-d-art-and-design",
+  ]);
+
+  it("every sit-down subject stores a numeric published totalMinutes (none pending); portfolio subjects store 0", () => {
+    for (const subject of dataset.subjects) {
+      const total = subject.format.totalMinutes;
+      if (PORTFOLIO_ONLY.has(subject.id)) {
+        expect(total, `${subject.id} (portfolio-only)`).toBe(0);
+      } else {
+        expect(typeof total, `${subject.id} totalMinutes type`).toBe("number");
+        expect(
+          total as number,
+          `${subject.id} totalMinutes`,
+        ).toBeGreaterThan(0);
+      }
     }
   });
 });

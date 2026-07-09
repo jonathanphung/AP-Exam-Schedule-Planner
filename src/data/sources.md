@@ -117,39 +117,55 @@ count changed, `frqType` was re-sourced from the same page:
   the four questions remain 2 spoken (Presentation, Q&A) + 2 written (Story
   Narration, Email Response), so `"2 written tasks + 2 spoken tasks"` is correct.
 
-### `french-language-and-culture.totalMinutes` → `"pending"`, and its siblings
+### Exam durations (`totalMinutes`) — AP Central omits the total, AP Students omits section times
 
-The dataset shipped `totalMinutes: 180` for French, **a figure the exam page
-does not print anywhere** ("The page does not print an overall total exam
-duration" — `french-language-and-culture.json`). Its published sections sum to
-~145–150 minutes, and summing published sub-values into an unprinted parent is
-the same forbidden class as back-computing (PRD §7.5/§8/§11). It is now the
-literal `"pending"`. A `"pending"` total already renders as the "Pending" badge
-(`InfoPanel`), falls back to a default calendar block (`calendar.ts`), and emits
-no `DTEND` (`ics.ts`) — so the correction only stops asserting an unsourced
-duration.
+The two College Board pages are **complementary**:
+`apcentral.collegeboard.org/courses/ap-<slug>/exam` prints each section's timing
+and weight but, for most subjects, **no overall exam total**;
+`apstudents.collegeboard.org/courses/ap-<slug>/assessment` prints the overall
+**`Exam Duration`** but **no per-section times**. A duration absent from AP
+Central is therefore *not* unpublished — it is on AP Students. `totalMinutes` is
+sourced from the AP Students `Exam Duration`; the per-section splits come from AP
+Central. (Recorded because the first re-source consulted only AP Central,
+mislabelled published totals `"pending"`, and this card's first build then
+overwrote four correct durations with that false `"pending"`. The provenance was
+re-sourced and patched at commit `171cb15`; every sit-down subject now carries
+`totalMinutesStated` / `totalMinutesVerbatim` / `totalMinutesSource`.)
 
-The same unprinted-total defect exists for the five sibling language exams this
-card already touches; the provenance's `datasetDiscrepancies` flags each, and
-they are corrected to `"pending"` here for internal consistency (French cannot
-read "Pending" while a structurally identical sibling reads a fabricated
-duration):
+The six language exams' `totalMinutes` are the published AP Students
+`Exam Duration`:
 
-- `german-language-and-culture`: was 183 — "The page prints no combined total
-  exam time; Section II = 80 Minutes, Section I = 65–70 Minutes."
-- `italian-language-and-culture`: was 180 — "does not print an overall exam
-  total."
-- `spanish-language-and-culture`: was 183 — "The page prints no single total
-  exam time."
-- `chinese-language-and-culture`: was 120 — "The page does not print a total
-  exam time; only per-section times are stated."
-- `japanese-language-and-culture`: was 120 — the Exam Components block prints no
-  total; the only published figure is the Exam Overview PDF's *approximate*
-  "two hours and 15 minutes ... includ[ing] a 10-minute break," which the hard
-  data rule bars from being asserted as an exact `totalMinutes`.
+| subject | totalMinutes | AP Students `Exam Duration` (verbatim) | source |
+|---|---|---|---|
+| `french-language-and-culture` | **150** | "Approximately 2hrs 30mins" | <https://apstudents.collegeboard.org/courses/ap-french-language-and-culture/assessment> |
+| `german-language-and-culture` | **150** | "Approximately 2hrs 30mins" | <https://apstudents.collegeboard.org/courses/ap-german-language-and-culture/assessment> |
+| `italian-language-and-culture` | **150** | "Approximately 2hrs 30mins" | <https://apstudents.collegeboard.org/courses/ap-italian-language-and-culture/assessment> |
+| `spanish-language-and-culture` | **150** | "Approximately 2hrs 30mins" | <https://apstudents.collegeboard.org/courses/ap-spanish-language-and-culture/assessment> |
+| `chinese-language-and-culture` | **120** | "Approximately 2hrs" | <https://apstudents.collegeboard.org/courses/ap-chinese-language-and-culture/assessment> |
+| `japanese-language-and-culture` | **120** | "Approximately 2hrs" | <https://apstudents.collegeboard.org/courses/ap-japanese-language-and-culture/assessment> |
 
-`statistics.totalMinutes` was **left at 180**: its `datasetDiscrepancies` does
-not flag it, and both 90-minute sections are individually published.
+French/German/Italian/Spanish shipped a wrong `180`/`183` in production and are
+corrected to the published **150**. Chinese/Japanese were already correct at
+**120**; this card's first build wrote `"pending"` over them and that is now
+reverted. `statistics.totalMinutes` stays **180** ("3hrs", `statistics.json`),
+unchanged — both its 90-minute sections and its overall total are published.
+Every other subject's `totalMinutes` was verified subject-by-subject to already
+equal its patched `totalMinutesStated`, so **no other subject was touched**. The
+four portfolio-only subjects (`research`, `drawing`, `2-d-art-and-design`,
+`3-d-art-and-design`) have no sit-down exam and keep `0`.
+
+### Design decision — approximate durations stored as the rounded integer; hedge dropped
+
+Four of the six totals are printed with a hedge ("Approximately 2hrs 30mins",
+"Approximately 2hrs") and the provenance flags each `totalMinutesApproximate:
+true`. The schema stores `totalMinutes` as an integer and this card makes **no
+schema change**, so the hedge is **dropped in the data layer**: French is stored
+as `150` and `InfoPanel` renders "2 hr 30 min" with no "about". This is
+deliberate. Surfacing the hedge in the UI ("about 2 hr 30 min") or carrying a
+per-value approximate flag is a schema + `InfoPanel` change that belongs with
+#44's duration model, not a count-fix card. The hedge is not lost — it is kept
+verbatim in `totalMinutesVerbatim` / `totalMinutesApproximate` in the provenance
+for whoever builds that UI.
 
 ### Scope deliberately held to these seven subjects
 
@@ -164,12 +180,15 @@ Two categories were **intentionally not touched** here:
    cannot express. That is issue #44's `sections[]` work, not a count fix —
    forcing a flat number here would fabricate an aggregate the page never
    prints. Left unchanged.
-2. **Other subjects' unsourced durations** — the provenance also flags
-   `microeconomics.totalMinutes` (130, "not printed") and
-   `psychology.totalMinutes` (160, "pending"), plus many per-section
-   `mcqMinutes`/`frqMinutes` values absent from the flat schema. These are
-   outside this card's seven-subject remit and belong to #44's duration model.
-   Recorded here so they are not lost.
+2. **Per-section timing splits** — the provenance carries Part A/B and
+   per-question `minutes` for many subjects (e.g. the language exams' 80-minute
+   MCQ = 40 listening + 40 reading) that the flat `mcqMinutes`/`frqMinutes`
+   schema cannot express; those splits belong to #44's `sections[]` model. Note:
+   after the `171cb15` provenance patch every sit-down subject's **overall**
+   `totalMinutes` is published and correct here — including `microeconomics`
+   (130) and `psychology` (160), earlier believed unsourced but in fact printed
+   as the AP Students `Exam Duration`. Only the intra-section splits remain #44's
+   job.
 
 ### Design decision — keep the range type in `questionCount`
 

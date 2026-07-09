@@ -136,7 +136,7 @@
         "mcqCount": 55,
         "frqCount": 4,
         "frqType": "2 written tasks + 2 spoken tasks",
-        "totalMinutes": "pending",
+        "totalMinutes": 120,
         "calculator": false,
         "delivery": "digital"
       },
@@ -294,7 +294,7 @@
         "mcqCount": 55,
         "frqCount": 3,
         "frqType": "1 written task + 2 spoken tasks",
-        "totalMinutes": "pending",
+        "totalMinutes": 150,
         "calculator": false,
         "delivery": "paper"
       },
@@ -311,7 +311,7 @@
         "mcqCount": 55,
         "frqCount": 3,
         "frqType": "1 written task + 2 spoken tasks",
-        "totalMinutes": "pending",
+        "totalMinutes": 150,
         "calculator": false,
         "delivery": "paper"
       },
@@ -345,7 +345,7 @@
         "mcqCount": 55,
         "frqCount": 3,
         "frqType": "1 written task + 2 spoken tasks",
-        "totalMinutes": "pending",
+        "totalMinutes": 150,
         "calculator": false,
         "delivery": "paper"
       },
@@ -362,7 +362,7 @@
         "mcqCount": 55,
         "frqCount": 4,
         "frqType": "2 written tasks + 2 spoken tasks",
-        "totalMinutes": "pending",
+        "totalMinutes": 120,
         "calculator": false,
         "delivery": "digital"
       },
@@ -591,7 +591,7 @@
         "mcqCount": 55,
         "frqCount": 3,
         "frqType": "1 written task + 2 spoken tasks",
-        "totalMinutes": "pending",
+        "totalMinutes": 150,
         "calculator": false,
         "delivery": "paper"
       },
