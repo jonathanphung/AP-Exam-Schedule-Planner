@@ -132,6 +132,20 @@ describe("ap-2026.json — 2026 digital-redesign question-count corrections (iss
     }
   });
 
+  // Statistics' Section II composition IS published on both CB pages (AP Central
+  // "Question 3: Inference (Hypothesis Test or Confidence Interval)" + three
+  // multi-focus questions; AP Students the same as "multi-part" questions). It
+  // was twice regressed to "pending"; pin it to a sourced composition so a
+  // future re-source cannot re-introduce the false pending.
+  it("pins statistics.frqType to the sourced Section-II composition (never 'pending')", () => {
+    const frqType = byId.get("statistics")?.format.frqType;
+    expect(frqType).not.toBe("pending");
+    expect(frqType).toMatch(/inference/i);
+    expect(frqType).toMatch(/multi-part/i);
+    // The redesigned exam dropped the investigative task — it must not reappear.
+    expect(frqType).not.toMatch(/investigative/i);
+  });
+
   it("no subject stores mcq/frq as a range string (all cycles now publish fixed counts)", () => {
     for (const subject of dataset.subjects) {
       for (const [field, value] of [

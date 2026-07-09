@@ -110,9 +110,25 @@ count changed, `frqType` was re-sourced from the same page:
   free-response questions are Project Presentation (spoken), Project Q&A
   (spoken), and Argumentative Essay (written).
 - `statistics`: `"6 free-response questions (5 multipart questions + 1
-  investigative task)"` → **`"pending"`** — the page prints only "Section II:
-  Free Response — 4 Questions" with no published breakdown of the four, so no
-  composition can be asserted under the hard data rule.
+  investigative task)"` → **`"3 multi-part questions + 1 inference question
+  (hypothesis test or confidence interval)"`** — the pre-redesign "investigative
+  task" was dropped and the count fell to 4. Both College Board pages publish a
+  per-question breakdown of Section II, so the composition is sourced, not
+  pending. AP Central
+  (`apcentral.collegeboard.org/courses/ap-statistics/exam`): "Question 1:
+  Multi-Focus on Practices 1 and 2 / Question 2: Multi-Focus on Practices 3 and
+  4 / Question 3: Inference (Hypothesis Test or Confidence Interval) / Question
+  4: Multi-Focus on Practices 2, 3, and 4". AP Students
+  (`apstudents.collegeboard.org/courses/ap-statistics/assessment`): "Question 1
+  is a multi-part question that primarily assesses Practices 1 and 2. Question 2
+  is a multi-part question that primarily assesses Practices 3 and 4. Question 3
+  focuses on inference, assessing the inference skills associated with Practices
+  2, 3, and 4. Question 4 is a multi-part question with a focus on multiple
+  course content areas, assessing Practices 2, 3, and 4." Questions 1, 2, and 4
+  are the three multi-part / multi-focus questions; Question 3 is the inference
+  question. Every term in the stored composition ("multi-part", "inference",
+  "hypothesis test or confidence interval") is verbatim page language; the
+  redesigned exam prints no "investigative task".
 - `chinese/japanese-language-and-culture`: unchanged — `frqCount` stays 4 and
   the four questions remain 2 spoken (Presentation, Q&A) + 2 written (Story
   Narration, Email Response), so `"2 written tasks + 2 spoken tasks"` is correct.

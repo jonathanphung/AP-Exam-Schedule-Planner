@@ -624,7 +624,7 @@
       "format": {
         "mcqCount": 42,
         "frqCount": 4,
-        "frqType": "pending",
+        "frqType": "3 multi-part questions + 1 inference question (hypothesis test or confidence interval)",
         "totalMinutes": 180,
         "calculator": true,
         "delivery": "hybrid"
