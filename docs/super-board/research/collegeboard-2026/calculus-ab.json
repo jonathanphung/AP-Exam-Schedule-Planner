@@ -1,0 +1,34 @@
+{
+  "id": "calculus-ab",
+  "name": "AP Calculus AB",
+  "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-calculus-ab/exam",
+  "fallbackUsed": "none",
+  "noSitDownExam": false,
+  "totalMinutesStated": "pending",
+  "sectionsSumToTotal": true,
+  "sections": [
+    {
+      "name": "Multiple Choice",
+      "questionCount": "45",
+      "minutes": 105,
+      "weightPercent": 50,
+      "quote": "Section I: Multiple Choice — 45 Questions | 1 Hour 45 Minutes | 50% of Exam Score",
+      "parts": [
+        {"name": "Part A", "questionCount": "30", "minutes": 60, "toolNote": "calculator not permitted", "quote": "Part A: 30 questions; 60 minutes (calculator not permitted)"},
+        {"name": "Part B", "questionCount": "15", "minutes": 45, "toolNote": "graphing calculator required", "quote": "Part B: 15 questions; 45 minutes (graphing calculator required)"}
+      ]
+    },
+    {
+      "name": "Free Response",
+      "questionCount": "6",
+      "minutes": 90,
+      "weightPercent": 50,
+      "quote": "Section II: Free Response — 6 Questions | 1 Hour 30 Minutes | 50% of Exam Score",
+      "parts": [
+        {"name": "Part A", "questionCount": "2", "minutes": 30, "toolNote": "graphing calculator required", "quote": "Part A: 2 questions; 30 minutes (graphing calculator required)"},
+        {"name": "Part B", "questionCount": "4", "minutes": 60, "toolNote": "calculator not permitted", "quote": "Part B: 4 questions; 60 minutes (calculator not permitted)"}
+      ]
+    }
+  ],
+  "datasetDiscrepancies": []
+}

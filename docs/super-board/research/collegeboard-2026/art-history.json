@@ -1,0 +1,26 @@
+{
+  "id": "art-history",
+  "name": "AP Art History",
+  "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-art-history/exam",
+  "fallbackUsed": "none",
+  "noSitDownExam": false,
+  "totalMinutesStated": "pending",
+  "sectionsSumToTotal": "pending",
+  "sections": [
+    {
+      "name": "Multiple Choice",
+      "questionCount": "80",
+      "minutes": 60,
+      "weightPercent": 50,
+      "quote": "80 Questions | 1 Hour | 50% of Exam Score"
+    },
+    {
+      "name": "Free Response",
+      "questionCount": "6",
+      "minutes": 120,
+      "weightPercent": 50,
+      "quote": "6 Questions | 2 Hours | 50% of Exam Score"
+    }
+  ],
+  "datasetDiscrepancies": []
+}
