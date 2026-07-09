@@ -1,0 +1,21 @@
+issue #30 — QA v2 measured WCAG contrast ratios (block text on composited pastel fill)
+Method: canvas-normalised composite of rendered oklch() background layers, relative-luminance
+        contrast against rendered text color. Asserted live (>= 4.5:1 AA) in
+        e2e/issue-30-calendar-palette.spec.ts (AC5, light + dark). Values below are the
+        console.log output of that spec on the v2 exact-hex palette.
+
+LIGHT mode (AA >= 4.5:1):
+  STEM (blue  #C7CEEA)      7.71:1
+  Humanities (yellow #F7DC8D) 6.60:1
+  Languages (green #C9E89B)  6.32:1
+  Arts (pink  #FF9AA2)       5.09:1   <- tightest, still clears AA
+  Conflict (orange #FDBA74)  5.56:1
+
+DARK mode (AA >= 4.5:1):
+  STEM (blue)      9.46:1
+  Humanities       7.83:1
+  Languages        8.16:1
+  Arts (pink)      8.72:1
+  Conflict (orange) 8.27:1
+
+All 10 pairs clear WCAG AA. Tightest overall: light Arts #FF9AA2 at 5.09:1 (0.59 above the bar).
