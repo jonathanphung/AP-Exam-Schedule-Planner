@@ -245,7 +245,7 @@ export function Sidebar() {
       {/* 1 — Branding row: app mark + name (the page's single h1) + collapse
           toggle. When collapsed on desktop the text is sr-only, so the
           document keeps its h1 and the rail shows just the toggle. */}
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex items-center justify-between gap-2">
         <div
           className={`flex min-w-0 items-center gap-2.5 ${collapsed ? "lg:sr-only" : ""}`}
         >
@@ -255,14 +255,9 @@ export function Sidebar() {
           >
             AP
           </span>
-          <div className="min-w-0">
-            <h1 className="text-base font-semibold leading-tight tracking-tight">
-              AP Exam Planner
-            </h1>
-            <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400">
-              Find your AP subjects and build your &ldquo;My Exams&rdquo; list.
-            </p>
-          </div>
+          <h1 className="min-w-0 truncate text-base font-semibold leading-tight tracking-tight">
+            AP Exam Planner
+          </h1>
         </div>
         <button
           type="button"
