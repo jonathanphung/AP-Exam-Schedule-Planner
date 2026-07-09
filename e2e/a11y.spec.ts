@@ -292,7 +292,7 @@ async function expectVisibleFocusIndicator(page: Page, what: string) {
 }
 
 test.describe("AC1 — keyboard operability", () => {
-  test("tab order: search → quick-jump chip → chip toggle → its disclosure → export; visible focus indicators throughout", async ({
+  test("tab order: search → quick-jump chip → chip toggle → its disclosure → view switcher → export; visible focus indicators throughout", async ({
     page,
   }) => {
     // A non-conflicting selection so the export button is enabled (disabled
@@ -344,20 +344,11 @@ test.describe("AC1 — keyboard operability", () => {
     );
     await expectVisibleFocusIndicator(page, "expand affordance");
 
-    // Then the shared "My Schedule" header (issue #19 second bounce): the
-    // Export button sits in the header row ABOVE the view switcher, so it is
-    // the next stop after the catalog.
-    await page.keyboard.press("Tab");
-    d = await focusedDescriptor(page);
-    expect(d, "next stop: the export button").toMatchObject({
-      testid: "export-ics-button",
-      inSchedule: true,
-    });
-    await expectVisibleFocusIndicator(page, "export button");
-
-    // Then the view switcher's two toggle chips — "List" then "Calendar"
-    // (the pressed default view). (`pressed` here means the aria-pressed
-    // attribute exists, not that it is "true".)
+    // Then the shared "My Schedule" toolbar (issue #31 relayout): the
+    // List/Calendar segmented switcher leads the toolbar row and the Export
+    // button sits at its end, so focus order — matching the left-to-right
+    // visual order — is List, Calendar, then Export. (`pressed` here means
+    // the aria-pressed attribute exists, not that it is "true".)
     await page.keyboard.press("Tab");
     d = await focusedDescriptor(page);
     expect(d, "next stop: the List view chip").toMatchObject({
@@ -375,6 +366,14 @@ test.describe("AC1 — keyboard operability", () => {
       inCatalog: false,
     });
     await expectVisibleFocusIndicator(page, "Calendar view chip");
+
+    await page.keyboard.press("Tab");
+    d = await focusedDescriptor(page);
+    expect(d, "next stop: the export button").toMatchObject({
+      testid: "export-ics-button",
+      inSchedule: true,
+    });
+    await expectVisibleFocusIndicator(page, "export button");
   });
 
   test("conflict dialog: modal, focus-trapped, Escape closes (prompt stays available inline)", async ({
@@ -637,6 +636,32 @@ async function expectTapTarget(
   ).toBeGreaterThanOrEqual(44);
 }
 
+/**
+ * Export button tap target after the issue #31 pill-slimming bounce: the
+ * VISIBLE pill is a slim 32px, so its border box no longer reads ≥44px tall.
+ * The ≥44px touch tap target is preserved behind the slim pill by a centered
+ * `::before` hit-area (extends touch reach vertically). Width comes from the
+ * visible box; effective height is the taller of the box and that pseudo.
+ */
+async function expectExportTapTarget(page: Page) {
+  const btn = exportButton(page);
+  const box = await btn.boundingBox();
+  expect(box, "export button: not visible").not.toBeNull();
+  expect(
+    box!.width,
+    `export button: width ${box!.width}px must be ≥ 44px`,
+  ).toBeGreaterThanOrEqual(44);
+  const tapHeight = await btn.evaluate((el) => {
+    const own = el.getBoundingClientRect().height;
+    const before = parseFloat(getComputedStyle(el, "::before").height);
+    return Number.isFinite(before) ? Math.max(own, before) : own;
+  });
+  expect(
+    tapHeight,
+    `export button: effective tap height ${tapHeight}px (slim ${box!.height}px pill + ::before hit-area, issue #31) must be ≥ 44px`,
+  ).toBeGreaterThanOrEqual(44);
+}
+
 test.describe("AC4 — 375×667 layout", () => {
   test.use({ viewport: { width: 375, height: 667 } });
 
@@ -706,7 +731,7 @@ test.describe("AC4 — 375×667 layout", () => {
         .first(),
       "subject chip toggle",
     );
-    await expectTapTarget(exportButton(page), "export button");
+    await expectExportTapTarget(page);
 
     await infoButton(page, "AP Biology").click();
     await expect(dialog(page)).toBeVisible();
