@@ -2,25 +2,34 @@ import { test, expect, type Locator, type Page } from "@playwright/test";
 import { pressViewChip } from "./support/view-chip";
 
 /**
- * super-board QA (issue #45, v2 — rebuild after the totalMinutes bounce).
+ * super-board QA (issue #45, v3 — rebuild after the statistics.frqType bounce).
  *
- * Issue #45 corrected wrong question counts for seven subjects and, after the
- * owner's bounce, corrected four wrong language-exam durations (French/German/
- * Italian/Spanish 180|183 -> 150) and reverted two false "pending" overwrites
- * (Chinese/Japanese back to 120). The exam-details popup, the mobile Tier-2
- * details, and the calendar event popup all render the SAME `InfoPanel`
- * component, so proving the values on the catalog popup at desktop + mobile
- * viewports covers the first two surfaces directly; a calendar-popup test
- * covers the third.
+ * History: v1 fixed seven wrong question counts; v2 (after the totalMinutes
+ * bounce) corrected four language-exam durations to 150 and reverted two false
+ * "pending" overwrites to 120. The Orchestrator's third bounce found the last
+ * false pending: `statistics.format.frqType` had been set to "pending" even
+ * though BOTH College Board pages publish the Section-II composition. Commit
+ * 50f225c set it to the sourced string
+ *   "3 multi-part questions + 1 inference question (hypothesis test or
+ *    confidence interval)"
+ * (AP Central "Question 3: Inference (Hypothesis Test or Confidence Interval)"
+ * + three multi-focus/multi-part questions; AP Students the same as multi-part
+ * questions). This v3 supersedes v2, whose statistics case asserted a "pending"
+ * frqType badge that no longer renders.
  *
- * Screenshots land in docs/super-board/runs/issue-45-qa-v2/ and are committed
- * to the issue branch so they render inline on the issue / PR.
+ * The exam-details popup, the mobile Tier-2 details, and the calendar event
+ * popup all render the SAME `InfoPanel`, so proving the values on the catalog
+ * popup at desktop + mobile covers the first two surfaces directly; a
+ * calendar-popup test covers the third.
  *
- * Every value asserted here is the College Board published figure recorded
- * verbatim in docs/super-board/research/collegeboard-2026/<id>.json.
+ * Screenshots land in docs/super-board/runs/issue-45-qa-v3/ and are committed
+ * to the issue branch so they render inline on the issue / PR. Every value
+ * asserted here is the College Board published figure recorded verbatim in
+ * docs/super-board/research/collegeboard-2026/<id>.json (post-171cb15) and
+ * src/data/sources.md.
  */
 
-const EVIDENCE_DIR = "docs/super-board/runs/issue-45-qa-v2";
+const EVIDENCE_DIR = "docs/super-board/runs/issue-45-qa-v3";
 
 const viewports = [
   { name: "desktop", width: 1920, height: 1080 },
@@ -50,8 +59,8 @@ async function openCatalogInfo(page: Page, name: string) {
  * The seven corrected subjects. `mcq`/`frq` are the published counts; `length`
  * is `formatMinutes(totalMinutes)` — French/German/Italian/Spanish are the
  * corrected 150 -> "2 h 30 min", Chinese/Japanese the reverted 120 -> "2 h",
- * Statistics the unchanged 180 -> "3 h". `frqType` is null where a pending
- * badge should render instead.
+ * Statistics the unchanged 180 -> "3 h". `frqType` is now a sourced string for
+ * every one of the seven (no pending badge should render for any of them).
  */
 const CORRECTED = [
   {
@@ -59,7 +68,8 @@ const CORRECTED = [
     mcq: "42",
     frq: "4",
     length: "3 h",
-    frqType: null, // "pending" — no published composition of the 4 FRQs
+    // The bounce fix: a published composition, never a pending badge.
+    frqType: "3 multi-part questions + 1 inference question (hypothesis test or confidence interval)",
   },
   {
     name: "AP French Language and Culture",
@@ -105,8 +115,8 @@ const CORRECTED = [
   },
 ] as const;
 
-test.describe("issue #45 — corrected counts + durations render in InfoPanel", () => {
-  test("AC5 — all seven subjects' catalog exam-details popup shows the corrected counts, frqType, and length", async ({
+test.describe("issue #45 — corrected counts + durations + statistics frqType render in InfoPanel", () => {
+  test("AC5 — all seven subjects' catalog exam-details popup shows the corrected counts, frqType, and length; none pending", async ({
     page,
   }) => {
     await page.goto("/");
@@ -120,18 +130,16 @@ test.describe("issue #45 — corrected counts + durations render in InfoPanel", 
       await expect(rowValue(page, "Free response"), `${s.name} FRQ`).toContainText(
         `${s.frq} questions`,
       );
-      if (s.frqType === null) {
-        // frqType "pending" renders a muted badge, never a fabricated string.
-        await expect(
-          rowValue(page, "Free response").getByText("pending", { exact: true }),
-          `${s.name} frqType pending badge`,
-        ).toBeVisible();
-      } else {
-        await expect(
-          rowValue(page, "Free response"),
-          `${s.name} frqType`,
-        ).toContainText(s.frqType);
-      }
+      // Every one of the seven now publishes an frqType composition — a real
+      // string, never the muted "pending" badge.
+      await expect(
+        rowValue(page, "Free response"),
+        `${s.name} frqType`,
+      ).toContainText(s.frqType);
+      await expect(
+        rowValue(page, "Free response").getByText("pending", { exact: true }),
+        `${s.name} frqType must not be pending`,
+      ).toHaveCount(0);
       await expect(rowValue(page, "Exam length"), `${s.name} length`).toHaveText(
         s.length,
       );
@@ -146,11 +154,45 @@ test.describe("issue #45 — corrected counts + durations render in InfoPanel", 
     }
   });
 
-  // Visual evidence at the three standard viewports. French is the headline
-  // duration fix (180 -> 150 = "3 h" -> "2 h 30 min"); Statistics is the
-  // headline count fix (40/6 -> 42/4). Mobile 375x667 is the "Tier-2 details"
-  // surface the ticket names explicitly.
+  // The headline of this pass: AP Statistics' Section-II composition renders as
+  // the sourced string, with each published term present and the dropped
+  // "investigative task" absent.
+  test("AC5 — AP Statistics frqType shows the sourced Section-II composition (no investigative task, no pending)", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await openCatalogInfo(page, "AP Statistics");
+    const frq = rowValue(page, "Free response");
+    await expect(frq).toContainText("4 questions");
+    await expect(frq).toContainText("multi-part");
+    await expect(frq).toContainText("inference");
+    await expect(frq).toContainText("hypothesis test or confidence interval");
+    await expect(frq.getByText("investigative")).toHaveCount(0);
+    await expect(frq.getByText("pending", { exact: true })).toHaveCount(0);
+  });
+
+  // Visual evidence at the three standard viewports. Statistics is the headline
+  // fix of THIS pass (frqType pending -> sourced composition); French is the
+  // headline duration fix of the prior pass (180 -> 150 = "3 h" -> "2 h 30 min").
+  // Mobile 375x667 is the "Tier-2 details" surface the ticket names explicitly.
   for (const vp of viewports) {
+    test(`AC5 evidence — AP Statistics exam-details popup (${vp.name} ${vp.width}x${vp.height})`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: vp.width, height: vp.height });
+      await page.goto("/");
+      await openCatalogInfo(page, "AP Statistics");
+      await expect(rowValue(page, "Multiple choice")).toContainText("42 questions");
+      await expect(rowValue(page, "Free response")).toContainText("4 questions");
+      await expect(rowValue(page, "Free response")).toContainText(
+        "3 multi-part questions + 1 inference question (hypothesis test or confidence interval)",
+      );
+      await expect(rowValue(page, "Exam length")).toHaveText("3 h");
+      await dialog(page).screenshot({
+        path: `${EVIDENCE_DIR}/catalog-statistics-${vp.name}.png`,
+      });
+    });
+
     test(`AC5 evidence — AP French exam-details popup (${vp.name} ${vp.width}x${vp.height})`, async ({
       page,
     }) => {
@@ -162,20 +204,6 @@ test.describe("issue #45 — corrected counts + durations render in InfoPanel", 
       await expect(rowValue(page, "Exam length")).toHaveText("2 h 30 min");
       await dialog(page).screenshot({
         path: `${EVIDENCE_DIR}/catalog-french-${vp.name}.png`,
-      });
-    });
-
-    test(`AC5 evidence — AP Statistics exam-details popup (${vp.name} ${vp.width}x${vp.height})`, async ({
-      page,
-    }) => {
-      await page.setViewportSize({ width: vp.width, height: vp.height });
-      await page.goto("/");
-      await openCatalogInfo(page, "AP Statistics");
-      await expect(rowValue(page, "Multiple choice")).toContainText("42 questions");
-      await expect(rowValue(page, "Free response")).toContainText("4 questions");
-      await expect(rowValue(page, "Exam length")).toHaveText("3 h");
-      await dialog(page).screenshot({
-        path: `${EVIDENCE_DIR}/catalog-statistics-${vp.name}.png`,
       });
     });
   }
