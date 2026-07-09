@@ -9,6 +9,7 @@ import {
 } from "@/data/resources";
 import { MySchedules } from "@/components/MySchedules";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { FeedbackDialog } from "@/components/FeedbackDialog";
 import { toggleSidebarCollapsed, useSidebarCollapsed } from "@/lib/sidebar";
 
 /**
@@ -26,9 +27,12 @@ import { toggleSidebarCollapsed, useSidebarCollapsed } from "@/lib/sidebar";
  *      never the trailing ↗.
  *   5. Footer row (post-approval bounce, Jon 2026-07-08) — "Send us
  *      Feedback" on the left, GitHub icon on the right, pinned below the
- *      content. Builder's documented call: the feedback link points at the
- *      repo's new-issue page (Jon's recommended channel — no mail server or
- *      form backend exists, and issues land where the board already looks).
+ *      content. Issue #42: "Send us Feedback" is now a real `<button>` that
+ *      opens the in-app FeedbackDialog (a modal form) instead of navigating —
+ *      most AP students have no GitHub account, so the old new-issue link
+ *      effectively blocked them. Submission is routed through the
+ *      `submitFeedback` seam (src/lib/feedback.ts); the GitHub mark beside it
+ *      is unchanged and still links to the repo.
  *
  * Presentation:
  *   • Desktop (≥1024px / `lg`): a persistent left column (20rem when
@@ -167,9 +171,14 @@ function GitHubIcon() {
 
 /**
  * Footer row: "Send us Feedback" (left) and the GitHub mark (right). One row,
- * pinned below the content in both presentations. House link rules: the text
- * underlines on hover, the trailing ↗ / the icon never do; ≥44px touch targets
- * on mobile (h-11, relaxed at `lg` like the other sidebar controls).
+ * pinned below the content in both presentations. ≥44px touch targets on
+ * mobile (h-11, relaxed at `lg` like the other sidebar controls).
+ *
+ * Issue #42: "Send us Feedback" is a `<button>` (`aria-haspopup="dialog"`) that
+ * opens the in-app FeedbackDialog — it no longer navigates. It keeps the
+ * footer's text-with-hover-underline look so the row is visually unchanged; the
+ * trailing ↗ / "opens in a new tab" affordances are gone because it opens a
+ * dialog, not a tab. The GitHub mark is untouched.
  *
  * The theme toggle used to live here beside the GitHub mark; the #41 bounce
  * (Jon, 2026-07-09) moved it up into the branding row, so the footer is once
@@ -183,7 +192,13 @@ function GitHubIcon() {
  * inaccurate, but its instruction — keep GitHub reachable — is what this
  * implements. Mobile ignores these `lg:` overrides and keeps the full row.
  */
-function SidebarFooter({ collapsed }: { collapsed: boolean }) {
+function SidebarFooter({
+  collapsed,
+  onOpenFeedback,
+}: {
+  collapsed: boolean;
+  onOpenFeedback: () => void;
+}) {
   return (
     <div
       data-testid="sidebar-footer"
@@ -194,10 +209,10 @@ function SidebarFooter({ collapsed }: { collapsed: boolean }) {
         collapsed ? "lg:justify-center" : "",
       ].join(" ")}
     >
-      <a
-        href="https://github.com/jonathanphung/AP-Exam-Planner/issues/new"
-        target="_blank"
-        rel="noopener noreferrer"
+      <button
+        type="button"
+        onClick={onOpenFeedback}
+        aria-haspopup="dialog"
         className={[
           "group inline-flex min-h-11 items-center gap-1 rounded-sm text-sm font-medium text-slate-700 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 lg:min-h-9 dark:text-slate-300 dark:hover:text-slate-100 dark:focus-visible:outline-blue-400",
           // No room for the text label in the collapsed rail; the GitHub mark
@@ -208,9 +223,7 @@ function SidebarFooter({ collapsed }: { collapsed: boolean }) {
         <span className="underline-offset-2 group-hover:underline group-focus-visible:underline">
           Send us Feedback
         </span>
-        <span aria-hidden="true">↗</span>
-        <span className="sr-only"> (opens in a new tab)</span>
-      </a>
+      </button>
       <a
         href="https://github.com/jonathanphung/AP-Exam-Planner"
         target="_blank"
@@ -241,6 +254,10 @@ export function Sidebar() {
   // Mobile disclosures — collapsed by default (#23 behavior, kept for #29).
   const [schedulesOpen, setSchedulesOpen] = useState(false);
   const [resourcesOpen, setResourcesOpen] = useState(false);
+  // In-app feedback dialog (#42). Mounted only while open so useModalDialog's
+  // focus trap + focus-restore run per open/close; closing returns focus to
+  // the "Send us Feedback" button that opened it.
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   return (
     <aside
@@ -378,7 +395,16 @@ export function Sidebar() {
       </div>
 
       {/* 5 — Footer row (both presentations). */}
-      <SidebarFooter collapsed={collapsed} />
+      <SidebarFooter
+        collapsed={collapsed}
+        onOpenFeedback={() => setFeedbackOpen(true)}
+      />
+
+      {/* In-app feedback dialog (#42) — overlays the page (position: fixed), so
+          it escapes the sticky sidebar's own scroll container. */}
+      {feedbackOpen && (
+        <FeedbackDialog onClose={() => setFeedbackOpen(false)} />
+      )}
     </aside>
   );
 }
