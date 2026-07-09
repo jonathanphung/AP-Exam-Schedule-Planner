@@ -108,6 +108,105 @@ describe("ap-2026.json dataset", () => {
   });
 });
 
+describe("ap-2026.json — 2026 digital-redesign question-count corrections (issue #45)", () => {
+  const dataset = parseApDataset(raw);
+  const byId = new Map(dataset.subjects.map((s) => [s.id, s]));
+
+  // Pins the seven re-sourced counts (docs/super-board/research/collegeboard-2026/)
+  // so a future re-source cannot silently regress them to the pre-redesign values.
+  const CORRECTED: Record<string, { mcqCount: number; frqCount: number }> = {
+    statistics: { mcqCount: 42, frqCount: 4 },
+    "french-language-and-culture": { mcqCount: 55, frqCount: 3 },
+    "german-language-and-culture": { mcqCount: 55, frqCount: 3 },
+    "italian-language-and-culture": { mcqCount: 55, frqCount: 3 },
+    "spanish-language-and-culture": { mcqCount: 55, frqCount: 3 },
+    "chinese-language-and-culture": { mcqCount: 55, frqCount: 4 },
+    "japanese-language-and-culture": { mcqCount: 55, frqCount: 4 },
+  };
+
+  it("pins the seven corrected mcq/frq counts as exact published integers", () => {
+    for (const [id, counts] of Object.entries(CORRECTED)) {
+      const format = byId.get(id)?.format;
+      expect(format?.mcqCount, `${id} mcqCount`).toBe(counts.mcqCount);
+      expect(format?.frqCount, `${id} frqCount`).toBe(counts.frqCount);
+    }
+  });
+
+  // Statistics' Section II composition IS published on both CB pages (AP Central
+  // "Question 3: Inference (Hypothesis Test or Confidence Interval)" + three
+  // multi-focus questions; AP Students the same as "multi-part" questions). It
+  // was twice regressed to "pending"; pin it to a sourced composition so a
+  // future re-source cannot re-introduce the false pending.
+  it("pins statistics.frqType to the sourced Section-II composition (never 'pending')", () => {
+    const frqType = byId.get("statistics")?.format.frqType;
+    expect(frqType).not.toBe("pending");
+    expect(frqType).toMatch(/inference/i);
+    expect(frqType).toMatch(/multi-part/i);
+    // The redesigned exam dropped the investigative task — it must not reappear.
+    expect(frqType).not.toMatch(/investigative/i);
+  });
+
+  it("no subject stores mcq/frq as a range string (all cycles now publish fixed counts)", () => {
+    for (const subject of dataset.subjects) {
+      for (const [field, value] of [
+        ["mcqCount", subject.format.mcqCount],
+        ["frqCount", subject.format.frqCount],
+      ] as const) {
+        const isRange = typeof value === "string" && /–/.test(value);
+        expect(isRange, `${subject.id}.${field} = ${String(value)}`).toBe(false);
+      }
+    }
+  });
+
+  // The six language exams' overall duration IS published — on the AP Students
+  // assessment page's "Exam Duration" (AP Central omits the total; the two pages
+  // are complementary). The first build wrongly wrote "pending" over four of
+  // these; pin the published integers so the regression cannot recur.
+  const PUBLISHED_LANGUAGE_TOTALS: Record<string, number> = {
+    "french-language-and-culture": 150, // "Approximately 2hrs 30mins"
+    "german-language-and-culture": 150, // "Approximately 2hrs 30mins"
+    "italian-language-and-culture": 150, // "Approximately 2hrs 30mins"
+    "spanish-language-and-culture": 150, // "Approximately 2hrs 30mins"
+    "chinese-language-and-culture": 120, // "Approximately 2hrs"
+    "japanese-language-and-culture": 120, // "Approximately 2hrs"
+  };
+
+  it("pins the six language-exam durations to their published AP Students totals", () => {
+    for (const [id, minutes] of Object.entries(PUBLISHED_LANGUAGE_TOTALS)) {
+      expect(byId.get(id)?.format.totalMinutes, `${id} totalMinutes`).toBe(
+        minutes,
+      );
+    }
+  });
+
+  // Portfolio-only subjects have no sit-down exam and store 0. EVERY other
+  // subject publishes an "Exam Duration" (verified against
+  // docs/super-board/research/collegeboard-2026/ after commit 171cb15), so its
+  // totalMinutes must be a positive number — never "pending", which would drop
+  // the calendar block length (calendar.ts) and suppress the ICS DTEND (ics.ts).
+  const PORTFOLIO_ONLY = new Set([
+    "research",
+    "drawing",
+    "2-d-art-and-design",
+    "3-d-art-and-design",
+  ]);
+
+  it("every sit-down subject stores a numeric published totalMinutes (none pending); portfolio subjects store 0", () => {
+    for (const subject of dataset.subjects) {
+      const total = subject.format.totalMinutes;
+      if (PORTFOLIO_ONLY.has(subject.id)) {
+        expect(total, `${subject.id} (portfolio-only)`).toBe(0);
+      } else {
+        expect(typeof total, `${subject.id} totalMinutes type`).toBe("number");
+        expect(
+          total as number,
+          `${subject.id} totalMinutes`,
+        ).toBeGreaterThan(0);
+      }
+    }
+  });
+});
+
 describe("ap-2026.json negative cases (validation must fail on broken data)", () => {
   it("rejects a duplicate subject id", () => {
     const broken = clone();
