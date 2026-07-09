@@ -131,10 +131,13 @@ test("desktop footer row: Send us Feedback left, GitHub icon right, same row, co
   const sections = (await page.locator("#sidebar-sections").boundingBox())!;
   expect(fb.y).toBeGreaterThanOrEqual(sections.y + sections.height - 1);
 
-  // Collapsing the desktop column hides the footer with the sections.
+  // Collapsing the desktop column hides the "Send us Feedback" label, but the
+  // GitHub mark stays reachable in the rail (issue #41 bounce, Jon 2026-07-09:
+  // "the GitHub mark must still be reachable in the rail"). Pre-#41 the whole
+  // footer was lg:hidden when collapsed; that assertion is now stale.
   await pressToggle(page, "false");
   await expect(feedback).toBeHidden();
-  await expect(github).toBeHidden();
+  await expect(github).toBeVisible();
 });
 
 test("footer hover: feedback text underlines, trailing ↗ and GitHub icon do not", async ({
