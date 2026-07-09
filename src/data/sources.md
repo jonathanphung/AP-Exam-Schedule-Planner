@@ -282,21 +282,41 @@ own verbatim `quote` fields print "…; **25% of Score**" — exactly the text t
 chinese record used. Those four parts use the printed weight share instead;
 every other note is verbatim from the record.
 
-### `"pending"` inventory (exact URLs checked 2026-07-09)
+### Spot-check finding — four false `"pending"` values corrected (2026-07-09)
+
+The issue-#44 builder spot-checked the populated sections against the **live
+AP Central pages (raw HTML)**, per the ticket ("if any disagrees, trust the
+live page"). Calculus AB and Music Theory matched exactly; four provenance
+`"pending"` values did not survive:
+
+| Subject | Field | Page prints | Why the record missed it |
+|---|---|---|---|
+| `japanese-language-and-culture` | Section I `minutes` | "4 Questions \| 40–45 Minutes \| 50% of Score" | record fetched from the apstudents assessment page (`fallbackUsed`), which omits per-section times — lesson 1 |
+| `japanese-language-and-culture` | Section II `minutes` | "55 Questions \| 65 Minutes \| 50% of Score" | same fallback |
+| `italian-language-and-culture` | Section I `minutes` | "3 Questions \| 65–70 Minutes \| 50% of Score" | the record's own `quote` prints the range; only the value field said "pending" |
+| `french-language-and-culture` | Question 3: Argumentative Essay part `minutes` | "(55 minutes, including 2 opportunities to listen to audio)" | fetch omission — the german/italian/spanish records all captured the same printed 55 |
+
+All four were corrected in the dataset AND in the provenance records (per-id
+and consolidated, `spotCheckPatch2026_07_09` notes), and
+`src/data/ap-2026.sections.test.ts` pins them so a future re-source cannot
+regress them back to "pending".
+
+### `"pending"` inventory (exact URLs checked 2026-07-09, re-verified against raw page HTML)
 
 Genuinely unpublished values — each was hunted for a "false pending" by an
-independent refute-skeptic and survived:
+independent refute-skeptic and survived, then re-verified by the builder
+against the live page's raw HTML:
 
 | Subject | Field | URL checked |
 |---|---|---|
-| `african-american-studies` | "Individual Student Project" section `minutes` (its `questionCount` is omitted — the page prints none) | <https://apcentral.collegeboard.org/courses/ap-african-american-studies/exam> |
-| `italian-language-and-culture` | "Section I: Free-Response" section `minutes`; Project Presentation / Project Q&A part `minutes` (Argumentative Essay is published: 55) | <https://apcentral.collegeboard.org/courses/ap-italian-language-and-culture/exam> |
-| `japanese-language-and-culture` | both sections' `minutes` (part times ARE published: 25/40 MC, 30 writing); Section I Questions 1–2 part `minutes` | <https://apcentral.collegeboard.org/courses/ap-japanese-language-and-culture/exam> |
-| `chinese-language-and-culture` | Section I parts (Questions 1–4) `minutes` | <https://apcentral.collegeboard.org/courses/ap-chinese-language-and-culture/exam> |
-| `french-language-and-culture` | Section I parts (Questions 1–3) `minutes` | <https://apcentral.collegeboard.org/courses/ap-french-language-and-culture/exam> |
+| `african-american-studies` | "Individual Student Project" section `minutes` (its `questionCount` is omitted — the page prints none; the project is completed during the course) | <https://apcentral.collegeboard.org/courses/ap-african-american-studies/exam> |
+| `italian-language-and-culture` | Project Presentation / Project Q&A part `minutes` (the section's 65–70 and the Argumentative Essay's 55 ARE published — see spot-check above) | <https://apcentral.collegeboard.org/courses/ap-italian-language-and-culture/exam> |
+| `japanese-language-and-culture` | Section I Questions 1–2 part `minutes` (the page prints prep/response descriptors — "3 minutes to prepare; 3 minutes to present", "40 seconds for each response" — not single per-part figures; the printed combined 30-minute writing figure IS captured on the merged writing part) | <https://apcentral.collegeboard.org/courses/ap-japanese-language-and-culture/exam> |
+| `chinese-language-and-culture` | Section I parts (Questions 1–4) `minutes` (same prep/response descriptors; the printed "30 minutes to complete both writing tasks (Questions 3 and 4)" is a combined figure carried in those parts' notes, never split 15/15) | <https://apcentral.collegeboard.org/courses/ap-chinese-language-and-culture/exam> |
+| `french-language-and-culture` | Section I Questions 1–2 part `minutes` (Question 3 is published: 55 — see spot-check above) | <https://apcentral.collegeboard.org/courses/ap-french-language-and-culture/exam> |
 | `german-language-and-culture` | Section I Questions 1–2 part `minutes` (Question 3 is published: 55) | <https://apcentral.collegeboard.org/courses/ap-german-language-and-culture/exam> |
 | `spanish-language-and-culture` | Section I Questions 1–2 part `minutes` (Question 3 is published: 55) | <https://apcentral.collegeboard.org/courses/ap-spanish-language-and-culture/exam> |
-| `psychology` | Free Response parts (AAQ / EBQ) `minutes` | <https://apcentral.collegeboard.org/courses/ap-psychology/exam> |
+| `psychology` | Free Response parts (AAQ / EBQ) `minutes` (only the section's 70 is printed; it is never divided between the two questions) | <https://apcentral.collegeboard.org/courses/ap-psychology/exam> |
 
 Slug exception (as everywhere): AP Business with Personal Finance lives at
 `ap-business-personal-finance`.

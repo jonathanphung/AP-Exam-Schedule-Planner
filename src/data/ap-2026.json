@@ -726,7 +726,8 @@
               {
                 "name": "Question 3: Argumentative Essay",
                 "questionCount": 1,
-                "minutes": "pending"
+                "minutes": 55,
+                "note": "including 2 opportunities to listen to audio"
               }
             ]
           },
@@ -873,7 +874,7 @@
           {
             "name": "Section I: Free-Response",
             "questionCount": 3,
-            "minutes": "pending",
+            "minutes": "65–70",
             "weightPercent": 50,
             "parts": [
               {
@@ -939,7 +940,7 @@
           {
             "name": "Section I: Free Response",
             "questionCount": 4,
-            "minutes": "pending",
+            "minutes": "40–45",
             "weightPercent": 50,
             "parts": [
               {
@@ -964,7 +965,7 @@
           {
             "name": "Section II: Multiple Choice",
             "questionCount": 55,
-            "minutes": "pending",
+            "minutes": 65,
             "weightPercent": 50,
             "parts": [
               {

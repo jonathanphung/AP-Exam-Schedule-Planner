@@ -137,12 +137,20 @@ test.describe("issue #45 — corrected counts + durations + statistics frqType r
     for (const s of CORRECTED) {
       await openCatalogInfo(page, s.name);
 
-      // Issue #44: counts render in the per-section table rows.
-      await expect(sectionRow(page, MC_ROW), `${s.name} MCQ`).toContainText(
-        s.mcq,
-      );
+      // Issue #44: counts render in the per-section table rows. Part rows
+      // carry an sr-only "<section> — " prefix (programmatic association), so
+      // the name filter also matches them — .first() is the parent section
+      // row, which always precedes its parts in DOM order.
+      const mcQuestions = sectionRow(page, MC_ROW)
+        .first()
+        .getByRole("cell")
+        .first();
+      await expect(mcQuestions, `${s.name} MCQ`).toContainText(s.mcq);
+      // Scoped to the Questions cell: a row's *minutes* may legitimately be
+      // pending (several language-exam part rows have no printed single
+      // figure) — the count itself must never be.
       await expect(
-        sectionRow(page, MC_ROW).getByText("pending", { exact: true }),
+        mcQuestions.getByText("pending", { exact: true }),
         `${s.name} MCQ count must not be pending`,
       ).toHaveCount(0);
       const frCells = sectionRow(page, FR_ROW).first().getByRole("cell");
@@ -210,7 +218,7 @@ test.describe("issue #45 — corrected counts + durations + statistics frqType r
       await page.setViewportSize({ width: vp.width, height: vp.height });
       await page.goto("/");
       await openCatalogInfo(page, "AP French Language and Culture");
-      await expect(sectionRow(page, MC_ROW)).toContainText("55");
+      await expect(sectionRow(page, MC_ROW).first()).toContainText("55");
       await expect(
         sectionRow(page, FR_ROW).first().getByRole("cell").first(),
       ).toHaveText("3");
@@ -254,7 +262,7 @@ test.describe("issue #45 — corrected counts + durations + statistics frqType r
 
     await expect(dialog(page)).toBeVisible();
     await expect(dialog(page)).toContainText("AP French Language and Culture");
-    await expect(sectionRow(page, MC_ROW)).toContainText("55");
+    await expect(sectionRow(page, MC_ROW).first()).toContainText("55");
     await expect(
       sectionRow(page, FR_ROW).first().getByRole("cell").first(),
     ).toHaveText("3");

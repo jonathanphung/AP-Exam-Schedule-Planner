@@ -311,14 +311,56 @@ describe("ap-2026.json sections[] (issue #44)", () => {
     expect(sections[0]?.minutes).toBe("40–45");
   });
 
-  it("keeps genuinely unpublished section durations as the literal 'pending' (AP Japanese)", () => {
-    const sections =
-      byId.get("japanese-language-and-culture")?.format.sections ?? [];
-    expect(sections.map((s) => s.minutes)).toEqual(["pending", "pending"]);
-    // …while its published part times stay real numbers — no back-computing
-    // the section total from them (25 + 40 = 65 appears nowhere on the page).
-    const mc = sections.find((s) => /multiple.?choice/i.test(s.name));
-    expect(mc?.parts?.map((p) => p.minutes)).toEqual([25, 40]);
+  it("pins the four false 'pending' values the 2026-07-09 builder spot-check corrected", () => {
+    // The provenance fetch had recorded these as "pending", but the live
+    // apcentral exam pages print all four (raw-HTML verified, records patched
+    // with spotCheckPatch2026_07_09 notes) — "never write 'pending' over a
+    // number" (research README lesson 1).
+    const jp = byId.get("japanese-language-and-culture")?.format.sections ?? [];
+    expect(jp.map((s) => s.minutes)).toEqual(["40–45", 65]);
+    const it_ = byId.get("italian-language-and-culture")?.format.sections ?? [];
+    expect(it_.find((s) => /free.?response/i.test(s.name))?.minutes).toBe(
+      "65–70",
+    );
+    const frFR = byId
+      .get("french-language-and-culture")
+      ?.format.sections.find((s) => /free.?response/i.test(s.name));
+    expect(
+      frFR?.parts?.find((p) => /argumentative essay/i.test(p.name))?.minutes,
+    ).toBe(55);
+  });
+
+  it("keeps genuinely unpublished durations as the literal 'pending' — never invented, never split from a combined figure", () => {
+    // AAS's Individual Student Project prints a weight but no duration —
+    // it is completed during the course, and the page prints no minutes.
+    // (Exact-name match: "Section IB: Individual Student Project—Exam Day
+    // Validation Question" is a separate, timed section — 10 published
+    // minutes — and must not shadow the untimed project itself.)
+    const aas =
+      byId.get("african-american-studies")?.format.sections ?? [];
+    expect(
+      aas.find((s) => s.name === "Individual Student Project")?.minutes,
+    ).toBe("pending");
+    // Psychology's AAQ/EBQ parts have no printed times — only the section's
+    // 70 minutes is published, and it is never divided between them.
+    const psychFr = byId
+      .get("psychology")
+      ?.format.sections.find((s) => /free.?response/i.test(s.name));
+    expect(psychFr?.minutes).toBe(70);
+    expect(psychFr?.parts?.map((p) => p.minutes)).toEqual([
+      "pending",
+      "pending",
+    ]);
+    // Chinese prints "30 minutes to complete both writing tasks (Questions 3
+    // and 4)" — a combined figure that is never split 15/15 across the parts.
+    const cnFr = byId
+      .get("chinese-language-and-culture")
+      ?.format.sections.find((s) => /free.?response/i.test(s.name));
+    expect(
+      cnFr?.parts
+        ?.filter((p) => /story narration|email response/i.test(p.name))
+        .map((p) => p.minutes),
+    ).toEqual(["pending", "pending"]);
   });
 
   it("'Total Length' stays the published totalMinutes, independent of section sums", () => {
@@ -327,7 +369,10 @@ describe("ap-2026.json sections[] (issue #44)", () => {
     expect(
       byId.get("chinese-language-and-culture")?.format.totalMinutes,
     ).toBe(120);
-    // Japanese's sections are both "pending" yet the published total stands.
+    // Japanese's printed sections are "40–45" + 65, yet the published total
+    // (120, from the apstudents assessment page) stands untouched — sections
+    // exclude the between-section break, so the two must never be reconciled
+    // by arithmetic.
     expect(
       byId.get("japanese-language-and-culture")?.format.totalMinutes,
     ).toBe(120);
