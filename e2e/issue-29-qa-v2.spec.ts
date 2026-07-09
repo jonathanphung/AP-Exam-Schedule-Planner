@@ -43,8 +43,12 @@ const FOOTER = "[data-testid='sidebar-footer']";
 
 const collapseToggle = (page: Page) =>
   page.getByRole("button", { name: /^(Collapse|Expand) sidebar$/ });
-const feedbackLink = (page: Page) =>
-  page.locator(FOOTER).getByRole("link", { name: /Send us Feedback/ });
+// Issue #42: the feedback control is now a <button> that opens the in-app
+// FeedbackDialog (no navigation); its own contract lives in
+// e2e/issue-42-feedback-dialog.spec.ts. The footer-row placement rules
+// asserted in this file are unchanged.
+const feedbackButton = (page: Page) =>
+  page.locator(FOOTER).getByRole("button", { name: /Send us Feedback/ });
 const githubLink = (page: Page) =>
   page.locator(FOOTER).getByRole("link", { name: /GitHub repository/ });
 
@@ -120,7 +124,7 @@ test("R1 — panel taller than the viewport: sections scroll internally, footer 
   // ...while the footer row is visible WITHOUT scrolling the page (pinned
   // below the internal scroller, inside the viewport-capped panel).
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
-  const fb = (await feedbackLink(page).boundingBox())!;
+  const fb = (await feedbackButton(page).boundingBox())!;
   expect(fb.y).toBeGreaterThanOrEqual(0);
   expect(fb.y + fb.height).toBeLessThanOrEqual(DESKTOP_SHORT.height);
 
@@ -175,17 +179,19 @@ test("R2 — collapsed state + outline glyph survive a reload; expanded restores
   });
 });
 
-// ── R3: accessible names on the footer links ────────────────────────────────
+// ── R3: accessible names on the footer controls ─────────────────────────────
 
-test("R3 — footer links expose complete accessible names (new-tab disclosure included)", async ({
+test("R3 — footer controls expose complete accessible names (new-tab disclosure where applicable)", async ({
   page,
 }) => {
   await page.setViewportSize(DESKTOP);
   await page.goto("/");
 
-  await expect(feedbackLink(page)).toHaveAccessibleName(
-    /Send us Feedback\s*\(opens in a new tab\)/,
-  );
+  // Issue #42: the feedback control opens a dialog (aria-haspopup="dialog"),
+  // it no longer navigates — so no "(opens in a new tab)" disclosure on it.
+  // The GitHub link keeps its complete name.
+  await expect(feedbackButton(page)).toHaveAccessibleName("Send us Feedback");
+  await expect(feedbackButton(page)).toHaveAttribute("aria-haspopup", "dialog");
   await expect(githubLink(page)).toHaveAccessibleName(
     /GitHub repository\s*\(opens in a new tab\)/,
   );
@@ -202,8 +208,8 @@ test("R4 — lg boundary (1024px): desktop column presentation with the footer r
   // Desktop presentation at the boundary: collapse toggle exists...
   await expect(collapseToggle(page)).toBeVisible();
   // ...and the footer row is part of the column.
-  await feedbackLink(page).scrollIntoViewIfNeeded();
-  await expect(feedbackLink(page)).toBeVisible();
+  await feedbackButton(page).scrollIntoViewIfNeeded();
+  await expect(feedbackButton(page)).toBeVisible();
   await expect(githubLink(page)).toBeVisible();
 
   const { scrollWidth, clientWidth } = await page.evaluate(() => ({
@@ -226,7 +232,7 @@ test("R4 — mobile: footer visible in the card while BOTH disclosures stay clos
   await expect(schedulesTrigger).toHaveAttribute("aria-expanded", "false");
   await expect(resourcesTrigger).toHaveAttribute("aria-expanded", "false");
 
-  const feedback = feedbackLink(page);
+  const feedback = feedbackButton(page);
   await feedback.scrollIntoViewIfNeeded();
   await expect(feedback).toBeVisible();
   await expect(githubLink(page)).toBeVisible();
