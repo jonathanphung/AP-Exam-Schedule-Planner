@@ -8,6 +8,7 @@ import {
   type ResourceLink,
 } from "@/data/resources";
 import { MySchedules } from "@/components/MySchedules";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { toggleSidebarCollapsed, useSidebarCollapsed } from "@/lib/sidebar";
 
 /**
@@ -164,11 +165,19 @@ function GitHubIcon() {
 }
 
 /**
- * Footer row (post-approval bounce): "Send us Feedback" left, GitHub icon
- * right, one row, pinned below the content in both presentations. House
- * link rules: the text underlines on hover, the trailing ↗ / the icon never
- * does; ≥44px touch targets on mobile (h-11, relaxed at `lg` like the other
- * sidebar controls).
+ * Footer row: "Send us Feedback" left, an icon cluster right — the theme
+ * toggle (issue #41) immediately beside the GitHub icon, at the same icon
+ * size. One row, pinned below the content in both presentations. House link
+ * rules: the text underlines on hover, the trailing ↗ / the icons never do;
+ * ≥44px touch targets on mobile (h-11, relaxed at `lg` like the other sidebar
+ * controls).
+ *
+ * Collapsed desktop rail (issue #41): the row previously vanished entirely
+ * (`lg:hidden`), which would strand a collapsed-sidebar user with no theme
+ * control. Instead, in the ~40px rail we drop the feedback text (no room for
+ * a label) and stack the icon controls vertically and centered, so the theme
+ * toggle — and the GitHub mark — stay reachable icon-only. Mobile ignores
+ * these `lg:` overrides and keeps the full row.
  */
 function SidebarFooter({ collapsed }: { collapsed: boolean }) {
   return (
@@ -176,16 +185,21 @@ function SidebarFooter({ collapsed }: { collapsed: boolean }) {
       data-testid="sidebar-footer"
       className={[
         "mt-5 flex items-center justify-between gap-2 border-t border-slate-200 pt-3 lg:mt-4 lg:shrink-0 dark:border-slate-800",
-        // Hidden with the sections when the desktop column is collapsed to
-        // the slim rail (mobile presentation unaffected).
-        collapsed ? "lg:hidden" : "",
+        collapsed
+          ? "lg:flex-col lg:items-center lg:justify-center lg:gap-1"
+          : "",
       ].join(" ")}
     >
       <a
         href="https://github.com/jonathanphung/AP-Exam-Planner/issues/new"
         target="_blank"
         rel="noopener noreferrer"
-        className="group inline-flex min-h-11 items-center gap-1 rounded-sm text-sm font-medium text-slate-700 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 lg:min-h-9 dark:text-slate-300 dark:hover:text-slate-100 dark:focus-visible:outline-blue-400"
+        className={[
+          "group inline-flex min-h-11 items-center gap-1 rounded-sm text-sm font-medium text-slate-700 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 lg:min-h-9 dark:text-slate-300 dark:hover:text-slate-100 dark:focus-visible:outline-blue-400",
+          // No room for the text label in the collapsed rail; the icon
+          // controls below stay reachable.
+          collapsed ? "lg:hidden" : "",
+        ].join(" ")}
       >
         <span className="underline-offset-2 group-hover:underline group-focus-visible:underline">
           Send us Feedback
@@ -193,16 +207,24 @@ function SidebarFooter({ collapsed }: { collapsed: boolean }) {
         <span aria-hidden="true">↗</span>
         <span className="sr-only"> (opens in a new tab)</span>
       </a>
-      <a
-        href="https://github.com/jonathanphung/AP-Exam-Planner"
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="GitHub repository (opens in a new tab)"
-        title="GitHub repository"
-        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 lg:h-9 lg:w-9 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 dark:focus-visible:outline-blue-400"
+      <div
+        className={[
+          "flex items-center gap-1",
+          collapsed ? "lg:flex-col" : "",
+        ].join(" ")}
       >
-        <GitHubIcon />
-      </a>
+        <ThemeToggle />
+        <a
+          href="https://github.com/jonathanphung/AP-Exam-Planner"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="GitHub repository (opens in a new tab)"
+          title="GitHub repository"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 lg:h-9 lg:w-9 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 dark:focus-visible:outline-blue-400"
+        >
+          <GitHubIcon />
+        </a>
+      </div>
     </div>
   );
 }

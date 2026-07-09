@@ -1,1 +1,14 @@
 @import "tailwindcss";
+
+/*
+ * Dark-mode strategy swap (issue #41): move from Tailwind v4's default
+ * media-query dark variant to a CLASS-based one. Every existing `dark:`
+ * utility across the app keeps working unchanged — this only changes what
+ * *activates* the variant: instead of `@media (prefers-color-scheme: dark)`,
+ * a `dark:` utility now applies when `.dark` is present on an ancestor
+ * (`<html>`), so the theme toggle can force light/dark regardless of the OS
+ * setting while `System` mode still follows `prefers-color-scheme` (the
+ * inline pre-paint script in `src/app/layout.tsx` maps the stored preference
+ * onto the `.dark` class before first paint).
+ */
+@custom-variant dark (&:where(.dark, .dark *));
