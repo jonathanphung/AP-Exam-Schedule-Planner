@@ -4,7 +4,7 @@
   "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-african-american-studies/exam",
   "fallbackUsed": "none",
   "noSitDownExam": false,
-  "totalMinutesStated": "pending",
+  "totalMinutesStated": 165,
   "sectionsSumToTotal": false,
   "sections": [
     {
@@ -44,6 +44,14 @@
     }
   ],
   "datasetDiscrepancies": [
-    {"field": "frqMinutes", "dataset": "pending", "page": "40 (Short-Answer) + 45 (Document-Based) + 10 (Validation Question) as separate published sections; no combined FRQ total printed", "quote": "Section II: Short-Answer Questions — 3 Questions | 40 Minutes; Section II: Document-Based Question — 1 Question | 45 Minutes"}
-  ]
+    {
+      "field": "frqMinutes",
+      "dataset": "pending",
+      "page": "40 (Short-Answer) + 45 (Document-Based) + 10 (Validation Question) as separate published sections; no combined FRQ total printed",
+      "quote": "Section II: Short-Answer Questions — 3 Questions | 40 Minutes; Section II: Document-Based Question — 1 Question | 45 Minutes"
+    }
+  ],
+  "totalMinutesVerbatim": "2hrs 45mins",
+  "totalMinutesApproximate": false,
+  "totalMinutesSource": "https://apstudents.collegeboard.org/courses/ap-african-american-studies/assessment"
 }

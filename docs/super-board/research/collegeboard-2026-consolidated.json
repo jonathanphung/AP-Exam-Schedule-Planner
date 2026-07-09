@@ -1,12 +1,14 @@
 {
   "cycle": "May 2026",
   "fetched": "2026-07-09",
-  "method": "one fetch agent + one independent refute-skeptic per subject",
+  "method": "per subject: one fetch agent + one independent refute-skeptic, against AP Central /exam (sections, weights, parts) AND AP Students /assessment (overall Exam Duration)",
   "subjects": [
     {
       "id": "2-d-art-and-design",
       "sourceUrl": "https://apstudents.collegeboard.org/courses/ap-2-d-art-and-design/assessment",
       "totalMinutesStated": "n/a",
+      "totalMinutesVerbatim": null,
+      "totalMinutesApproximate": null,
       "noSitDownExam": true,
       "sections": [],
       "datasetDiscrepancies": []
@@ -15,6 +17,8 @@
       "id": "3-d-art-and-design",
       "sourceUrl": "https://apstudents.collegeboard.org/courses/ap-3-d-art-and-design/assessment",
       "totalMinutesStated": "n/a",
+      "totalMinutesVerbatim": null,
+      "totalMinutesApproximate": null,
       "noSitDownExam": true,
       "sections": [],
       "datasetDiscrepancies": []
@@ -22,7 +26,9 @@
     {
       "id": "african-american-studies",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-african-american-studies/exam",
-      "totalMinutesStated": "pending",
+      "totalMinutesStated": 165,
+      "totalMinutesVerbatim": "2hrs 45mins",
+      "totalMinutesApproximate": false,
       "noSitDownExam": false,
       "sections": [
         {
@@ -73,7 +79,9 @@
     {
       "id": "art-history",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-art-history/exam",
-      "totalMinutesStated": "pending",
+      "totalMinutesStated": 180,
+      "totalMinutesVerbatim": "3hrs",
+      "totalMinutesApproximate": false,
       "noSitDownExam": false,
       "sections": [
         {
@@ -96,7 +104,9 @@
     {
       "id": "biology",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-biology/exam",
-      "totalMinutesStated": "pending",
+      "totalMinutesStated": 180,
+      "totalMinutesVerbatim": "3hrs",
+      "totalMinutesApproximate": false,
       "noSitDownExam": false,
       "sections": [
         {
@@ -120,6 +130,8 @@
       "id": "business-with-personal-finance",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-business-personal-finance/exam-overview",
       "totalMinutesStated": 160,
+      "totalMinutesVerbatim": null,
+      "totalMinutesApproximate": null,
       "noSitDownExam": false,
       "sections": [
         {
@@ -162,7 +174,9 @@
     {
       "id": "calculus-ab",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-calculus-ab/exam",
-      "totalMinutesStated": "pending",
+      "totalMinutesStated": 195,
+      "totalMinutesVerbatim": "3hrs 15mins",
+      "totalMinutesApproximate": false,
       "noSitDownExam": false,
       "sections": [
         {
@@ -217,7 +231,9 @@
     {
       "id": "calculus-bc",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-calculus-bc/exam",
-      "totalMinutesStated": "pending",
+      "totalMinutesStated": 195,
+      "totalMinutesVerbatim": "3hrs 15mins",
+      "totalMinutesApproximate": false,
       "noSitDownExam": false,
       "sections": [
         {
@@ -272,7 +288,9 @@
     {
       "id": "chemistry",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-chemistry/exam",
-      "totalMinutesStated": "pending",
+      "totalMinutesStated": 195,
+      "totalMinutesVerbatim": "3hrs 15mins",
+      "totalMinutesApproximate": false,
       "noSitDownExam": false,
       "sections": [
         {
@@ -295,7 +313,9 @@
     {
       "id": "chinese-language-and-culture",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-chinese-language-and-culture/exam",
-      "totalMinutesStated": "pending",
+      "totalMinutesStated": 120,
+      "totalMinutesVerbatim": "Approximately 2hrs",
+      "totalMinutesApproximate": true,
       "noSitDownExam": false,
       "sections": [
         {
@@ -390,6 +410,8 @@
       "id": "comparative-government-and-politics",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-comparative-government-and-politics/exam",
       "totalMinutesStated": 150,
+      "totalMinutesVerbatim": null,
+      "totalMinutesApproximate": null,
       "noSitDownExam": false,
       "sections": [
         {
@@ -412,7 +434,9 @@
     {
       "id": "computer-science-a",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-computer-science-a/exam",
-      "totalMinutesStated": "pending",
+      "totalMinutesStated": 180,
+      "totalMinutesVerbatim": "3hrs",
+      "totalMinutesApproximate": false,
       "noSitDownExam": false,
       "sections": [
         {
@@ -449,6 +473,8 @@
       "id": "computer-science-principles",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-computer-science-principles/exam",
       "totalMinutesStated": 180,
+      "totalMinutesVerbatim": null,
+      "totalMinutesApproximate": null,
       "noSitDownExam": false,
       "sections": [
         {
@@ -471,7 +497,9 @@
     {
       "id": "cybersecurity",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-cybersecurity/exam",
-      "totalMinutesStated": "pending",
+      "totalMinutesStated": 130,
+      "totalMinutesVerbatim": "2hrs 10mins",
+      "totalMinutesApproximate": false,
       "noSitDownExam": false,
       "sections": [
         {
@@ -508,6 +536,8 @@
       "id": "drawing",
       "sourceUrl": "https://apstudents.collegeboard.org/courses/ap-drawing/assessment",
       "totalMinutesStated": "n/a",
+      "totalMinutesVerbatim": null,
+      "totalMinutesApproximate": null,
       "noSitDownExam": true,
       "sections": [],
       "datasetDiscrepancies": []
@@ -516,6 +546,8 @@
       "id": "english-language-and-composition",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-english-language-and-composition/exam",
       "totalMinutesStated": 195,
+      "totalMinutesVerbatim": null,
+      "totalMinutesApproximate": null,
       "noSitDownExam": false,
       "sections": [
         {
@@ -545,7 +577,9 @@
     {
       "id": "english-literature-and-composition",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-english-literature-and-composition/exam",
-      "totalMinutesStated": "pending",
+      "totalMinutesStated": 180,
+      "totalMinutesVerbatim": "3hrs",
+      "totalMinutesApproximate": false,
       "noSitDownExam": false,
       "sections": [
         {
@@ -581,7 +615,9 @@
     {
       "id": "environmental-science",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-environmental-science/exam",
-      "totalMinutesStated": "pending",
+      "totalMinutesStated": 160,
+      "totalMinutesVerbatim": "2hrs 40mins",
+      "totalMinutesApproximate": false,
       "noSitDownExam": false,
       "sections": [
         {
@@ -604,7 +640,9 @@
     {
       "id": "european-history",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-european-history/exam",
-      "totalMinutesStated": "pending",
+      "totalMinutesStated": 195,
+      "totalMinutesVerbatim": "3hrs 15mins",
+      "totalMinutesApproximate": false,
       "noSitDownExam": false,
       "sections": [
         {
@@ -650,7 +688,9 @@
     {
       "id": "french-language-and-culture",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-french-language-and-culture/exam",
-      "totalMinutesStated": "pending",
+      "totalMinutesStated": 150,
+      "totalMinutesVerbatim": "Approximately 2hrs 30mins",
+      "totalMinutesApproximate": true,
       "noSitDownExam": false,
       "sections": [
         {
@@ -731,7 +771,9 @@
     {
       "id": "german-language-and-culture",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-german-language-and-culture/exam",
-      "totalMinutesStated": "pending",
+      "totalMinutesStated": 150,
+      "totalMinutesVerbatim": "Approximately 2hrs 30mins",
+      "totalMinutesApproximate": true,
       "noSitDownExam": false,
       "sections": [
         {
@@ -812,7 +854,9 @@
     {
       "id": "human-geography",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-human-geography/exam",
-      "totalMinutesStated": "pending",
+      "totalMinutesStated": 135,
+      "totalMinutesVerbatim": "2hrs 15mins",
+      "totalMinutesApproximate": false,
       "noSitDownExam": false,
       "sections": [
         {
@@ -835,7 +879,9 @@
     {
       "id": "italian-language-and-culture",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-italian-language-and-culture/exam",
-      "totalMinutesStated": "pending",
+      "totalMinutesStated": 150,
+      "totalMinutesVerbatim": "Approximately 2hrs 30mins",
+      "totalMinutesApproximate": true,
       "noSitDownExam": false,
       "sections": [
         {
@@ -916,7 +962,9 @@
     {
       "id": "japanese-language-and-culture",
       "sourceUrl": "https://apstudents.collegeboard.org/courses/ap-japanese-language-and-culture/assessment",
-      "totalMinutesStated": "pending",
+      "totalMinutesStated": 120,
+      "totalMinutesVerbatim": "Approximately 2hrs",
+      "totalMinutesApproximate": true,
       "noSitDownExam": false,
       "sections": [
         {
@@ -998,6 +1046,8 @@
       "id": "latin",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-latin/exam",
       "totalMinutesStated": 180,
+      "totalMinutesVerbatim": null,
+      "totalMinutesApproximate": null,
       "noSitDownExam": false,
       "sections": [
         {
@@ -1021,6 +1071,8 @@
       "id": "macroeconomics",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-macroeconomics/exam",
       "totalMinutesStated": 130,
+      "totalMinutesVerbatim": null,
+      "totalMinutesApproximate": null,
       "noSitDownExam": false,
       "sections": [
         {
@@ -1043,7 +1095,9 @@
     {
       "id": "microeconomics",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-microeconomics/exam",
-      "totalMinutesStated": "pending",
+      "totalMinutesStated": 130,
+      "totalMinutesVerbatim": "2hrs 10mins",
+      "totalMinutesApproximate": false,
       "noSitDownExam": false,
       "sections": [
         {
@@ -1079,7 +1133,9 @@
     {
       "id": "music-theory",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-music-theory/exam",
-      "totalMinutesStated": "pending",
+      "totalMinutesStated": 160,
+      "totalMinutesVerbatim": "~ 2hrs 40mins",
+      "totalMinutesApproximate": true,
       "noSitDownExam": false,
       "sections": [
         {
@@ -1109,7 +1165,9 @@
     {
       "id": "physics-1",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-physics-1/exam",
-      "totalMinutesStated": "pending",
+      "totalMinutesStated": 180,
+      "totalMinutesVerbatim": "3hrs",
+      "totalMinutesApproximate": false,
       "noSitDownExam": false,
       "sections": [
         {
@@ -1132,7 +1190,9 @@
     {
       "id": "physics-2",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-physics-2/exam",
-      "totalMinutesStated": "pending",
+      "totalMinutesStated": 180,
+      "totalMinutesVerbatim": "3hrs",
+      "totalMinutesApproximate": false,
       "noSitDownExam": false,
       "sections": [
         {
@@ -1155,7 +1215,9 @@
     {
       "id": "physics-c-electricity-and-magnetism",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-physics-c-electricity-and-magnetism/exam",
-      "totalMinutesStated": "pending",
+      "totalMinutesStated": 180,
+      "totalMinutesVerbatim": "3hrs",
+      "totalMinutesApproximate": false,
       "noSitDownExam": false,
       "sections": [
         {
@@ -1178,7 +1240,9 @@
     {
       "id": "physics-c-mechanics",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-physics-c-mechanics/exam",
-      "totalMinutesStated": "pending",
+      "totalMinutesStated": 180,
+      "totalMinutesVerbatim": "3hrs",
+      "totalMinutesApproximate": false,
       "noSitDownExam": false,
       "sections": [
         {
@@ -1201,7 +1265,9 @@
     {
       "id": "precalculus",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-precalculus/exam",
-      "totalMinutesStated": "pending",
+      "totalMinutesStated": 180,
+      "totalMinutesVerbatim": "3hrs",
+      "totalMinutesApproximate": false,
       "noSitDownExam": false,
       "sections": [
         {
@@ -1256,7 +1322,9 @@
     {
       "id": "psychology",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-psychology/exam",
-      "totalMinutesStated": "pending",
+      "totalMinutesStated": 160,
+      "totalMinutesVerbatim": "2hrs 40mins",
+      "totalMinutesApproximate": false,
       "noSitDownExam": false,
       "sections": [
         {
@@ -1303,6 +1371,8 @@
       "id": "research",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-research/exam",
       "totalMinutesStated": "n/a",
+      "totalMinutesVerbatim": null,
+      "totalMinutesApproximate": null,
       "noSitDownExam": true,
       "sections": [],
       "datasetDiscrepancies": []
@@ -1311,6 +1381,8 @@
       "id": "seminar",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-seminar/exam",
       "totalMinutesStated": 120,
+      "totalMinutesVerbatim": null,
+      "totalMinutesApproximate": null,
       "noSitDownExam": false,
       "sections": [
         {
@@ -1340,7 +1412,9 @@
     {
       "id": "spanish-language-and-culture",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-spanish-language-and-culture/exam",
-      "totalMinutesStated": "pending",
+      "totalMinutesStated": 150,
+      "totalMinutesVerbatim": "Approximately 2hrs 30mins",
+      "totalMinutesApproximate": true,
       "noSitDownExam": false,
       "sections": [
         {
@@ -1433,7 +1507,9 @@
     {
       "id": "spanish-literature-and-culture",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-spanish-literature-and-culture/exam",
-      "totalMinutesStated": "pending",
+      "totalMinutesStated": 180,
+      "totalMinutesVerbatim": "3hrs",
+      "totalMinutesApproximate": false,
       "noSitDownExam": false,
       "sections": [
         {
@@ -1479,7 +1555,9 @@
     {
       "id": "statistics",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-statistics/exam",
-      "totalMinutesStated": "pending",
+      "totalMinutesStated": 180,
+      "totalMinutesVerbatim": "3hrs",
+      "totalMinutesApproximate": false,
       "noSitDownExam": false,
       "sections": [
         {
@@ -1516,6 +1594,8 @@
       "id": "united-states-government-and-politics",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-united-states-government-and-politics/exam",
       "totalMinutesStated": 180,
+      "totalMinutesVerbatim": null,
+      "totalMinutesApproximate": null,
       "noSitDownExam": false,
       "sections": [
         {
@@ -1539,6 +1619,8 @@
       "id": "united-states-history",
       "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-united-states-history/exam",
       "totalMinutesStated": 195,
+      "totalMinutesVerbatim": null,
+      "totalMinutesApproximate": null,
       "noSitDownExam": false,
       "sections": [
         {
@@ -1598,6 +1680,8 @@
       "id": "world-history-modern",
       "sourceUrl": "https://apstudents.collegeboard.org/courses/ap-world-history-modern/assessment",
       "totalMinutesStated": 195,
+      "totalMinutesVerbatim": null,
+      "totalMinutesApproximate": null,
       "noSitDownExam": false,
       "sections": [
         {

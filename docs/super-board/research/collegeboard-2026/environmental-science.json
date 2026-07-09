@@ -4,7 +4,7 @@
   "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-environmental-science/exam",
   "fallbackUsed": "none",
   "noSitDownExam": false,
-  "totalMinutesStated": "pending",
+  "totalMinutesStated": 160,
   "sectionsSumToTotal": "pending",
   "sections": [
     {
@@ -22,5 +22,8 @@
       "quote": "Section II: Free Response — 3 Questions | 1 Hour 10 Minutes | 40% of Exam Score"
     }
   ],
-  "datasetDiscrepancies": []
+  "datasetDiscrepancies": [],
+  "totalMinutesVerbatim": "2hrs 40mins",
+  "totalMinutesApproximate": false,
+  "totalMinutesSource": "https://apstudents.collegeboard.org/courses/ap-environmental-science/assessment"
 }

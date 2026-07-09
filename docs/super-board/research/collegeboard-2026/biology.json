@@ -4,7 +4,7 @@
   "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-biology/exam",
   "fallbackUsed": "none",
   "noSitDownExam": false,
-  "totalMinutesStated": "pending",
+  "totalMinutesStated": 180,
   "sectionsSumToTotal": "pending",
   "sections": [
     {
@@ -22,5 +22,8 @@
       "quote": "6 Questions | 1 hour 30 Minutes | 50% of Exam Score"
     }
   ],
-  "datasetDiscrepancies": []
+  "datasetDiscrepancies": [],
+  "totalMinutesVerbatim": "3hrs",
+  "totalMinutesApproximate": false,
+  "totalMinutesSource": "https://apstudents.collegeboard.org/courses/ap-biology/assessment"
 }

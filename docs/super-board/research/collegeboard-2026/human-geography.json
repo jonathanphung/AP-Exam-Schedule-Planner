@@ -4,7 +4,7 @@
   "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-human-geography/exam",
   "fallbackUsed": "none",
   "noSitDownExam": false,
-  "totalMinutesStated": "pending",
+  "totalMinutesStated": 135,
   "sectionsSumToTotal": "pending",
   "sections": [
     {
@@ -22,5 +22,8 @@
       "quote": "Section II: Free Response — Questions: 3 — Time: 1 Hour 15 Minutes (75 minutes) — Exam Score: 50%."
     }
   ],
-  "datasetDiscrepancies": []
+  "datasetDiscrepancies": [],
+  "totalMinutesVerbatim": "2hrs 15mins",
+  "totalMinutesApproximate": false,
+  "totalMinutesSource": "https://apstudents.collegeboard.org/courses/ap-human-geography/assessment"
 }

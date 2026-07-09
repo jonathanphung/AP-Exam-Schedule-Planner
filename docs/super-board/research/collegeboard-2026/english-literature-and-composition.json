@@ -4,7 +4,7 @@
   "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-english-literature-and-composition/exam",
   "fallbackUsed": "none",
   "noSitDownExam": false,
-  "totalMinutesStated": "pending",
+  "totalMinutesStated": 180,
   "sectionsSumToTotal": true,
   "sections": [
     {
@@ -23,7 +23,20 @@
     }
   ],
   "datasetDiscrepancies": [
-    {"field": "mcqMinutes", "dataset": "pending", "page": "60", "quote": "Section I: Multiple Choice — 55 Questions | 1 Hour | 45% of Exam Score"},
-    {"field": "frqMinutes", "dataset": "pending", "page": "120", "quote": "Section II: Free Response — 3 Questions | 2 Hours | 55% of Exam Score"}
-  ]
+    {
+      "field": "mcqMinutes",
+      "dataset": "pending",
+      "page": "60",
+      "quote": "Section I: Multiple Choice — 55 Questions | 1 Hour | 45% of Exam Score"
+    },
+    {
+      "field": "frqMinutes",
+      "dataset": "pending",
+      "page": "120",
+      "quote": "Section II: Free Response — 3 Questions | 2 Hours | 55% of Exam Score"
+    }
+  ],
+  "totalMinutesVerbatim": "3hrs",
+  "totalMinutesApproximate": false,
+  "totalMinutesSource": "https://apstudents.collegeboard.org/courses/ap-english-literature-and-composition/assessment"
 }

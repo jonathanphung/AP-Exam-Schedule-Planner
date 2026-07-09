@@ -4,7 +4,7 @@
   "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-precalculus/exam",
   "fallbackUsed": "none",
   "noSitDownExam": false,
-  "totalMinutesStated": "pending",
+  "totalMinutesStated": 180,
   "sectionsSumToTotal": true,
   "sections": [
     {
@@ -14,8 +14,20 @@
       "weightPercent": 62.5,
       "quote": "Section I: Multiple Choice — 40 Questions | 2 Hours | 62.5% of Exam Score",
       "parts": [
-        {"name": "Part A", "questionCount": "28", "minutes": 80, "toolNote": "calculator not permitted", "quote": "28 questions; 80 minutes; 43.75% of exam score (calculator not permitted)"},
-        {"name": "Part B", "questionCount": "12", "minutes": 40, "toolNote": "graphing calculator required", "quote": "12 questions; 40 minutes; 18.75% of exam score (graphing calculator required)"}
+        {
+          "name": "Part A",
+          "questionCount": "28",
+          "minutes": 80,
+          "toolNote": "calculator not permitted",
+          "quote": "28 questions; 80 minutes; 43.75% of exam score (calculator not permitted)"
+        },
+        {
+          "name": "Part B",
+          "questionCount": "12",
+          "minutes": 40,
+          "toolNote": "graphing calculator required",
+          "quote": "12 questions; 40 minutes; 18.75% of exam score (graphing calculator required)"
+        }
       ]
     },
     {
@@ -25,10 +37,25 @@
       "weightPercent": 37.5,
       "quote": "Section II: Free Response — 4 Questions | 1 Hour | 37.5% of Exam Score",
       "parts": [
-        {"name": "Part A", "questionCount": "2", "minutes": 30, "toolNote": "graphing calculator required", "quote": "2 questions; 30 minutes; 18.75% of exam score (graphing calculator required)"},
-        {"name": "Part B", "questionCount": "2", "minutes": 30, "toolNote": "calculator not permitted", "quote": "2 questions; 30 minutes; 18.75% of exam score (calculator not permitted)"}
+        {
+          "name": "Part A",
+          "questionCount": "2",
+          "minutes": 30,
+          "toolNote": "graphing calculator required",
+          "quote": "2 questions; 30 minutes; 18.75% of exam score (graphing calculator required)"
+        },
+        {
+          "name": "Part B",
+          "questionCount": "2",
+          "minutes": 30,
+          "toolNote": "calculator not permitted",
+          "quote": "2 questions; 30 minutes; 18.75% of exam score (calculator not permitted)"
+        }
       ]
     }
   ],
-  "datasetDiscrepancies": []
+  "datasetDiscrepancies": [],
+  "totalMinutesVerbatim": "3hrs",
+  "totalMinutesApproximate": false,
+  "totalMinutesSource": "https://apstudents.collegeboard.org/courses/ap-precalculus/assessment"
 }

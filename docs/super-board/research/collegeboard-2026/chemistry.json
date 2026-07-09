@@ -4,7 +4,7 @@
   "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-chemistry/exam",
   "fallbackUsed": "none",
   "noSitDownExam": false,
-  "totalMinutesStated": "pending",
+  "totalMinutesStated": 195,
   "sectionsSumToTotal": true,
   "sections": [
     {
@@ -22,5 +22,8 @@
       "quote": "Section II: Free Response — 7 Questions (3 long-answer and 4 short-answer questions) | 1 Hour 45 Minutes | 50% of Exam Score"
     }
   ],
-  "datasetDiscrepancies": []
+  "datasetDiscrepancies": [],
+  "totalMinutesVerbatim": "3hrs 15mins",
+  "totalMinutesApproximate": false,
+  "totalMinutesSource": "https://apstudents.collegeboard.org/courses/ap-chemistry/assessment"
 }

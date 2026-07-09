@@ -4,7 +4,7 @@
   "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-cybersecurity/exam",
   "fallbackUsed": "none",
   "noSitDownExam": false,
-  "totalMinutesStated": "pending",
+  "totalMinutesStated": 130,
   "sectionsSumToTotal": "pending",
   "sections": [
     {
@@ -23,7 +23,20 @@
     }
   ],
   "datasetDiscrepancies": [
-    {"field": "mcqMinutes", "dataset": "pending", "page": "80", "quote": "Section I: Multiple Choice — 60 Questions | 80 minutes | 70% of Exam Score"},
-    {"field": "frqMinutes", "dataset": "pending", "page": "50", "quote": "Section II: Free Response — 1 Question | 50 minutes | 30% of Exam Score"}
-  ]
+    {
+      "field": "mcqMinutes",
+      "dataset": "pending",
+      "page": "80",
+      "quote": "Section I: Multiple Choice — 60 Questions | 80 minutes | 70% of Exam Score"
+    },
+    {
+      "field": "frqMinutes",
+      "dataset": "pending",
+      "page": "50",
+      "quote": "Section II: Free Response — 1 Question | 50 minutes | 30% of Exam Score"
+    }
+  ],
+  "totalMinutesVerbatim": "2hrs 10mins",
+  "totalMinutesApproximate": false,
+  "totalMinutesSource": "https://apstudents.collegeboard.org/courses/ap-cybersecurity/assessment"
 }

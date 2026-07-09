@@ -4,7 +4,7 @@
   "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-spanish-literature-and-culture/exam",
   "fallbackUsed": "none",
   "noSitDownExam": false,
-  "totalMinutesStated": "pending",
+  "totalMinutesStated": 180,
   "sectionsSumToTotal": "pending",
   "sections": [
     {
@@ -28,10 +28,25 @@
       "weightPercent": 50,
       "quote": "Section II: Free Response — 4 Questions | 1 Hour, 40 Minutes | 50% of Exam Score.",
       "parts": [
-        {"name": "Short-Answer Questions", "questionCount": "2", "minutes": 30, "toolNote": "n/a", "quote": "Short-Answer Questions: Suggested time: 15 minutes each (~30 minutes)"},
-        {"name": "Essay Questions", "questionCount": "2", "minutes": 70, "toolNote": "n/a", "quote": "Essay Questions: Suggested time: 35 minutes each (~70 minutes)"}
+        {
+          "name": "Short-Answer Questions",
+          "questionCount": "2",
+          "minutes": 30,
+          "toolNote": "n/a",
+          "quote": "Short-Answer Questions: Suggested time: 15 minutes each (~30 minutes)"
+        },
+        {
+          "name": "Essay Questions",
+          "questionCount": "2",
+          "minutes": 70,
+          "toolNote": "n/a",
+          "quote": "Essay Questions: Suggested time: 35 minutes each (~70 minutes)"
+        }
       ]
     }
   ],
-  "datasetDiscrepancies": []
+  "datasetDiscrepancies": [],
+  "totalMinutesVerbatim": "3hrs",
+  "totalMinutesApproximate": false,
+  "totalMinutesSource": "https://apstudents.collegeboard.org/courses/ap-spanish-literature-and-culture/assessment"
 }

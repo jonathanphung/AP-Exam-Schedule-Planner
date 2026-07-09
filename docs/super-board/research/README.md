@@ -85,3 +85,41 @@ by accident, having been reachable only as a sum in the primary source.
   different states.
 - No value is estimated, back-computed from a total, or summed from sub-parts
   into a parent the page never prints.
+
+---
+
+## Correction (2026-07-09, second sweep): the two pages are complementary
+
+The first sweep named AP Central primary and AP Students only a 404 fallback.
+That was wrong, and it poisoned one field:
+
+- **AP Central `/courses/ap-<slug>/exam`** — per-section times, weights, Part A/B
+  splits. **Usually prints no overall total.**
+- **AP Students `/courses/ap-<slug>/assessment`** — an **`Exam Duration`**
+  heading with the overall total. **Usually prints no per-section times.**
+
+So the first sweep recorded `totalMinutesStated: "pending"` for **28 subjects**
+that in fact publish a total — the same false-pending defect it existed to fix,
+in the opposite direction. A second sweep (28 fetch agents + 28 refute-skeptics)
+re-sourced every one of them from AP Students: **28/28 published, 0 refuted, 0
+genuinely pending.**
+
+Each record now carries `totalMinutesStated`, `totalMinutesVerbatim` (e.g.
+`"Approximately 2hrs 30mins"`), `totalMinutesApproximate`, and
+`totalMinutesSource`.
+
+**Four more dataset errors fall out of it:**
+
+| subject | dataset ships | College Board prints |
+|---|---|---|
+| `french-language-and-culture` | `180` | **150** (`Approximately 2hrs 30mins`) |
+| `german-language-and-culture` | `183` | **150** (`Approximately 2hrs 30mins`) |
+| `italian-language-and-culture` | `180` | **150** (`Approximately 2hrs 30mins`) |
+| `spanish-language-and-culture` | `183` | **150** (`Approximately 2hrs 30mins`) |
+
+Chinese and Japanese ship `120`, which matches their printed
+`Approximately 2hrs` — correct, and must not be overwritten with `"pending"`.
+
+**The lesson for any card reading this provenance:** a value absent from one
+College Board page is not an unpublished value. Check both pages before writing
+`"pending"`, and never write `"pending"` over an existing number without doing so.

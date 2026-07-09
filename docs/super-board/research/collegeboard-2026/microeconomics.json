@@ -4,7 +4,7 @@
   "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-microeconomics/exam",
   "fallbackUsed": "none",
   "noSitDownExam": false,
-  "totalMinutesStated": "pending",
+  "totalMinutesStated": 130,
   "sectionsSumToTotal": false,
   "sections": [
     {
@@ -23,7 +23,20 @@
     }
   ],
   "datasetDiscrepancies": [
-    {"field": "mcqMinutes", "dataset": "70", "page": "70", "quote": "60 Questions | 1 Hour 10 Minutes | 66% of Exam Score"},
-    {"field": "totalMinutes", "dataset": "130", "page": "not printed", "quote": "The page does not print a combined total exam duration; 130 equals the sum of the two published section times (70 + 60)."}
-  ]
+    {
+      "field": "mcqMinutes",
+      "dataset": "70",
+      "page": "70",
+      "quote": "60 Questions | 1 Hour 10 Minutes | 66% of Exam Score"
+    },
+    {
+      "field": "totalMinutes",
+      "dataset": "130",
+      "page": "not printed",
+      "quote": "The page does not print a combined total exam duration; 130 equals the sum of the two published section times (70 + 60)."
+    }
+  ],
+  "totalMinutesVerbatim": "2hrs 10mins",
+  "totalMinutesApproximate": false,
+  "totalMinutesSource": "https://apstudents.collegeboard.org/courses/ap-microeconomics/assessment"
 }

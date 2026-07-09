@@ -4,7 +4,7 @@
   "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-physics-1/exam",
   "fallbackUsed": "none",
   "noSitDownExam": false,
-  "totalMinutesStated": "pending",
+  "totalMinutesStated": 180,
   "sectionsSumToTotal": "pending",
   "sections": [
     {
@@ -22,5 +22,8 @@
       "quote": "Section II: Free Response — 4 questions | 100 minutes | 50% of exam score"
     }
   ],
-  "datasetDiscrepancies": []
+  "datasetDiscrepancies": [],
+  "totalMinutesVerbatim": "3hrs",
+  "totalMinutesApproximate": false,
+  "totalMinutesSource": "https://apstudents.collegeboard.org/courses/ap-physics-1/assessment"
 }

@@ -4,7 +4,7 @@
   "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-physics-2/exam",
   "fallbackUsed": "none",
   "noSitDownExam": false,
-  "totalMinutesStated": "pending",
+  "totalMinutesStated": 180,
   "sectionsSumToTotal": "n/a",
   "sections": [
     {
@@ -23,5 +23,8 @@
     }
   ],
   "datasetDiscrepancies": [],
-  "notes": "Page does not print a combined total exam time; the two section times (80 + 100 = 180) match the dataset totalMinutes=180 but the page itself does not state the total, so totalMinutesStated is pending. No Part A/Part B splits are published for either section. All values match the current dataset (mcqCount=40, frqCount=4, mcqMinutes=80, frqMinutes=100)."
+  "notes": "Page does not print a combined total exam time; the two section times (80 + 100 = 180) match the dataset totalMinutes=180 but the page itself does not state the total, so totalMinutesStated is pending. No Part A/Part B splits are published for either section. All values match the current dataset (mcqCount=40, frqCount=4, mcqMinutes=80, frqMinutes=100).",
+  "totalMinutesVerbatim": "3hrs",
+  "totalMinutesApproximate": false,
+  "totalMinutesSource": "https://apstudents.collegeboard.org/courses/ap-physics-2/assessment"
 }

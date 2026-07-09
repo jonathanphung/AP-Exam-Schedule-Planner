@@ -4,7 +4,7 @@
   "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-psychology/exam",
   "fallbackUsed": "none",
   "noSitDownExam": false,
-  "totalMinutesStated": "pending",
+  "totalMinutesStated": 160,
   "sectionsSumToTotal": false,
   "sections": [
     {
@@ -21,12 +21,32 @@
       "weightPercent": 33.3,
       "quote": "2 Questions | 70 Minutes | 33.3% of Exam Score",
       "parts": [
-        {"name": "Part A - Article Analysis Question (AAQ)", "questionCount": "1", "minutes": "pending", "toolNote": "n/a", "quote": "Article Analysis Question (AAQ)"},
-        {"name": "Part B - Evidence-Based Question (EBQ)", "questionCount": "1", "minutes": "pending", "toolNote": "n/a", "quote": "Evidence-Based Question (EBQ)"}
+        {
+          "name": "Part A - Article Analysis Question (AAQ)",
+          "questionCount": "1",
+          "minutes": "pending",
+          "toolNote": "n/a",
+          "quote": "Article Analysis Question (AAQ)"
+        },
+        {
+          "name": "Part B - Evidence-Based Question (EBQ)",
+          "questionCount": "1",
+          "minutes": "pending",
+          "toolNote": "n/a",
+          "quote": "Evidence-Based Question (EBQ)"
+        }
       ]
     }
   ],
   "datasetDiscrepancies": [
-    {"field": "totalMinutes", "dataset": "160", "page": "pending", "quote": "The page does not state a combined total exam duration."}
-  ]
+    {
+      "field": "totalMinutes",
+      "dataset": "160",
+      "page": "pending",
+      "quote": "The page does not state a combined total exam duration."
+    }
+  ],
+  "totalMinutesVerbatim": "2hrs 40mins",
+  "totalMinutesApproximate": false,
+  "totalMinutesSource": "https://apstudents.collegeboard.org/courses/ap-psychology/assessment"
 }

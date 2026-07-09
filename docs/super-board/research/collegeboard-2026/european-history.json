@@ -4,7 +4,7 @@
   "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-european-history/exam",
   "fallbackUsed": "none",
   "noSitDownExam": false,
-  "totalMinutesStated": "pending",
+  "totalMinutesStated": 195,
   "sectionsSumToTotal": "pending",
   "sections": [
     {
@@ -28,10 +28,25 @@
       "weightPercent": 40,
       "quote": "Section II: Document-Based Question and Long Essay — 2 questions | 1 Hour, 40 minutes | 40% of Exam Score",
       "parts": [
-        {"name": "Document-Based Question (DBQ)", "questionCount": "1", "minutes": 60, "toolNote": "includes 15-minute reading period", "quote": "Document-Based Question (DBQ): 1 Hour (includes 15-minute reading period) | 25% of Exam Score"},
-        {"name": "Long Essay", "questionCount": "1", "minutes": 40, "toolNote": "student chooses from 3 options", "quote": "Long Essay: 40 minutes | 15% of Exam Score"}
+        {
+          "name": "Document-Based Question (DBQ)",
+          "questionCount": "1",
+          "minutes": 60,
+          "toolNote": "includes 15-minute reading period",
+          "quote": "Document-Based Question (DBQ): 1 Hour (includes 15-minute reading period) | 25% of Exam Score"
+        },
+        {
+          "name": "Long Essay",
+          "questionCount": "1",
+          "minutes": 40,
+          "toolNote": "student chooses from 3 options",
+          "quote": "Long Essay: 40 minutes | 15% of Exam Score"
+        }
       ]
     }
   ],
-  "datasetDiscrepancies": []
+  "datasetDiscrepancies": [],
+  "totalMinutesVerbatim": "3hrs 15mins",
+  "totalMinutesApproximate": false,
+  "totalMinutesSource": "https://apstudents.collegeboard.org/courses/ap-european-history/assessment"
 }
