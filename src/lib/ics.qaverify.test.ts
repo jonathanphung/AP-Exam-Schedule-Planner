@@ -201,6 +201,122 @@ describe("issue #38 QA — real dataset, invariants re-derived", () => {
     expect(pu).not.toContain("-exam@ap-exam-planner");
   });
 
+  it("QA v2 sweep — EVERY exam subject's DESCRIPTION re-derives from sections[] (all section AND part rows) and DTEND from totalMinutes", () => {
+    // The five-subject fixtures above prove the shapes; this sweep closes the
+    // remaining gap by re-deriving every row for ALL dataset subjects, one
+    // selection at a time (no conflict resolutions needed for singletons). It
+    // is the regression guard for this run's recurring defect class — a false
+    // "pending" (or an invented number) anywhere in the 42 subjects, including
+    // part-level rows (psychology's AAQ/EBQ, the language exams' Q1–Q4) that
+    // the fixtures don't individually enumerate.
+    const derivedQuestion = (
+      count: number | string | undefined,
+    ): string | undefined =>
+      count === undefined
+        ? undefined
+        : count === "pending"
+          ? "Questions pending"
+          : count === 1
+            ? "1 Question"
+            : `${count} Questions`;
+    const derivedMinutes = (minutes: number | string): string =>
+      minutes === "pending" ? "Duration pending" : `${minutes} Minutes`;
+
+    let examSubjects = 0;
+    for (const subject of SUBJECTS) {
+      const single = buildIcsCalendar(
+        SUBJECTS,
+        [subject.id],
+        [],
+        SESSION_START,
+        FIXED_NOW,
+      );
+      const vcal = new ICAL.Component(ICAL.parse(single));
+      const event = vcal
+        .getAllSubcomponents("vevent")
+        .find(
+          (v) =>
+            v.getFirstPropertyValue("uid") ===
+            `${subject.id}-exam@ap-exam-planner`,
+        );
+
+      if (subject.exam === null) {
+        // Portfolio-only / no-exam subjects must never emit an exam VEVENT —
+        // and therefore never a timing breakdown (issue #38 C5).
+        expect(event, `${subject.id} must emit no exam VEVENT`).toBeUndefined();
+        expect(single).not.toContain("Total Length:");
+        continue;
+      }
+      if (!event) continue; // dated-entry-less (first exam in 2027)
+      examSubjects++;
+
+      // DTEND strictly re-derived: published total + 30, or absent if pending.
+      const block = single
+        .replace(/\r\n /g, "")
+        .match(
+          new RegExp(`UID:${subject.id}-exam@ap-exam-planner[^]*?END:VEVENT`),
+        )![0];
+      const start = block.match(/DTSTART:(\d{8}T\d{6})/)?.[1];
+      const end = block.match(/DTEND:(\d{8}T\d{6})/)?.[1];
+      expect(start, `${subject.id} missing DTSTART`).toBeDefined();
+      if (typeof subject.format.totalMinutes === "number") {
+        expect(end, `${subject.id} must carry DTEND`).toBeDefined();
+        expect(
+          (floatingToMs(end!) - floatingToMs(start!)) / 60000,
+          `${subject.id} DTEND ≠ start + totalMinutes + 30`,
+        ).toBe(subject.format.totalMinutes + 30);
+      } else {
+        expect(end, `${subject.id}: pending total must emit NO DTEND`).toBeUndefined();
+      }
+
+      // Every section row and every nested part row, in dataset order.
+      const description = String(event.getFirstPropertyValue("description"));
+      const lines = description.split("\n");
+      let cursor = 0;
+      const expectRow = (row: string) => {
+        const index = lines.indexOf(row, cursor);
+        expect(
+          index,
+          `${subject.id}: missing/mis-ordered row "${row}"`,
+        ).toBeGreaterThanOrEqual(cursor);
+        cursor = index + 1;
+      };
+      for (const section of subject.format.sections) {
+        const weight =
+          section.weightPercent === "pending"
+            ? "Weight pending"
+            : `${section.weightPercent}% of Score`;
+        expectRow(
+          `${section.name}: ${[
+            derivedQuestion(section.questionCount),
+            derivedMinutes(section.minutes),
+            weight,
+          ]
+            .filter((s) => s !== undefined)
+            .join(" | ")}`,
+        );
+        for (const part of section.parts ?? []) {
+          expectRow(
+            `- ${part.name}: ${[
+              derivedQuestion(part.questionCount),
+              derivedMinutes(part.minutes),
+            ]
+              .filter((s) => s !== undefined)
+              .join(" | ")}${part.note ? ` (${part.note})` : ""}`,
+          );
+        }
+      }
+      // The final line is always the total row with the merged setup
+      // parenthetical — and never a zero-part phrasing or a "0 Questions" row.
+      expect(lines[lines.length - 1], `${subject.id} total row`).toMatch(
+        /^Total Length: .+ \(\+ 30 minutes for exam setup time\)$/,
+      );
+      expect(description).not.toMatch(/0 hours|and 0 minutes/);
+      expect(description).not.toContain(": 0 Questions");
+    }
+    expect(examSubjects).toBeGreaterThan(30); // 36 sit-down exams as of 2026-07
+  });
+
   it("AC5 — parses with ical.js; DESCRIPTION rows joined by literal \\n; every physical line ≤75 octets; CRLF-only", () => {
     expect(() => ICAL.parse(ics)).not.toThrow();
 
