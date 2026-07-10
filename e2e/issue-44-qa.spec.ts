@@ -292,7 +292,7 @@ test.describe("issue #44 — per-section exam details", () => {
     await expect(isp.locator("dd")).toContainText("8.5% of score");
   });
 
-  test("PR #48 bounce pass 2 — a partless exam (AP Biology) renders two-line section blocks: name line above a muted left-aligned stats line, with generous block padding and a distinct gap before the metadata group", async ({
+  test("PR #48 bounce pass 2 + '9px matched' follow-up — a partless exam (AP Biology) renders two-line section blocks: name line above a muted left-aligned stats line, 9px block padding with hairlines, and an 11px matched gap before the metadata divider", async ({
     page,
   }) => {
     await page.goto("/");
@@ -324,13 +324,53 @@ test.describe("issue #44 — per-section exam details", () => {
       loc.evaluate((el) => getComputedStyle(el).color);
     expect(await color(stats)).not.toBe(await color(name));
 
-    // Generous block padding: ≥1.5× the metadata rows' vertical padding.
-    const padTop = (loc: Locator) =>
-      loc.evaluate((el) => parseFloat(getComputedStyle(el).paddingTop));
-    const metaPad = await padTop(summaryRow(page, "Exam length"));
-    expect(await padTop(summaryRow(page, "Free Response"))).toBeGreaterThanOrEqual(
-      1.5 * metaPad,
-    );
+    // "9px matched" spacing follow-up (Jon, 2026-07-10): each partless
+    // section block keeps 9px above and below its content, with a hairline
+    // between blocks. Tailwind v4's divide-y draws that hairline as
+    // border-BOTTOM on every child except the last — so the hairline lives
+    // on the MC block's bottom edge, and the FR (last) block has no border
+    // of its own (the zone divider below is the metadata <dl>'s border-top,
+    // asserted next).
+    const frBlock = summaryRow(page, "Free Response");
+    const blockSpacing = await frBlock.evaluate((el) => {
+      const cs = getComputedStyle(el);
+      return {
+        paddingTop: cs.paddingTop,
+        paddingBottom: cs.paddingBottom,
+        borderTopWidth: cs.borderTopWidth,
+        borderBottomWidth: cs.borderBottomWidth,
+      };
+    });
+    expect(blockSpacing.paddingTop).toBe("9px");
+    expect(blockSpacing.paddingBottom).toBe("9px");
+    // Hairline BETWEEN blocks: bottom edge of the non-last block…
+    expect(
+      await block.evaluate((el) => getComputedStyle(el).borderBottomWidth),
+    ).toBe("1px");
+    // …and none on the last block, so nothing doubles up against the zone
+    // divider below it.
+    expect(blockSpacing.borderTopWidth).toBe("0px");
+    expect(blockSpacing.borderBottomWidth).toBe("0px");
+
+    // Sections→metadata gap matched to the metadata rhythm: the last block's
+    // content sits exactly 11px above the divider (9px block bottom padding
+    // + 2px metadata-group top margin), and the first metadata row keeps its
+    // usual 10px below the divider — the same distance every metadata row
+    // keeps from its hairlines.
+    const metaDl = dialog(page)
+      .locator("dl")
+      .filter({ hasText: "Exam length" });
+    const metaSpacing = await metaDl.evaluate((el) => {
+      const cs = getComputedStyle(el);
+      return {
+        marginTop: cs.marginTop,
+        paddingTop: cs.paddingTop,
+        borderTopWidth: cs.borderTopWidth,
+      };
+    });
+    expect(metaSpacing.marginTop).toBe("2px");
+    expect(metaSpacing.paddingTop).toBe("0px");
+    expect(metaSpacing.borderTopWidth).toBe("1px");
 
     // The sections group and the metadata group read as distinct zones: the
     // gap between the last section block and the first metadata row is larger
