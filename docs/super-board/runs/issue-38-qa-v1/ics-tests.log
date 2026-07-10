@@ -1,0 +1,10 @@
+========== ICS-specific tests ==========
+
+ RUN  v4.1.9 /Users/jon/repos/AP-Exam-Planner/.worktrees/issue-38-qa
+
+
+ Test Files  2 passed (2)
+      Tests  35 passed (35)
+   Start at  23:41:38
+   Duration  269ms (transform 132ms, setup 0ms, import 278ms, tests 15ms, environment 0ms)
+

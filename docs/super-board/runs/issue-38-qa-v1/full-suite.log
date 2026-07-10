@@ -1,0 +1,9 @@
+
+ RUN  v4.1.9 /Users/jon/repos/AP-Exam-Planner/.worktrees/issue-38-qa
+
+
+ Test Files  12 passed (12)
+      Tests  146 passed (146)
+   Start at  23:46:38
+   Duration  624ms (transform 626ms, setup 0ms, import 1.53s, tests 159ms, environment 1ms)
+

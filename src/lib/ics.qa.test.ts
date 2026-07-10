@@ -81,9 +81,52 @@ describe("issue #7 QA — ICS export against the shipped ap-2026.json", () => {
     const raw = ics.replace(/\r\n /g, "");
     expect(raw).toContain("DTSTART:20260504T080000");
     expect(raw).not.toMatch(/DTSTART:\d{8}T\d{6}Z/);
+    // issue #38 — the session suffix is dropped (AM/PM is implicit in DTSTART).
     expect(String(bio?.getFirstPropertyValue("summary"))).toBe(
-      "AP Biology exam (AM session)",
+      "AP Biology exam",
     );
+  });
+
+  it("issue #38 — the kept exam carries a DTEND and a sections[] timing-breakdown DESCRIPTION", () => {
+    const raw = ics.replace(/\r\n /g, "");
+    // Biology: 2026-05-04 08:00 + published 180 + 30-min setup = 11:30, floating.
+    expect(raw).toContain("DTEND:20260504T113000");
+    expect(raw).not.toMatch(/DTEND:\d{8}T\d{6}Z/);
+    // Published section rows come from format.sections[] (the #44 model):
+    // dataset section names + questions | minutes | weight, verbatim.
+    expect(raw).toContain(
+      "Multiple Choice: 60 Questions | 90 Minutes | 50% of Score",
+    );
+    expect(raw).toContain(
+      "Free Response: 6 Questions | 90 Minutes | 50% of Score",
+    );
+    // issue #38 A/B — published total phrased as hours-and-minutes, +30 setup
+    // merged into the same row as OUR allowance.
+    expect(raw).toContain(
+      "Total Length: 3 hours (+ 30 minutes for exam setup time)",
+    );
+  });
+
+  it("issue #38 — a subject with no multiple-choice section (AP Seminar) has no MCQ row", () => {
+    const vcal = new ICAL.Component(ICAL.parse(ics));
+    const seminar = uid(vcal, "seminar-exam@ap-exam-planner");
+    expect(seminar).toBeDefined();
+    const description = String(seminar?.getFirstPropertyValue("description"));
+    // Seminar's published sections are its two end-of-course components — the
+    // rows are exactly those, in dataset order…
+    expect(description).toContain(
+      "End-of-Course Exam – Short-Answer Section: 3 Questions | 30 Minutes | 13.5% of Score",
+    );
+    expect(description).toContain(
+      "End-of-Course Exam – Essay Section: 1 Question | 90 Minutes | 31.5% of Score",
+    );
+    expect(description).toContain(
+      "Total Length: 2 hours (+ 30 minutes for exam setup time)",
+    );
+    // …and an exam that lacks a section simply has no row for it: no
+    // multiple-choice line, and never a fabricated "0" row (issue #38 C5).
+    expect(description).not.toContain("Multiple Choice");
+    expect(description).not.toContain(": 0 Questions");
   });
 
   it("AC2 — the moved exam exports at its RESOLVED late slot, not its regular slot", () => {

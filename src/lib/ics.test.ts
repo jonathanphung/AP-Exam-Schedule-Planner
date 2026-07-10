@@ -7,6 +7,7 @@ import type { SlotResolution } from "./conflicts";
 import {
   buildIcsCalendar,
   foldContentLine,
+  formatDurationHM,
   parseSessionStartTime,
   ICS_FILE_NAME,
   type SessionStartTimes,
@@ -234,9 +235,182 @@ describe("buildIcsCalendar — exam VEVENTs (AC2)", () => {
     expect(unfolded).not.toMatch(/DTSTART:\d{8}T\d{6}Z/); // no UTC-marked starts
   });
 
-  it('formats SUMMARY as "AP <Subject> exam (<AM|PM> session)"', () => {
-    expect(unfolded).toContain("SUMMARY:AP Biology exam (AM session)");
-    expect(unfolded).toContain("SUMMARY:AP Calculus BC exam (PM session)");
+  it('formats SUMMARY as "AP <Subject> exam" with no session suffix (issue #38)', () => {
+    expect(unfolded).toContain("SUMMARY:AP Biology exam");
+    expect(unfolded).toContain("SUMMARY:AP Calculus BC exam");
+    // The AM/PM session is implicit in DTSTART, so the suffix is dropped.
+    expect(unfolded).not.toContain("(AM session)");
+    expect(unfolded).not.toContain("(PM session)");
+  });
+
+  it("gives each exam a DTEND = start + totalMinutes + 30-min setup buffer (issue #38)", () => {
+    // bio kept at 2026-05-11 AM (08:00): 08:00 + 60 + 30 = 09:30, floating.
+    expect(unfolded).toContain("DTSTART:20260511T080000");
+    expect(unfolded).toContain("DTEND:20260511T093000");
+    // calc PM (12:00): 12:00 + 60 + 30 = 13:30.
+    expect(unfolded).toContain("DTSTART:20260512T120000");
+    expect(unfolded).toContain("DTEND:20260512T133000");
+    // chem moved to its late slot 2026-05-19 AM: 08:00 + 60 + 30 = 09:30.
+    expect(unfolded).toContain("DTEND:20260519T093000");
+    // DTEND stays floating — never UTC-marked.
+    expect(unfolded).not.toMatch(/DTEND:\d{8}T\d{6}Z/);
+  });
+
+  it("emits a per-section DESCRIPTION from format.sections[] with the total phrased as hours-and-minutes + merged setup (issue #38 A/B)", () => {
+    // Section rows come straight from sections[] (issue #44 model): the
+    // dataset's own section names, raw published minutes (part A2), and the
+    // published weight, mirroring College Board's `questions | minutes |
+    // weight` print format.
+    expect(unfolded).toContain(
+      "Multiple Choice: 1 Question | 30 Minutes | 50% of Score",
+    );
+    expect(unfolded).toContain(
+      "Free Response: 1 Question | 30 Minutes | 50% of Score",
+    );
+    // Total Length is the published totalMinutes (60), phrased as hours-and-
+    // minutes (part A), with the +30 setup merged in as a parenthetical (part B).
+    expect(unfolded).toContain(
+      "Total Length: 1 hour (+ 30 minutes for exam setup time)",
+    );
+    // The setup allowance is no longer its own standalone row — it only appears
+    // inside the total row's parenthetical.
+    expect(unfolded).not.toContain("Minutes\\n+ 30 minutes for exam setup time");
+    // Rows are joined by an RFC-5545 literal "\n" escape, never a raw newline
+    // (the global "no bare LF" check in AC4 guards the whole document).
+    expect(unfolded).toContain(
+      "50% of Score\\nFree Response: 1 Question | 30 Minutes",
+    );
+  });
+});
+
+describe("formatDurationHM (issue #38 part A)", () => {
+  // Jon's bounce enumerated these exact cases; each is pinned directly.
+  it.each([
+    [195, "3 hours and 15 minutes"],
+    [180, "3 hours"],
+    [60, "1 hour"],
+    [45, "45 minutes"],
+    [61, "1 hour and 1 minute"],
+    // Extra edges: plural-minute with hours, single-minute alone, and the 0 floor.
+    [90, "1 hour and 30 minutes"],
+    [120, "2 hours"],
+    [1, "1 minute"],
+    [0, "0 minutes"],
+  ])("formats %i minutes as %s", (minutes, expected) => {
+    expect(formatDurationHM(minutes)).toBe(expected);
+  });
+});
+
+describe("buildIcsCalendar — issue #38 sections[] edge handling", () => {
+  // A section whose duration is genuinely unpublished ("pending"), a
+  // project-style component with NO printed question count (omission), and an
+  // unpublished total — the AP African American Studies shape, synthetically.
+  const pendingExam = {
+    ...subject(
+      "pend",
+      "AP Pending",
+      { date: "2026-05-13", session: "AM" },
+      { date: "2026-05-20", session: "AM" },
+    ),
+    format: {
+      sections: [
+        {
+          name: "Section I: Multiple Choice",
+          questionCount: 40,
+          minutes: "pending",
+          weightPercent: 60,
+        },
+        {
+          name: "Individual Student Project",
+          minutes: "pending",
+          weightPercent: "pending",
+        },
+      ],
+      totalMinutes: "pending",
+      calculator: "pending",
+      delivery: "digital",
+    },
+  } as ApSubject;
+
+  // A parts-based exam (the Calculus AB shape): Part A/B rows nest under
+  // their section, carrying the published calculator note.
+  const partsExam = {
+    ...subject(
+      "parts",
+      "AP Parts",
+      { date: "2026-05-14", session: "AM" },
+      { date: "2026-05-21", session: "AM" },
+    ),
+    format: {
+      sections: [
+        {
+          name: "Multiple Choice",
+          questionCount: 45,
+          minutes: 105,
+          weightPercent: 50,
+          parts: [
+            {
+              name: "Part A",
+              questionCount: 30,
+              minutes: 60,
+              note: "calculator not permitted",
+            },
+            {
+              name: "Part B",
+              questionCount: 15,
+              minutes: "40–45",
+              note: "graphing calculator required",
+            },
+          ],
+        },
+      ],
+      totalMinutes: 195,
+      calculator: true,
+      delivery: "hybrid",
+    },
+  } as ApSubject;
+
+  const ics = buildIcsCalendar(
+    [pendingExam, partsExam],
+    ["pend", "parts"],
+    [],
+    SESSION_START,
+    FIXED_NOW,
+  );
+  const unfolded = ics.replace(/\r\n /g, "");
+
+  it("emits NO DTEND when totalMinutes is pending (never invents a duration)", () => {
+    expect(unfolded).toContain("DTSTART:20260513T080000");
+    // The parts exam (published total) still gets its DTEND; the pending one
+    // has exactly none — one DTEND across the two events.
+    expect((unfolded.match(/DTEND:/g) ?? []).length).toBe(1);
+    expect(unfolded).toContain("DTEND:20260514T114500"); // 08:00 + 195 + 30
+  });
+
+  it('renders a pending section duration as "Duration pending", not a number', () => {
+    expect(unfolded).toContain(
+      "Section I: Multiple Choice: 40 Questions | Duration pending | 60% of Score",
+    );
+    expect(unfolded).toContain("Total Length: Duration pending");
+  });
+
+  it("drops the questions segment when College Board prints no count (omission ≠ pending)", () => {
+    // The project component has no questionCount at all — the row starts
+    // straight at the duration; a pending weight renders as "Weight pending".
+    expect(unfolded).toContain(
+      "Individual Student Project: Duration pending | Weight pending",
+    );
+    expect(unfolded).not.toContain("undefined");
+  });
+
+  it("nests published Part A/B rows under their section with the calculator note (verbatim range kept)", () => {
+    expect(unfolded).toContain(
+      "- Part A: 30 Questions | 60 Minutes (calculator not permitted)",
+    );
+    // The published range renders verbatim, never averaged.
+    expect(unfolded).toContain(
+      "- Part B: 15 Questions | 40–45 Minutes (graphing calculator required)",
+    );
   });
 });
 
