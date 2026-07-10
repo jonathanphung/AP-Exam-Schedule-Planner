@@ -1,0 +1,6 @@
+AC4 — macOS trap measurement (no test CSS injected; app styles only)
+document scrollbar layout width: 10px (classic mode forced by app ::-webkit-scrollbar styling)
+probe x before open:  385
+probe x while open:   385
+probe x after close:  385
+zero shift through open → close: PASS

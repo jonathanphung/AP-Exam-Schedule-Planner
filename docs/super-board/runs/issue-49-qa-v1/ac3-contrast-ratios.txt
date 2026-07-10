@@ -1,0 +1,7 @@
+AC3 — scrollbar thumb/track contrast, measured from computed CSS custom properties
+(WCAG relative luminance; requirement: ≥ 3:1 per WCAG 1.4.11 non-text contrast)
+
+light: thumb #64748b on track #f1f5f9 = 4.34:1
+light: hover #475569 on track #f1f5f9 = 6.92:1
+dark:  thumb #64748b on track #0f172a = 3.75:1
+dark:  hover #94a3b8 on track #0f172a = 6.96:1
