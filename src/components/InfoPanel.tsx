@@ -248,9 +248,9 @@ function SectionsTable({ sections }: { sections: readonly ExamSection[] }) {
  * (whitespace-nowrap, separator kept with the preceding phrase), so the line
  * can only wrap BETWEEN phrases — "50% of / score" mid-phrase breaks are
  * impossible by construction. A published note (FRQ composition etc.) stays
- * as a third muted line. Generous block padding (~1.5× the metadata rows'),
- * and the whole sections group sits above a divider + larger gap so it reads
- * as a distinct zone from the metadata rows below.
+ * as a third muted line. Blocks are separated by hairlines, and the whole
+ * sections group sits above a divider so it reads as a distinct zone from
+ * the metadata rows below.
  *
  * Value shape: `<count> questions · <length> · <weight>% of score`. Honest
  * degradation is unchanged in meaning:
@@ -263,6 +263,16 @@ function SectionsTable({ sections }: { sections: readonly ExamSection[] }) {
  *
  * The dt/dd pairing keeps the section-name → questions/length/weight
  * association programmatic for screen readers.
+ *
+ * Spacing (Jon's post-merge "9px matched" follow-up, 2026-07-10): each block
+ * keeps 9px above and below its content with a hairline between blocks, and
+ * the sections→metadata gap is matched to the metadata rhythm — the last
+ * block's content sits exactly 11px above the divider (9px block padding +
+ * 2px metadata-group margin), while the first metadata row keeps its usual
+ * 10px (py-2.5) below it, the same distance every metadata row keeps from
+ * its hairlines. The first block keeps its shipped 4px top padding — the
+ * header offset was already tighter than the mock and was not part of the
+ * two specified changes.
  */
 function SectionBlock({ section }: { section: ExamSection }) {
   const phrases: ReactNode[] = [];
@@ -285,7 +295,7 @@ function SectionBlock({ section }: { section: ExamSection }) {
   );
 
   return (
-    <div className="py-4 first:pt-1">
+    <div className="py-[9px] first:pt-1">
       <dt className="text-sm font-medium break-words text-slate-900 dark:text-slate-100">
         {section.name}
       </dt>
@@ -415,13 +425,15 @@ export function InfoPanel({ subject, onClose }: InfoPanelProps) {
               published parts; a partless exam renders its sections as
               spacious two-line blocks in their own group instead (PR #48
               bounce, pass 2), separated from the metadata rows below by a
-              divider + larger gap so the two zones read as distinct.
+              divider at the metadata rows' own rhythm ("9px matched"
+              follow-up) so the two zones read as distinct but share one
+              vertical rhythm.
               A portfolio-only subject has no sections — no table, no zeroed
               rows; its portfolio block below tells the real story. */}
           {showSectionsTable && <SectionsTable sections={format.sections} />}
 
           {hasSections && !showSectionsTable && (
-            <dl>
+            <dl className="divide-y divide-slate-100 dark:divide-slate-800">
               {format.sections.map((section, index) => (
                 <SectionBlock
                   key={`${index}-${section.name}`}
@@ -436,7 +448,7 @@ export function InfoPanel({ subject, onClose }: InfoPanelProps) {
               showSectionsTable
                 ? "mt-2"
                 : hasSections
-                  ? "mt-2 border-t border-slate-200 pt-2 dark:border-slate-700"
+                  ? "mt-0.5 border-t border-slate-200 dark:border-slate-700"
                   : undefined
             }
           >
