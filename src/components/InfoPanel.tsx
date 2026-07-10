@@ -3,6 +3,10 @@
 import { Fragment, type ReactNode, useId, useRef } from "react";
 import type { ApSubject, ExamSection } from "@/data/schema";
 import { useModalDialog } from "@/lib/modal";
+import {
+  questionCountLabel,
+  sectionsHavePartRows,
+} from "@/lib/exam-sections";
 import { officialCollegeBoardUrl } from "@/lib/college-board-links";
 import { SubjectName } from "@/components/SubjectName";
 
@@ -21,6 +25,13 @@ import { SubjectName } from "@/components/SubjectName";
  * portfolio block carries the story instead. Omission and "not yet
  * published" are different states: only genuinely unpublished values show
  * the "pending" badge.
+ *
+ * Layout branch (Jon's PR #48 design bounce): the 4-column table renders
+ * ONLY when a section has published part rows (Calculus AB, the language
+ * exams). An exam with no parts — however many sections it has — renders one
+ * spacious label/value row per section instead, identical in padding,
+ * typography, and separators to the metadata rows below ("Exam length",
+ * "Calculator", …). See {@link sectionsHavePartRows}.
  *
  * A single instance is rendered by {@link CatalogGrid} for the currently open
  * subject (not one per card). The dialog:
@@ -48,7 +59,7 @@ function PendingBadge() {
 }
 
 /** One label/value row inside the format description list. */
-function Row({ label, children }: { label: string; children: ReactNode }) {
+function Row({ label, children }: { label: ReactNode; children: ReactNode }) {
   return (
     <div className="flex flex-col gap-0.5 border-b border-slate-100 py-2.5 last:border-b-0 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4 dark:border-slate-800">
       <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">
@@ -220,6 +231,68 @@ function SectionsTable({ sections }: { sections: readonly ExamSection[] }) {
   );
 }
 
+/**
+ * Spacious per-section row for exams with NO published part splits (Jon's
+ * PR #48 design bounce): no table, no column header — one label/value row
+ * per section inside the SAME description list as the metadata rows below,
+ * so padding, typography, and separators are identical by construction.
+ *
+ * Value shape: `<count> questions · <length> · <weight>% of score`, joined
+ * with the `·` separator used elsewhere. Honest degradation is unchanged in
+ * meaning:
+ *   - a "pending" value renders the pending badge inline in its slot — never
+ *     a blanked segment, never a dropped row;
+ *   - a published range ("55–75") renders verbatim;
+ *   - a question count College Board does not print at all (omission — e.g.
+ *     the AAS Individual Student Project, which is a project, not a question
+ *     set) omits the questions segment entirely: omission ≠ pending.
+ *
+ * The dt/dd pairing keeps the section-name → questions/length/weight
+ * association programmatic for screen readers.
+ */
+function SectionSummaryRow({ section }: { section: ExamSection }) {
+  const segments: ReactNode[] = [];
+  if (section.questionCount !== undefined) {
+    segments.push(
+      section.questionCount === "pending" ? (
+        <PendingBadge />
+      ) : (
+        questionCountLabel(section.questionCount)
+      ),
+    );
+  }
+  segments.push(<MinutesValue value={section.minutes} />);
+  segments.push(
+    section.weightPercent === "pending" ? (
+      <PendingBadge />
+    ) : (
+      `${section.weightPercent}% of score`
+    ),
+  );
+
+  return (
+    <Row
+      label={
+        <>
+          {section.name}
+          {section.note && (
+            <span className="block text-xs leading-snug font-normal text-slate-500 dark:text-slate-400">
+              {section.note}
+            </span>
+          )}
+        </>
+      }
+    >
+      {segments.map((segment, index) => (
+        <Fragment key={index}>
+          {index > 0 && " · "}
+          {segment}
+        </Fragment>
+      ))}
+    </Row>
+  );
+}
+
 const DELIVERY_LABELS: Record<"digital" | "paper" | "hybrid", string> = {
   digital: "Digital",
   paper: "Paper",
@@ -242,6 +315,11 @@ export function InfoPanel({ subject, onClose }: InfoPanelProps) {
   // portfolio-only subjects) — the exam-format rows are omitted entirely,
   // never rendered as zeroed or "pending" placeholders.
   const hasSections = format.sections.length > 0;
+
+  // Jon's PR #48 design bounce: the 4-column table earns its keep only when
+  // a section has published part rows. The branch is parts-based, never
+  // count-based — a 5-section exam with no parts gets 5 spacious rows.
+  const showSectionsTable = hasSections && sectionsHavePartRows(format.sections);
 
   // Tier 3 (issue #22): verified official College Board page — `null` (link
   // omitted) for any subject without an individually verified URL.
@@ -316,12 +394,23 @@ export function InfoPanel({ subject, onClose }: InfoPanelProps) {
         </div>
 
         <div className="p-5 sm:p-6">
-          {/* Issue #44: one row per published section, parts nested beneath.
+          {/* Issue #44: one row per published section. The table (with parts
+              nested beneath their section) renders only when the exam HAS
+              published parts; a partless exam renders its sections as
+              spacious rows inside the <dl> below instead (PR #48 bounce).
               A portfolio-only subject has no sections — no table, no zeroed
               rows; its portfolio block below tells the real story. */}
-          {hasSections && <SectionsTable sections={format.sections} />}
+          {showSectionsTable && <SectionsTable sections={format.sections} />}
 
-          <dl className={hasSections ? "mt-2" : undefined}>
+          <dl className={showSectionsTable ? "mt-2" : undefined}>
+            {hasSections &&
+              !showSectionsTable &&
+              format.sections.map((section, index) => (
+                <SectionSummaryRow
+                  key={`${index}-${section.name}`}
+                  section={section}
+                />
+              ))}
             {hasSections && (
               <>
                 <Row label="Exam length">

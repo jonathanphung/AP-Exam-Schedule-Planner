@@ -27,8 +27,14 @@ import AxeBuilder from "@axe-core/playwright";
  *   - AP Drawing       — portfolio-only: no sections, no table at all.
  *   - AP African American Studies — 5 published sections; the Individual
  *                        Student Project row distinguishes omission (no
- *                        question count printed → em-dash "none published")
- *                        from pending (minutes exist but unpublished).
+ *                        question count printed) from pending (minutes exist
+ *                        but unpublished).
+ *
+ * Layout branch (Jon's PR #48 design bounce): exams whose sections have NO
+ * published parts (Seminar, AAS, Biology) render spacious label/value rows —
+ * no table, no column header — identical in style to the metadata rows
+ * below; exams WITH parts (Calculus AB, the languages) keep the table,
+ * pixel-untouched. The branch is parts-based, never count-based.
  */
 
 const EVIDENCE_DIR = "docs/super-board/runs/issue-44-qa-v1";
@@ -62,6 +68,15 @@ const row = (page: Page, name: string | RegExp): Locator =>
 const rowValue = (page: Page, label: string): Locator =>
   dialog(page).locator("dl > div").filter({ hasText: label }).locator("dd");
 
+/**
+ * A spacious section row of the partless layout (PR #48 bounce): the
+ * dl row whose dt carries the section name. Regex anchors distinguish
+ * names that are substrings of each other (AAS has both "Individual Student
+ * Project" and "Section IB: Individual Student Project—…").
+ */
+const summaryRow = (page: Page, name: string | RegExp): Locator =>
+  dialog(page).locator("dl > div").filter({ hasText: name });
+
 async function seedSelection(page: Page, ids: string[]) {
   await page.addInitScript(
     ([key, value]) => window.localStorage.setItem(key, value),
@@ -84,40 +99,39 @@ const noHorizontalScroll = (page: Page) =>
   );
 
 test.describe("issue #44 — per-section exam details", () => {
-  test("AC3/AC11 — AP Seminar has NO multiple-choice row: only its two published End-of-Course sections render, with College Board's names, and omission is never shown as 'pending'", async ({
+  test("AC3/AC11 — AP Seminar has NO multiple-choice row: only its two published End-of-Course sections render (as spacious partless rows), with College Board's names, and omission is never shown as 'pending'", async ({
     page,
   }) => {
     await page.goto("/");
     await openInfo(page, "AP Seminar");
 
-    const table = sectionsTable(page);
-    await expect(table).toBeVisible();
+    // PR #48 bounce: no parts → no table, no column header.
+    await expect(sectionsTable(page)).toHaveCount(0);
+    await expect(dialog(page).getByRole("columnheader")).toHaveCount(0);
 
     // Exactly the two published sections — nothing invented, nothing zeroed.
-    const rowHeaders = table.locator("tbody th[scope='row']");
-    await expect(rowHeaders).toHaveCount(2);
-    await expect(rowHeaders.nth(0)).toContainText(
-      "End-of-Course Exam – Short-Answer Section",
-    );
-    await expect(rowHeaders.nth(1)).toContainText(
-      "End-of-Course Exam – Essay Section",
-    );
+    await expect(
+      summaryRow(page, "End-of-Course Exam – Short-Answer Section"),
+    ).toHaveCount(1);
+    await expect(
+      summaryRow(page, "End-of-Course Exam – Essay Section"),
+    ).toHaveCount(1);
 
     // The nonexistent MC section is omitted entirely…
-    await expect(
-      table.getByRole("rowheader", { name: /multiple.?choice/i }),
-    ).toHaveCount(0);
+    await expect(dialog(page).getByText(/multiple.?choice/i)).toHaveCount(0);
     // …and never conflated with "not yet published".
-    await expect(table.getByText("pending", { exact: true })).toHaveCount(0);
+    await expect(
+      dialog(page).getByText("pending", { exact: true }),
+    ).toHaveCount(0);
 
-    // Published values render: 3q | 30 min | 13.5% and 1q | 1 h 30 min | 31.5%.
-    const saq = row(page, /Short-Answer Section/);
-    await expect(saq).toContainText("3");
-    await expect(saq).toContainText("30 min");
-    await expect(saq).toContainText("13.5%");
-    const essay = row(page, /Essay Section/);
-    await expect(essay).toContainText("1 h 30 min");
-    await expect(essay).toContainText("31.5%");
+    // Published values render in the "<count> questions · <length> ·
+    // <weight>% of score" shape — singular "1 question" for the essay.
+    await expect(
+      summaryRow(page, /Short-Answer Section/).locator("dd"),
+    ).toHaveText("3 questions · 30 min · 13.5% of score");
+    await expect(summaryRow(page, /Essay Section/).locator("dd")).toHaveText(
+      "1 question · 1 h 30 min · 31.5% of score",
+    );
   });
 
   test("AC2 — a portfolio-only subject (AP Drawing) renders NO section table and no exam-format rows; its portfolio block carries the story", async ({
@@ -246,20 +260,87 @@ test.describe("issue #44 — per-section exam details", () => {
     await page.goto("/");
     await openInfo(page, "AP African American Studies");
 
-    // All five published sections render (the flat model's real test).
-    await expect(
-      sectionsTable(page).locator("tbody th[scope='row']"),
-    ).toHaveCount(5);
+    // PR #48 bounce: 5 sections but NO parts → the spacious partless rows,
+    // not the table (the branch rule is parts-based, never count-based).
+    await expect(sectionsTable(page)).toHaveCount(0);
+    await expect(dialog(page).getByRole("columnheader")).toHaveCount(0);
 
-    const isp = row(page, /^Individual Student Project$/);
-    // Questions: the page prints NO count (it's a project) → em-dash with
-    // sr-only "none published", NOT a pending badge.
-    await expect(isp.getByText("—")).toBeVisible();
-    await expect(isp.getByText("none published")).toBeAttached();
-    // Minutes: a duration exists but is unpublished → the pending badge.
-    await expect(isp.getByText("pending", { exact: true })).toBeVisible();
+    // All five published sections render (the branch rule's real test).
+    for (const name of [
+      "Section I: Multiple Choice",
+      "Section IB: Individual Student Project—Exam Day Validation Question",
+      "Section II: Short-Answer Questions",
+      "Section II: Document-Based Question",
+    ]) {
+      await expect(summaryRow(page, name)).toHaveCount(1);
+    }
+    const isp = summaryRow(page, /^Individual Student Project/);
+    await expect(isp).toHaveCount(1);
+
+    // Questions: the page prints NO count (it's a project, not a question
+    // set) → the questions segment is omitted entirely — omission, not a
+    // fabricated count and not a pending badge.
+    await expect(isp.locator("dd")).not.toContainText("question");
+    // Minutes: a duration exists but is unpublished → the pending badge
+    // inline in its slot of the value string.
+    await expect(
+      isp.locator("dd").getByText("pending", { exact: true }),
+    ).toBeVisible();
     // Weight: published 8.5% renders.
-    await expect(isp).toContainText("8.5%");
+    await expect(isp.locator("dd")).toContainText("8.5% of score");
+  });
+
+  test("PR #48 bounce — a partless exam (AP Biology) renders spacious rows with padding and typography identical to the metadata rows below", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await openInfo(page, "AP Biology");
+
+    // No table, no column header — the spacious layout.
+    await expect(sectionsTable(page)).toHaveCount(0);
+    await expect(dialog(page).getByRole("columnheader")).toHaveCount(0);
+    await expect(rowValue(page, "Multiple Choice")).toHaveText(
+      "60 questions · 1 h 30 min · 50% of score",
+    );
+
+    // Identical padding and label typography to the "Exam length" metadata
+    // row, measured from computed styles — the bounce's core complaint was
+    // the density mismatch between the section rows and the rows below them.
+    const rowStyle = (loc: Locator) =>
+      loc.evaluate((el) => {
+        const s = getComputedStyle(el);
+        return `${s.paddingTop}|${s.paddingBottom}|${s.borderBottomWidth}`;
+      });
+    const labelStyle = (loc: Locator) =>
+      loc.evaluate((el) => {
+        const s = getComputedStyle(el);
+        return `${s.fontSize}|${s.fontWeight}|${s.color}`;
+      });
+
+    const section = summaryRow(page, "Multiple Choice");
+    const meta = summaryRow(page, "Exam length");
+    expect(await rowStyle(section)).toBe(await rowStyle(meta));
+    expect(await labelStyle(section.locator("dt"))).toBe(
+      await labelStyle(meta.locator("dt")),
+    );
+  });
+
+  test("PR #48 bounce — mobile Tier-2 (375×667 and 320px): the partless layout keeps every row visible with no horizontal scroll", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto("/");
+    await openInfo(page, "AP Biology");
+
+    await expect(sectionsTable(page)).toHaveCount(0);
+    await expect(rowValue(page, "Multiple Choice")).toBeVisible();
+    await expect(rowValue(page, "Free Response")).toBeVisible();
+    expect(await noHorizontalScroll(page)).toBe(true);
+
+    // #8 bar holds at 320px with the dialog open.
+    await page.setViewportSize({ width: 320, height: 667 });
+    await expect(rowValue(page, "Multiple Choice")).toBeVisible();
+    expect(await noHorizontalScroll(page)).toBe(true);
   });
 
   test("AC15 — the calendar event popup shares the same sections table", async ({
@@ -366,7 +447,7 @@ const evidenceCases = [
   {
     file: "seminar-no-mc",
     subject: "AP Seminar",
-    ready: (page: Page) => row(page, /Short-Answer Section/),
+    ready: (page: Page) => summaryRow(page, /Short-Answer Section/),
   },
 ] as const;
 
