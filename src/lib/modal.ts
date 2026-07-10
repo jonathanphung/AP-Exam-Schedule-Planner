@@ -35,10 +35,11 @@ const FOCUSABLE =
  * bug. `html { scrollbar-gutter: stable }` (globals.css) is supposed to keep
  * that gutter reserved, but browsers disagree about whether `stable` still
  * applies once overflow is `hidden`: Firefox holds the gutter; Chromium
- * (measured live in this build via the issue-49 e2e spec) drops it even when
- * the lock is on the root element itself, and Safari < 18.2 has no
- * `scrollbar-gutter` at all. Feature-detecting `CSS.supports` therefore LIES
- * here — Chromium supports the property but not the semantics we need.
+ * (measured live in this build — clientWidth jumped 1904 → 1920 under the
+ * lock) drops it even when the lock is on the root element itself, and
+ * Safari < 18.2 has no `scrollbar-gutter` at all. Feature-detecting
+ * `CSS.supports` therefore LIES here — Chromium supports the property but
+ * not the semantics we need.
  *
  * So the ONE-place compensation is behavior-measured instead: the caller
  * samples `documentElement.clientWidth` before and after applying the lock
@@ -81,26 +82,29 @@ export function useModalDialog(
     // must land on the ROOT element, not only the body: `scrollbar-gutter:
     // stable` (globals.css) is only honored by the scroll container it is set
     // on, and overflow propagated body → viewport drops the reservation —
-    // body-only locking is exactly what caused the Windows layout shift. With
-    // the root locked, the reserved gutter keeps the viewport width constant
-    // while the scrollbar is hidden. The body is locked too so the pre-#49
-    // observable contract (body.style.overflow === "hidden" while open,
-    // asserted by issue-6/a11y specs) still holds. For browsers without
-    // `scrollbar-gutter` support, compensate in this ONE place with body
-    // padding equal to the measured classic-scrollbar width — measured
-    // BEFORE hiding overflow, afterwards the scrollbar is already gone.
+    // body-only locking is exactly what caused the Windows layout shift. The
+    // body is locked too so the pre-#49 observable contract
+    // (body.style.overflow === "hidden" while open, asserted by issue-6/a11y
+    // specs) still holds. For browsers that drop the reserved gutter under
+    // the lock (Chromium, measured) or lack `scrollbar-gutter` entirely
+    // (Safari < 18.2), compensate in this ONE place with body padding equal
+    // to the width the lock actually freed: sample
+    // `documentElement.clientWidth` before and after hiding overflow (the
+    // post-lock read forces a synchronous reflow, so the measured layout is
+    // real). Zero delta ⇒ the gutter held (or scrollbars are overlay) and
+    // CSS alone carries the fix.
     const root = document.documentElement;
     const body = document.body;
     const previousRootOverflow = root.style.overflow;
     const previousBodyOverflow = body.style.overflow;
     const previousPaddingRight = body.style.paddingRight;
-    const compensation = scrollLockCompensationPx(
-      window.innerWidth,
-      root.clientWidth,
-      supportsStableScrollbarGutter(),
-    );
+    const unlockedClientWidth = root.clientWidth;
     root.style.overflow = "hidden";
     body.style.overflow = "hidden";
+    const compensation = scrollLockCompensationPx(
+      unlockedClientWidth,
+      root.clientWidth,
+    );
     if (compensation > 0) {
       const basePadding =
         Number.parseFloat(window.getComputedStyle(body).paddingRight) || 0;

@@ -184,11 +184,21 @@ test("exam details popup (InfoPanel) opens with zero horizontal shift under clas
   page,
 }) => {
   await page.goto("/");
-  await expectNoShiftThroughDialog(
-    page,
-    page.getByRole("button", { name: `View exam details for ${BIOLOGY.name}` }),
-    page.getByRole("dialog"),
-  );
+  // Issues #22/#24 grouped-chip IA: the details opener lives inside the
+  // chip's expanded Tier-1 panel — reveal it first (same two-step as
+  // e2e/a11y.spec.ts). The expand is retried until the opener is visible
+  // (hydration-safe, pre-hydration clicks are no-ops).
+  const opener = page.getByRole("button", {
+    name: `View exam details for ${BIOLOGY.name}`,
+  });
+  await expect(async () => {
+    if ((await opener.count()) === 0)
+      await page
+        .getByRole("button", { name: `Show exam dates for ${BIOLOGY.name}` })
+        .click();
+    await expect(opener).toBeVisible({ timeout: 1000 });
+  }).toPass();
+  await expectNoShiftThroughDialog(page, opener, page.getByRole("dialog"));
 });
 
 test("conflict dialog (ConflictDialog) opens with zero horizontal shift under classic scrollbars", async ({

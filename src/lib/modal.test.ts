@@ -4,29 +4,36 @@ import { scrollLockCompensationPx } from "./modal";
 /**
  * Issue #49 — pure core of the scroll-lock width compensation.
  *
- * The DOM shell (body overflow/padding mutation, restore-on-unmount, the
- * `scrollbar-gutter: stable` CSS primary path) is exercised end-to-end by the
- * Playwright suite `e2e/issue-49-scrollbar-gutter.spec.ts`, matching how the
- * other lib stores split pure core vs browser shell.
+ * The hook samples `documentElement.clientWidth` before and after applying
+ * `overflow: hidden` and passes both here; the return value is the
+ * padding-right the body needs while scroll is locked. The DOM shell (root +
+ * body overflow mutation, restore-on-unmount, the `scrollbar-gutter: stable`
+ * CSS primary path) is exercised end-to-end by the Playwright suite
+ * `e2e/issue-49-scrollbar-gutter.spec.ts`, matching how the other lib stores
+ * split pure core vs browser shell.
  */
 describe("scrollLockCompensationPx", () => {
-  it("returns 0 when scrollbar-gutter: stable is supported (CSS owns the width)", () => {
-    // Classic scrollbar present (17px) but the gutter reservation handles it.
-    expect(scrollLockCompensationPx(1920, 1903, true)).toBe(0);
+  it("returns 0 when the reserved gutter held the width (CSS owns the fix)", () => {
+    // Classic scrollbar present, but `scrollbar-gutter: stable` kept the
+    // viewport at the same client width after `overflow: hidden`.
+    expect(scrollLockCompensationPx(1903, 1903)).toBe(0);
   });
 
-  it("returns the classic scrollbar width when the gutter is unsupported", () => {
-    // Safari < 18.2 with our ::-webkit-scrollbar styling forcing classic mode.
-    expect(scrollLockCompensationPx(1920, 1903, false)).toBe(17);
-    expect(scrollLockCompensationPx(375, 365, false)).toBe(10);
+  it("returns the freed scrollbar width when the lock widened the viewport", () => {
+    // Browser without a working `scrollbar-gutter` under the lock (Chromium,
+    // Safari < 18.2) with our ::-webkit-scrollbar styling forcing classic
+    // mode: hiding overflow removes the scrollbar and the viewport gains its
+    // width back.
+    expect(scrollLockCompensationPx(1903, 1920)).toBe(17);
+    expect(scrollLockCompensationPx(365, 375)).toBe(10);
   });
 
   it("returns 0 for overlay scrollbars (widths match — nothing to compensate)", () => {
-    expect(scrollLockCompensationPx(1920, 1920, false)).toBe(0);
+    expect(scrollLockCompensationPx(1920, 1920)).toBe(0);
   });
 
   it("never returns a negative compensation", () => {
     // Defensive: zoom/rounding artifacts must not produce negative padding.
-    expect(scrollLockCompensationPx(1919, 1920, false)).toBe(0);
+    expect(scrollLockCompensationPx(1920, 1919)).toBe(0);
   });
 });
