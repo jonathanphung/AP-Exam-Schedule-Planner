@@ -8,8 +8,10 @@ import { test, expect, type Locator, type Page } from "@playwright/test";
  *   - ANY section has published parts → the 4-column table, completely
  *     unchanged (Calculus AB, the language exams).
  *   - NO section has parts → no table, no column header: one spacious
- *     label/value row per section, identical in padding/typography/separators
- *     to the metadata rows below ("Exam length", "Calculator", …).
+ *     two-line block per section (bounce pass 2 — medium-weight name line
+ *     above a muted left-aligned stats line that wraps only between
+ *     `·`-separated stat phrases), in a group visually distinct from the
+ *     metadata rows below ("Exam length", "Calculator", …).
  *
  * This suite adds coverage the builder's revision did not have:
  *   1. the CALENDAR EVENT POPUP surface renders the partless layout too
@@ -95,22 +97,30 @@ test.describe("issue #44 QA v2 — partless layout (PR #48 bounce), independent 
     ).toHaveText("60 questions · 1 h 30 min · 50% of score");
   });
 
-  test("a section note survives the layout switch: Biology's FR composition note renders under the section name, and the value string is exact", async ({
+  test("a section note survives the layout switch: Biology's FR composition note renders as the block's third muted line, below the exact stats line", async ({
     page,
   }) => {
     await page.goto("/");
     await openInfo(page, "AP Biology");
 
+    // Bounce pass 2: line 1 = name (dt), line 2 = stats, line 3 = note.
     const fr = summaryRow(page, "Free Response");
-    await expect(fr.locator("dt")).toContainText(
-      "6 free-response questions (2 long, 4 short)",
-    );
-    await expect(fr.locator("dd")).toHaveText(
+    await expect(fr.locator("dt")).toHaveText("Free Response");
+    await expect(fr.locator("dd")).toContainText(
       "6 questions · 1 h 30 min · 50% of score",
     );
+    const note = fr
+      .locator("dd")
+      .getByText("6 free-response questions (2 long, 4 short)");
+    await expect(note).toBeVisible();
+    // The note sits on its own line BELOW the last stat phrase.
+    const lastPhrase = fr.getByTestId("stat-phrase").last();
+    const phraseBox = (await lastPhrase.boundingBox())!;
+    const noteBox = (await note.boundingBox())!;
+    expect(noteBox.y).toBeGreaterThanOrEqual(phraseBox.y + phraseBox.height - 1);
   });
 
-  test("singular '1 question' inside the 5-section partless exam (AAS Section IB), and all five rows share the metadata rows' computed style", async ({
+  test("singular '1 question' inside the 5-section partless exam (AAS Section IB), and all five blocks are two-line: name above left-aligned stats, no stat phrase ever wrapping — even for AAS's longest section name", async ({
     page,
   }) => {
     await page.goto("/");
@@ -124,21 +134,12 @@ test.describe("issue #44 QA v2 — partless layout (PR #48 bounce), independent 
       summaryRow(page, "Section II: Document-Based Question").locator("dd"),
     ).toHaveText("1 question · 45 min · 12% of score");
 
-    // Every section row matches the "Exam length" metadata row's padding and
-    // dt typography — identity by construction, verified computed.
-    const style = (loc: Locator) =>
-      loc.evaluate((el) => {
-        const s = getComputedStyle(el);
-        return `${s.paddingTop}|${s.paddingBottom}|${s.borderBottomWidth}`;
-      });
-    const dtStyle = (loc: Locator) =>
-      loc.evaluate((el) => {
-        const s = getComputedStyle(el);
-        return `${s.fontSize}|${s.fontWeight}|${s.color}`;
-      });
-    const metaRow = summaryRow(page, "Exam length");
-    const metaRowStyle = await style(metaRow);
-    const metaDtStyle = await dtStyle(metaRow.locator("dt"));
+    // Bounce pass 2: every section is a two-line block — the name line (dt,
+    // medium weight) sits fully above the stats line (dd), both left-aligned
+    // to the same edge, and no `·`-separated stat phrase ever line-breaks.
+    // AAS is the stress test: 5 blocks, including the longest section name in
+    // the dataset ("Section IB: …—Exam Day Validation Question"), which may
+    // wrap freely on its own line without squeezing the stats.
     for (const name of [
       "Section I: Multiple Choice",
       /Section IB: Individual Student Project/,
@@ -146,9 +147,39 @@ test.describe("issue #44 QA v2 — partless layout (PR #48 bounce), independent 
       "Section II: Document-Based Question",
       /^Individual Student Project/,
     ] as const) {
-      const sectionRow = summaryRow(page, name).first();
-      expect(await style(sectionRow)).toBe(metaRowStyle);
-      expect(await dtStyle(sectionRow.locator("dt"))).toBe(metaDtStyle);
+      const block = summaryRow(page, name).first();
+      const nameBox = (await block.locator("dt").boundingBox())!;
+      const statsBox = (await block.locator("dd").boundingBox())!;
+      expect(
+        nameBox.y + nameBox.height,
+        `${String(name)}: name line must sit above the stats line`,
+      ).toBeLessThanOrEqual(statsBox.y + 1);
+      expect(
+        Math.abs(nameBox.x - statsBox.x),
+        `${String(name)}: stats must be left-aligned with the name`,
+      ).toBeLessThanOrEqual(1);
+      await expect(block.locator("dt")).toHaveCSS("font-weight", "500");
+
+      // Mid-phrase wrap = a fragment on a fully separate line. Chromium
+      // fragments an inline span's client rects per text node (and the
+      // pending badge is its own atomic fragment), so rect count cannot
+      // detect wrapping — vertical separation can.
+      const phrases = block.getByTestId("stat-phrase");
+      const count = await phrases.count();
+      expect(count).toBeGreaterThan(0);
+      for (let i = 0; i < count; i++) {
+        expect(
+          await phrases.nth(i).evaluate((el) => {
+            const rects = [...el.getClientRects()].filter(
+              (r) => r.width > 0 && r.height > 0,
+            );
+            return rects.some((a) =>
+              rects.some((b) => a.top >= b.bottom - 0.5),
+            );
+          }),
+          `${String(name)}: stat phrase ${i} must not wrap mid-phrase`,
+        ).toBe(false);
+      }
     }
   });
 

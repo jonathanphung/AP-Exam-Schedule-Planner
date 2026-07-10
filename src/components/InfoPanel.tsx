@@ -29,9 +29,11 @@ import { SubjectName } from "@/components/SubjectName";
  * Layout branch (Jon's PR #48 design bounce): the 4-column table renders
  * ONLY when a section has published part rows (Calculus AB, the language
  * exams). An exam with no parts — however many sections it has — renders one
- * spacious label/value row per section instead, identical in padding,
- * typography, and separators to the metadata rows below ("Exam length",
- * "Calculator", …). See {@link sectionsHavePartRows}.
+ * spacious two-line block per section instead (bounce pass 2: name line +
+ * muted left-aligned stats line, wrapping only between `·`-separated stat
+ * phrases), in its own group visually distinct from the metadata rows below
+ * ("Exam length", "Calculator", …). See {@link sectionsHavePartRows} and
+ * {@link SectionBlock}.
  *
  * A single instance is rendered by {@link CatalogGrid} for the currently open
  * subject (not one per card). The dialog:
@@ -232,28 +234,39 @@ function SectionsTable({ sections }: { sections: readonly ExamSection[] }) {
 }
 
 /**
- * Spacious per-section row for exams with NO published part splits (Jon's
- * PR #48 design bounce): no table, no column header — one label/value row
- * per section inside the SAME description list as the metadata rows below,
- * so padding, typography, and separators are identical by construction.
+ * Spacious two-line section block for exams with NO published part splits
+ * (Jon's PR #48 design bounce, pass 2): no table, no column header — each
+ * section renders as a left-aligned block:
  *
- * Value shape: `<count> questions · <length> · <weight>% of score`, joined
- * with the `·` separator used elsewhere. Honest degradation is unchanged in
- * meaning:
- *   - a "pending" value renders the pending badge inline in its slot — never
- *     a blanked segment, never a dropped row;
+ *   Multiple Choice
+ *   60 questions · 1 h 30 min · 50% of score
+ *
+ * Line 1 is the section name — medium weight, never truncated; long College
+ * Board names wrap harmlessly because nothing shares the line. Line 2 is the
+ * muted stats line: each `·`-separated stat phrase is atomic
+ * (whitespace-nowrap, separator kept with the preceding phrase), so the line
+ * can only wrap BETWEEN phrases — "50% of / score" mid-phrase breaks are
+ * impossible by construction. A published note (FRQ composition etc.) stays
+ * as a third muted line. Generous block padding (~1.5× the metadata rows'),
+ * and the whole sections group sits above a divider + larger gap so it reads
+ * as a distinct zone from the metadata rows below.
+ *
+ * Value shape: `<count> questions · <length> · <weight>% of score`. Honest
+ * degradation is unchanged in meaning:
+ *   - a "pending" value renders the pending badge inline in its stat slot —
+ *     never a blanked segment, never a dropped row;
  *   - a published range ("55–75") renders verbatim;
  *   - a question count College Board does not print at all (omission — e.g.
  *     the AAS Individual Student Project, which is a project, not a question
- *     set) omits the questions segment entirely: omission ≠ pending.
+ *     set) omits the questions phrase entirely: omission ≠ pending.
  *
  * The dt/dd pairing keeps the section-name → questions/length/weight
  * association programmatic for screen readers.
  */
-function SectionSummaryRow({ section }: { section: ExamSection }) {
-  const segments: ReactNode[] = [];
+function SectionBlock({ section }: { section: ExamSection }) {
+  const phrases: ReactNode[] = [];
   if (section.questionCount !== undefined) {
-    segments.push(
+    phrases.push(
       section.questionCount === "pending" ? (
         <PendingBadge />
       ) : (
@@ -261,8 +274,8 @@ function SectionSummaryRow({ section }: { section: ExamSection }) {
       ),
     );
   }
-  segments.push(<MinutesValue value={section.minutes} />);
-  segments.push(
+  phrases.push(<MinutesValue value={section.minutes} />);
+  phrases.push(
     section.weightPercent === "pending" ? (
       <PendingBadge />
     ) : (
@@ -271,25 +284,27 @@ function SectionSummaryRow({ section }: { section: ExamSection }) {
   );
 
   return (
-    <Row
-      label={
-        <>
-          {section.name}
-          {section.note && (
-            <span className="block text-xs leading-snug font-normal text-slate-500 dark:text-slate-400">
-              {section.note}
+    <div className="py-4 first:pt-1">
+      <dt className="text-sm font-medium break-words text-slate-900 dark:text-slate-100">
+        {section.name}
+      </dt>
+      <dd className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+        {phrases.map((phrase, index) => (
+          <Fragment key={index}>
+            {index > 0 && " "}
+            <span data-testid="stat-phrase" className="whitespace-nowrap">
+              {phrase}
+              {index < phrases.length - 1 && " ·"}
             </span>
-          )}
-        </>
-      }
-    >
-      {segments.map((segment, index) => (
-        <Fragment key={index}>
-          {index > 0 && " · "}
-          {segment}
-        </Fragment>
-      ))}
-    </Row>
+          </Fragment>
+        ))}
+        {section.note && (
+          <span className="mt-0.5 block text-xs leading-snug text-slate-500 dark:text-slate-400">
+            {section.note}
+          </span>
+        )}
+      </dd>
+    </div>
   );
 }
 
@@ -397,20 +412,33 @@ export function InfoPanel({ subject, onClose }: InfoPanelProps) {
           {/* Issue #44: one row per published section. The table (with parts
               nested beneath their section) renders only when the exam HAS
               published parts; a partless exam renders its sections as
-              spacious rows inside the <dl> below instead (PR #48 bounce).
+              spacious two-line blocks in their own group instead (PR #48
+              bounce, pass 2), separated from the metadata rows below by a
+              divider + larger gap so the two zones read as distinct.
               A portfolio-only subject has no sections — no table, no zeroed
               rows; its portfolio block below tells the real story. */}
           {showSectionsTable && <SectionsTable sections={format.sections} />}
 
-          <dl className={showSectionsTable ? "mt-2" : undefined}>
-            {hasSections &&
-              !showSectionsTable &&
-              format.sections.map((section, index) => (
-                <SectionSummaryRow
+          {hasSections && !showSectionsTable && (
+            <dl>
+              {format.sections.map((section, index) => (
+                <SectionBlock
                   key={`${index}-${section.name}`}
                   section={section}
                 />
               ))}
+            </dl>
+          )}
+
+          <dl
+            className={
+              showSectionsTable
+                ? "mt-2"
+                : hasSections
+                  ? "mt-2 border-t border-slate-200 pt-2 dark:border-slate-700"
+                  : undefined
+            }
+          >
             {hasSections && (
               <>
                 <Row label="Exam length">

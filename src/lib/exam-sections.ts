@@ -13,9 +13,10 @@ import type { ExamSection } from "@/data/schema";
  *   - ANY section has `parts`  → the questions | length | weight table with
  *     nested part rows, completely unchanged;
  *   - NO section has parts     → no table, no column header: one spacious
- *     label/value row per section, styled identically to the metadata rows
- *     (so a 5-section exam like AP African American Studies gets five
- *     spacious rows, not the table).
+ *     two-line block per section (bounce pass 2 — name line + muted
+ *     left-aligned stats line that wraps only between `·`-separated stat
+ *     phrases), so a 5-section exam like AP African American Studies gets
+ *     five blocks, not the table.
  *
  * These are pure functions so the branch rule and the singular/plural label
  * stay unit-testable (src/lib/exam-sections.test.ts).

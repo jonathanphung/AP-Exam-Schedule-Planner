@@ -30,11 +30,13 @@ import AxeBuilder from "@axe-core/playwright";
  *                        question count printed) from pending (minutes exist
  *                        but unpublished).
  *
- * Layout branch (Jon's PR #48 design bounce): exams whose sections have NO
- * published parts (Seminar, AAS, Biology) render spacious label/value rows —
- * no table, no column header — identical in style to the metadata rows
- * below; exams WITH parts (Calculus AB, the languages) keep the table,
- * pixel-untouched. The branch is parts-based, never count-based.
+ * Layout branch (Jon's PR #48 design bounce, pass 2): exams whose sections
+ * have NO published parts (Seminar, AAS, Biology) render spacious two-line
+ * blocks — no table, no column header: a medium-weight name line above a
+ * muted left-aligned stats line that wraps only between `·`-separated stat
+ * phrases (never inside one); exams WITH parts (Calculus AB, the languages)
+ * keep the table, pixel-untouched. The branch is parts-based, never
+ * count-based.
  */
 
 const EVIDENCE_DIR = "docs/super-board/runs/issue-44-qa-v1";
@@ -290,7 +292,7 @@ test.describe("issue #44 — per-section exam details", () => {
     await expect(isp.locator("dd")).toContainText("8.5% of score");
   });
 
-  test("PR #48 bounce — a partless exam (AP Biology) renders spacious rows with padding and typography identical to the metadata rows below", async ({
+  test("PR #48 bounce pass 2 — a partless exam (AP Biology) renders two-line section blocks: name line above a muted left-aligned stats line, with generous block padding and a distinct gap before the metadata group", async ({
     page,
   }) => {
     await page.goto("/");
@@ -303,31 +305,92 @@ test.describe("issue #44 — per-section exam details", () => {
       "60 questions · 1 h 30 min · 50% of score",
     );
 
-    // Identical padding and label typography to the "Exam length" metadata
-    // row, measured from computed styles — the bounce's core complaint was
-    // the density mismatch between the section rows and the rows below them.
-    const rowStyle = (loc: Locator) =>
-      loc.evaluate((el) => {
-        const s = getComputedStyle(el);
-        return `${s.paddingTop}|${s.paddingBottom}|${s.borderBottomWidth}`;
-      });
-    const labelStyle = (loc: Locator) =>
-      loc.evaluate((el) => {
-        const s = getComputedStyle(el);
-        return `${s.fontSize}|${s.fontWeight}|${s.color}`;
-      });
+    const block = summaryRow(page, "Multiple Choice");
+    const name = block.locator("dt");
+    const stats = block.locator("dd");
 
-    const section = summaryRow(page, "Multiple Choice");
-    const meta = summaryRow(page, "Exam length");
-    expect(await rowStyle(section)).toBe(await rowStyle(meta));
-    expect(await labelStyle(section.locator("dt"))).toBe(
-      await labelStyle(meta.locator("dt")),
+    // Two-line block: the name line sits fully ABOVE the stats line, and both
+    // are LEFT-aligned to the same edge (bounce-1's right-aligned values are
+    // gone).
+    const nameBox = (await name.boundingBox())!;
+    const statsBox = (await stats.boundingBox())!;
+    expect(nameBox.y + nameBox.height).toBeLessThanOrEqual(statsBox.y + 1);
+    expect(Math.abs(nameBox.x - statsBox.x)).toBeLessThanOrEqual(1);
+
+    // Name line is medium weight at full strength; stats line is muted —
+    // the hierarchy bounce-1's uniform density lacked.
+    await expect(name).toHaveCSS("font-weight", "500");
+    const color = (loc: Locator) =>
+      loc.evaluate((el) => getComputedStyle(el).color);
+    expect(await color(stats)).not.toBe(await color(name));
+
+    // Generous block padding: ≥1.5× the metadata rows' vertical padding.
+    const padTop = (loc: Locator) =>
+      loc.evaluate((el) => parseFloat(getComputedStyle(el).paddingTop));
+    const metaPad = await padTop(summaryRow(page, "Exam length"));
+    expect(await padTop(summaryRow(page, "Free Response"))).toBeGreaterThanOrEqual(
+      1.5 * metaPad,
     );
+
+    // The sections group and the metadata group read as distinct zones: the
+    // gap between the last section block and the first metadata row is larger
+    // than the gap between the two section blocks.
+    const frBox = (await summaryRow(page, "Free Response").boundingBox())!;
+    const metaBox = (await summaryRow(page, "Exam length").boundingBox())!;
+    const mcBox = (await block.boundingBox())!;
+    const interBlockGap = frBox.y - (mcBox.y + mcBox.height);
+    const zoneGap = metaBox.y - (frBox.y + frBox.height);
+    expect(zoneGap).toBeGreaterThan(interBlockGap);
+
+    // No stat phrase ever line-breaks: all of a phrase's inline fragments
+    // sit on ONE line. Chromium fragments an inline span's client rects per
+    // text node (e.g. "60 questions" + " ·" → two same-line rects), so rect
+    // COUNT cannot detect wrapping — a mid-phrase wrap means a fragment on a
+    // fully separate line (some rect's top at/below another's bottom).
+    const phrases = dialog(page).getByTestId("stat-phrase");
+    const count = await phrases.count();
+    expect(count).toBeGreaterThan(0);
+    for (let i = 0; i < count; i++) {
+      expect(
+        await phrases.nth(i).evaluate((el) => {
+          const rects = [...el.getClientRects()].filter(
+            (r) => r.width > 0 && r.height > 0,
+          );
+          return rects.some((a) =>
+            rects.some((b) => a.top >= b.bottom - 0.5),
+          );
+        }),
+        `stat phrase ${i} must not wrap mid-phrase`,
+      ).toBe(false);
+    }
   });
 
-  test("PR #48 bounce — mobile Tier-2 (375×667 and 320px): the partless layout keeps every row visible with no horizontal scroll", async ({
+  test("PR #48 bounce — mobile Tier-2 (375×667 and 320px): the partless layout keeps every row visible, no horizontal scroll, and no stat phrase ever wraps mid-phrase", async ({
     page,
   }) => {
+    // A phrase wraps mid-phrase iff one of its inline fragments lands on a
+    // fully separate line. Chromium emits multiple SAME-line rects per text
+    // node inside the span, so rect count alone cannot distinguish a wrap
+    // from benign fragmentation — vertical separation can.
+    const noMidPhraseWrap = async () => {
+      const phrases = dialog(page).getByTestId("stat-phrase");
+      const count = await phrases.count();
+      expect(count).toBeGreaterThan(0);
+      for (let i = 0; i < count; i++) {
+        expect(
+          await phrases.nth(i).evaluate((el) => {
+            const rects = [...el.getClientRects()].filter(
+              (r) => r.width > 0 && r.height > 0,
+            );
+            return rects.some((a) =>
+              rects.some((b) => a.top >= b.bottom - 0.5),
+            );
+          }),
+          `stat phrase ${i} must not wrap mid-phrase`,
+        ).toBe(false);
+      }
+    };
+
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto("/");
     await openInfo(page, "AP Biology");
@@ -336,11 +399,14 @@ test.describe("issue #44 — per-section exam details", () => {
     await expect(rowValue(page, "Multiple Choice")).toBeVisible();
     await expect(rowValue(page, "Free Response")).toBeVisible();
     expect(await noHorizontalScroll(page)).toBe(true);
+    await noMidPhraseWrap();
 
-    // #8 bar holds at 320px with the dialog open.
+    // #8 bar holds at 320px with the dialog open — the stats line may wrap
+    // BETWEEN phrases here, but never inside one.
     await page.setViewportSize({ width: 320, height: 667 });
     await expect(rowValue(page, "Multiple Choice")).toBeVisible();
     expect(await noHorizontalScroll(page)).toBe(true);
+    await noMidPhraseWrap();
   });
 
   test("AC15 — the calendar event popup shares the same sections table", async ({
