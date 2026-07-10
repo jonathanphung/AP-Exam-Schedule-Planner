@@ -1,0 +1,11 @@
+{
+  "id": "research",
+  "name": "AP Research",
+  "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-research/exam",
+  "fallbackUsed": "none",
+  "noSitDownExam": true,
+  "totalMinutesStated": "n/a",
+  "sectionsSumToTotal": "n/a",
+  "sections": [],
+  "datasetDiscrepancies": []
+}

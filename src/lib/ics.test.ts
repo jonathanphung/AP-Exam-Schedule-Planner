@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import ICAL from "ical.js";
 import apData from "../data/ap-2026.json";
-import type { ApSubject, ExamSlot, Portfolio } from "../data/schema";
+import type { ApSubject, ExamFormat, ExamSlot, Portfolio } from "../data/schema";
 import { parseApDataset } from "../data/schema";
 import type { SlotResolution } from "./conflicts";
 import {
@@ -34,16 +34,17 @@ const SESSION_START: SessionStartTimes = {
 const FIXED_NOW = new Date(Date.UTC(2026, 6, 5, 13, 30, 0));
 const EXPECTED_DTSTAMP = "20260705T133000Z";
 
-const FORMAT = {
-  mcqCount: 1,
-  mcqMinutes: 25,
-  frqCount: 1,
-  frqMinutes: 35,
-  frqType: "fixture",
+// Issue #44: fixture format uses the sections[] model (flat MCQ/FRQ fields
+// were replaced by the ordered per-section breakdown).
+const FORMAT: ExamFormat = {
+  sections: [
+    { name: "Multiple Choice", questionCount: 1, minutes: 30, weightPercent: 50 },
+    { name: "Free Response", questionCount: 1, minutes: 30, weightPercent: 50 },
+  ],
   totalMinutes: 60,
   calculator: false,
   delivery: "digital",
-} as const;
+};
 
 function subject(
   id: string,
@@ -255,10 +256,17 @@ describe("buildIcsCalendar — exam VEVENTs (AC2)", () => {
     expect(unfolded).not.toMatch(/DTEND:\d{8}T\d{6}Z/);
   });
 
-  it("emits a section-by-section DESCRIPTION with the total phrased as hours-and-minutes + merged setup (issue #38 A/B)", () => {
-    // Section rows keep their RAW published minutes (part A2).
-    expect(unfolded).toContain("MCQ: 1 Questions | 25 Minutes");
-    expect(unfolded).toContain("FRQ: 1 Questions | 35 Minutes");
+  it("emits a per-section DESCRIPTION from format.sections[] with the total phrased as hours-and-minutes + merged setup (issue #38 A/B)", () => {
+    // Section rows come straight from sections[] (issue #44 model): the
+    // dataset's own section names, raw published minutes (part A2), and the
+    // published weight, mirroring College Board's `questions | minutes |
+    // weight` print format.
+    expect(unfolded).toContain(
+      "Multiple Choice: 1 Question | 30 Minutes | 50% of Score",
+    );
+    expect(unfolded).toContain(
+      "Free Response: 1 Question | 30 Minutes | 50% of Score",
+    );
     // Total Length is the published totalMinutes (60), phrased as hours-and-
     // minutes (part A), with the +30 setup merged in as a parenthetical (part B).
     expect(unfolded).toContain(
@@ -269,7 +277,9 @@ describe("buildIcsCalendar — exam VEVENTs (AC2)", () => {
     expect(unfolded).not.toContain("Minutes\\n+ 30 minutes for exam setup time");
     // Rows are joined by an RFC-5545 literal "\n" escape, never a raw newline
     // (the global "no bare LF" check in AC4 guards the whole document).
-    expect(unfolded).toContain("25 Minutes\\nFRQ: 1 Questions | 35 Minutes");
+    expect(unfolded).toContain(
+      "50% of Score\\nFree Response: 1 Question | 30 Minutes",
+    );
   });
 });
 
@@ -291,8 +301,10 @@ describe("formatDurationHM (issue #38 part A)", () => {
   });
 });
 
-describe("buildIcsCalendar — issue #38 pending / zero-section handling", () => {
-  // 40 MCQ but the MCQ duration, FRQ section, and total are all unpublished.
+describe("buildIcsCalendar — issue #38 sections[] edge handling", () => {
+  // A section whose duration is genuinely unpublished ("pending"), a
+  // project-style component with NO printed question count (omission), and an
+  // unpublished total — the AP African American Studies shape, synthetically.
   const pendingExam = {
     ...subject(
       "pend",
@@ -301,20 +313,66 @@ describe("buildIcsCalendar — issue #38 pending / zero-section handling", () =>
       { date: "2026-05-20", session: "AM" },
     ),
     format: {
-      mcqCount: 40,
-      mcqMinutes: "pending",
-      frqCount: 0,
-      frqMinutes: "pending",
-      frqType: "pending",
+      sections: [
+        {
+          name: "Section I: Multiple Choice",
+          questionCount: 40,
+          minutes: "pending",
+          weightPercent: 60,
+        },
+        {
+          name: "Individual Student Project",
+          minutes: "pending",
+          weightPercent: "pending",
+        },
+      ],
       totalMinutes: "pending",
       calculator: "pending",
       delivery: "digital",
     },
   } as ApSubject;
 
+  // A parts-based exam (the Calculus AB shape): Part A/B rows nest under
+  // their section, carrying the published calculator note.
+  const partsExam = {
+    ...subject(
+      "parts",
+      "AP Parts",
+      { date: "2026-05-14", session: "AM" },
+      { date: "2026-05-21", session: "AM" },
+    ),
+    format: {
+      sections: [
+        {
+          name: "Multiple Choice",
+          questionCount: 45,
+          minutes: 105,
+          weightPercent: 50,
+          parts: [
+            {
+              name: "Part A",
+              questionCount: 30,
+              minutes: 60,
+              note: "calculator not permitted",
+            },
+            {
+              name: "Part B",
+              questionCount: 15,
+              minutes: "40–45",
+              note: "graphing calculator required",
+            },
+          ],
+        },
+      ],
+      totalMinutes: 195,
+      calculator: true,
+      delivery: "hybrid",
+    },
+  } as ApSubject;
+
   const ics = buildIcsCalendar(
-    [pendingExam],
-    ["pend"],
+    [pendingExam, partsExam],
+    ["pend", "parts"],
     [],
     SESSION_START,
     FIXED_NOW,
@@ -323,17 +381,36 @@ describe("buildIcsCalendar — issue #38 pending / zero-section handling", () =>
 
   it("emits NO DTEND when totalMinutes is pending (never invents a duration)", () => {
     expect(unfolded).toContain("DTSTART:20260513T080000");
-    expect(unfolded).not.toContain("DTEND:");
+    // The parts exam (published total) still gets its DTEND; the pending one
+    // has exactly none — one DTEND across the two events.
+    expect((unfolded.match(/DTEND:/g) ?? []).length).toBe(1);
+    expect(unfolded).toContain("DTEND:20260514T114500"); // 08:00 + 195 + 30
   });
 
   it('renders a pending section duration as "Duration pending", not a number', () => {
-    expect(unfolded).toContain("MCQ: 40 Questions | Duration pending");
+    expect(unfolded).toContain(
+      "Section I: Multiple Choice: 40 Questions | Duration pending | 60% of Score",
+    );
     expect(unfolded).toContain("Total Length: Duration pending");
   });
 
-  it("omits a zero-count section entirely rather than printing a 0 row", () => {
-    expect(unfolded).not.toContain("FRQ:");
-    expect(unfolded).not.toContain("| 0 Minutes");
+  it("drops the questions segment when College Board prints no count (omission ≠ pending)", () => {
+    // The project component has no questionCount at all — the row starts
+    // straight at the duration; a pending weight renders as "Weight pending".
+    expect(unfolded).toContain(
+      "Individual Student Project: Duration pending | Weight pending",
+    );
+    expect(unfolded).not.toContain("undefined");
+  });
+
+  it("nests published Part A/B rows under their section with the calculator note (verbatim range kept)", () => {
+    expect(unfolded).toContain(
+      "- Part A: 30 Questions | 60 Minutes (calculator not permitted)",
+    );
+    // The published range renders verbatim, never averaged.
+    expect(unfolded).toContain(
+      "- Part B: 15 Questions | 40–45 Minutes (graphing calculator required)",
+    );
   });
 });
 

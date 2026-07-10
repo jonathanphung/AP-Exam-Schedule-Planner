@@ -108,6 +108,123 @@ describe("ap-2026.json dataset", () => {
   });
 });
 
+describe("ap-2026.json — 2026 digital-redesign question-count corrections (issue #45, ported to sections[] by #44)", () => {
+  const dataset = parseApDataset(raw);
+  const byId = new Map(dataset.subjects.map((s) => [s.id, s]));
+
+  const sectionByName = (id: string, pattern: RegExp) =>
+    byId.get(id)?.format.sections.find((s) => pattern.test(s.name));
+  const MC = /multiple.?choice/i;
+  const FR = /free.?response/i;
+
+  // Pins the seven re-sourced counts (docs/super-board/research/collegeboard-2026/)
+  // so a future re-source cannot silently regress them to the pre-redesign values.
+  const CORRECTED: Record<string, { mcqCount: number; frqCount: number }> = {
+    statistics: { mcqCount: 42, frqCount: 4 },
+    "french-language-and-culture": { mcqCount: 55, frqCount: 3 },
+    "german-language-and-culture": { mcqCount: 55, frqCount: 3 },
+    "italian-language-and-culture": { mcqCount: 55, frqCount: 3 },
+    "spanish-language-and-culture": { mcqCount: 55, frqCount: 3 },
+    "chinese-language-and-culture": { mcqCount: 55, frqCount: 4 },
+    "japanese-language-and-culture": { mcqCount: 55, frqCount: 4 },
+  };
+
+  it("pins the seven corrected MC/FR section counts as exact published integers", () => {
+    for (const [id, counts] of Object.entries(CORRECTED)) {
+      expect(
+        sectionByName(id, MC)?.questionCount,
+        `${id} multiple-choice section count`,
+      ).toBe(counts.mcqCount);
+      expect(
+        sectionByName(id, FR)?.questionCount,
+        `${id} free-response section count`,
+      ).toBe(counts.frqCount);
+    }
+  });
+
+  // Statistics' Section II composition IS published on both CB pages (AP Central
+  // "Question 3: Inference (Hypothesis Test or Confidence Interval)" + three
+  // multi-focus questions; AP Students the same as "multi-part" questions). It
+  // was twice regressed to "pending"; pin it to a sourced composition so a
+  // future re-source cannot re-introduce the false pending. (#44 carried the
+  // flat frqType over as the free-response section's note.)
+  it("pins statistics' free-response note to the sourced Section-II composition (never 'pending')", () => {
+    const note = sectionByName("statistics", FR)?.note;
+    expect(note).not.toBe("pending");
+    expect(note).toMatch(/inference/i);
+    expect(note).toMatch(/multi-part/i);
+    // The redesigned exam dropped the investigative task — it must not reappear.
+    expect(note).not.toMatch(/investigative/i);
+  });
+
+  it("no section or part stores its question count as a range string (all 2026 counts are published as fixed numbers)", () => {
+    for (const subject of dataset.subjects) {
+      for (const section of subject.format.sections) {
+        const values: Array<[string, unknown]> = [
+          [`section "${section.name}"`, section.questionCount],
+          ...(section.parts ?? []).map(
+            (p): [string, unknown] => [`part "${p.name}"`, p.questionCount],
+          ),
+        ];
+        for (const [where, value] of values) {
+          const isRange = typeof value === "string" && /–/.test(value);
+          expect(isRange, `${subject.id} ${where} = ${String(value)}`).toBe(
+            false,
+          );
+        }
+      }
+    }
+  });
+
+  // The six language exams' overall duration IS published — on the AP Students
+  // assessment page's "Exam Duration" (AP Central omits the total; the two pages
+  // are complementary). The first build wrongly wrote "pending" over four of
+  // these; pin the published integers so the regression cannot recur.
+  const PUBLISHED_LANGUAGE_TOTALS: Record<string, number> = {
+    "french-language-and-culture": 150, // "Approximately 2hrs 30mins"
+    "german-language-and-culture": 150, // "Approximately 2hrs 30mins"
+    "italian-language-and-culture": 150, // "Approximately 2hrs 30mins"
+    "spanish-language-and-culture": 150, // "Approximately 2hrs 30mins"
+    "chinese-language-and-culture": 120, // "Approximately 2hrs"
+    "japanese-language-and-culture": 120, // "Approximately 2hrs"
+  };
+
+  it("pins the six language-exam durations to their published AP Students totals", () => {
+    for (const [id, minutes] of Object.entries(PUBLISHED_LANGUAGE_TOTALS)) {
+      expect(byId.get(id)?.format.totalMinutes, `${id} totalMinutes`).toBe(
+        minutes,
+      );
+    }
+  });
+
+  // Portfolio-only subjects have no sit-down exam and store 0. EVERY other
+  // subject publishes an "Exam Duration" (verified against
+  // docs/super-board/research/collegeboard-2026/ after commit 171cb15), so its
+  // totalMinutes must be a positive number — never "pending", which would drop
+  // the calendar block length (calendar.ts) and suppress the ICS DTEND (ics.ts).
+  const PORTFOLIO_ONLY = new Set([
+    "research",
+    "drawing",
+    "2-d-art-and-design",
+    "3-d-art-and-design",
+  ]);
+
+  it("every sit-down subject stores a numeric published totalMinutes (none pending); portfolio subjects store 0", () => {
+    for (const subject of dataset.subjects) {
+      const total = subject.format.totalMinutes;
+      if (PORTFOLIO_ONLY.has(subject.id)) {
+        expect(total, `${subject.id} (portfolio-only)`).toBe(0);
+      } else {
+        expect(typeof total, `${subject.id} totalMinutes type`).toBe("number");
+        expect(
+          total as number,
+          `${subject.id} totalMinutes`,
+        ).toBeGreaterThan(0);
+      }
+    }
+  });
+});
+
 describe("ap-2026.json negative cases (validation must fail on broken data)", () => {
   it("rejects a duplicate subject id", () => {
     const broken = clone();

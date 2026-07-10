@@ -1,0 +1,1742 @@
+{
+  "cycle": "May 2026",
+  "fetched": "2026-07-09",
+  "method": "per subject: one fetch agent + one independent refute-skeptic, against AP Central /exam (sections, weights, parts) AND AP Students /assessment (overall Exam Duration)",
+  "subjects": [
+    {
+      "id": "2-d-art-and-design",
+      "sourceUrl": "https://apstudents.collegeboard.org/courses/ap-2-d-art-and-design/assessment",
+      "totalMinutesStated": "n/a",
+      "totalMinutesVerbatim": null,
+      "totalMinutesApproximate": null,
+      "noSitDownExam": true,
+      "sections": [],
+      "datasetDiscrepancies": []
+    },
+    {
+      "id": "3-d-art-and-design",
+      "sourceUrl": "https://apstudents.collegeboard.org/courses/ap-3-d-art-and-design/assessment",
+      "totalMinutesStated": "n/a",
+      "totalMinutesVerbatim": null,
+      "totalMinutesApproximate": null,
+      "noSitDownExam": true,
+      "sections": [],
+      "datasetDiscrepancies": []
+    },
+    {
+      "id": "african-american-studies",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-african-american-studies/exam",
+      "totalMinutesStated": 165,
+      "totalMinutesVerbatim": "2hrs 45mins",
+      "totalMinutesApproximate": false,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Section I: Multiple Choice",
+          "questionCount": "60",
+          "minutes": 70,
+          "weightPercent": 60,
+          "quote": "Section I: Multiple Choice — 60 Questions | 70 Minutes | 60% of Exam Score"
+        },
+        {
+          "name": "Section IB: Individual Student Project—Exam Day Validation Question",
+          "questionCount": "1",
+          "minutes": 10,
+          "weightPercent": 1.5,
+          "quote": "Section IB: Individual Student Project—Exam Day Validation Question — 1 Question | 10 Minutes | 1.5% of Exam Score"
+        },
+        {
+          "name": "Section II: Short-Answer Questions",
+          "questionCount": "3",
+          "minutes": 40,
+          "weightPercent": 18,
+          "quote": "Section II: Short-Answer Questions — 3 Questions | 40 Minutes | 18% of Exam Score"
+        },
+        {
+          "name": "Section II: Document-Based Question",
+          "questionCount": "1",
+          "minutes": 45,
+          "weightPercent": 12,
+          "quote": "Section II: Document-Based Question — 1 Question | 45 Minutes | 12% of Exam Score"
+        },
+        {
+          "name": "Individual Student Project",
+          "questionCount": "n/a",
+          "minutes": "pending",
+          "weightPercent": 8.5,
+          "quote": "Individual Student Project — 8.5% of Exam Score (three-week independent research project with oral defense, scored by teacher rubric; no exam-day time allocation)"
+        }
+      ],
+      "datasetDiscrepancies": [
+        {
+          "field": "frqMinutes",
+          "dataset": "pending",
+          "page": "40 (Short-Answer) + 45 (Document-Based) + 10 (Validation Question) as separate published sections; no combined FRQ total printed",
+          "quote": "Section II: Short-Answer Questions — 3 Questions | 40 Minutes; Section II: Document-Based Question — 1 Question | 45 Minutes"
+        }
+      ]
+    },
+    {
+      "id": "art-history",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-art-history/exam",
+      "totalMinutesStated": 180,
+      "totalMinutesVerbatim": "3hrs",
+      "totalMinutesApproximate": false,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Multiple Choice",
+          "questionCount": "80",
+          "minutes": 60,
+          "weightPercent": 50,
+          "quote": "80 Questions | 1 Hour | 50% of Exam Score"
+        },
+        {
+          "name": "Free Response",
+          "questionCount": "6",
+          "minutes": 120,
+          "weightPercent": 50,
+          "quote": "6 Questions | 2 Hours | 50% of Exam Score"
+        }
+      ],
+      "datasetDiscrepancies": []
+    },
+    {
+      "id": "biology",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-biology/exam",
+      "totalMinutesStated": 180,
+      "totalMinutesVerbatim": "3hrs",
+      "totalMinutesApproximate": false,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Multiple Choice",
+          "questionCount": "60",
+          "minutes": 90,
+          "weightPercent": 50,
+          "quote": "60 Questions | 1 hour 30 Minutes | 50% of Exam Score"
+        },
+        {
+          "name": "Free Response",
+          "questionCount": "6",
+          "minutes": 90,
+          "weightPercent": 50,
+          "quote": "6 Questions | 1 hour 30 Minutes | 50% of Exam Score"
+        }
+      ],
+      "datasetDiscrepancies": []
+    },
+    {
+      "id": "business-with-personal-finance",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-business-personal-finance/exam-overview",
+      "totalMinutesStated": 160,
+      "totalMinutesVerbatim": null,
+      "totalMinutesApproximate": null,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Section I: Multiple Choice",
+          "questionCount": "60",
+          "minutes": 70,
+          "weightPercent": 60,
+          "quote": "Section I: Multiple Choice — 60 Questions | 1hr 10mins | 60% of Score. Questions usually appear in sets of 3 or 4 with stimulus materials; 20-25% cover personal finance topics."
+        },
+        {
+          "name": "Section II, Part A: Free-Response Question 1 (Business Canvas Project Exam-Day Validation)",
+          "questionCount": "1",
+          "minutes": 25,
+          "weightPercent": 15,
+          "quote": "Section II, Part A: Free-Response Question 1 — Business Canvas Project Exam-Day Validation — 1 Question | 25mins | 15% of Score."
+        },
+        {
+          "name": "Section II, Part B: Free-Response Questions 2-4",
+          "questionCount": "3",
+          "minutes": 65,
+          "weightPercent": 25,
+          "quote": "Section II, Part B: Free-Response Questions 2-4 — 3 Questions | 1hr 05mins | 25% of Score."
+        }
+      ],
+      "datasetDiscrepancies": [
+        {
+          "field": "mcqMinutes",
+          "dataset": "pending",
+          "page": "70",
+          "quote": "Section I: Multiple Choice ... 1hr 10mins"
+        },
+        {
+          "field": "frqMinutes",
+          "dataset": "pending",
+          "page": "25 (Part A) + 65 (Part B); no single Section II total printed",
+          "quote": "Section II, Part A ... 25mins; Section II, Part B ... 1hr 05mins"
+        }
+      ]
+    },
+    {
+      "id": "calculus-ab",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-calculus-ab/exam",
+      "totalMinutesStated": 195,
+      "totalMinutesVerbatim": "3hrs 15mins",
+      "totalMinutesApproximate": false,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Multiple Choice",
+          "questionCount": "45",
+          "minutes": 105,
+          "weightPercent": 50,
+          "quote": "Section I: Multiple Choice — 45 Questions | 1 Hour 45 Minutes | 50% of Exam Score",
+          "parts": [
+            {
+              "name": "Part A",
+              "questionCount": "30",
+              "minutes": 60,
+              "toolNote": "calculator not permitted",
+              "quote": "Part A: 30 questions; 60 minutes (calculator not permitted)"
+            },
+            {
+              "name": "Part B",
+              "questionCount": "15",
+              "minutes": 45,
+              "toolNote": "graphing calculator required",
+              "quote": "Part B: 15 questions; 45 minutes (graphing calculator required)"
+            }
+          ]
+        },
+        {
+          "name": "Free Response",
+          "questionCount": "6",
+          "minutes": 90,
+          "weightPercent": 50,
+          "quote": "Section II: Free Response — 6 Questions | 1 Hour 30 Minutes | 50% of Exam Score",
+          "parts": [
+            {
+              "name": "Part A",
+              "questionCount": "2",
+              "minutes": 30,
+              "toolNote": "graphing calculator required",
+              "quote": "Part A: 2 questions; 30 minutes (graphing calculator required)"
+            },
+            {
+              "name": "Part B",
+              "questionCount": "4",
+              "minutes": 60,
+              "toolNote": "calculator not permitted",
+              "quote": "Part B: 4 questions; 60 minutes (calculator not permitted)"
+            }
+          ]
+        }
+      ],
+      "datasetDiscrepancies": []
+    },
+    {
+      "id": "calculus-bc",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-calculus-bc/exam",
+      "totalMinutesStated": 195,
+      "totalMinutesVerbatim": "3hrs 15mins",
+      "totalMinutesApproximate": false,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Multiple Choice",
+          "questionCount": "45",
+          "minutes": 105,
+          "weightPercent": 50,
+          "quote": "Section I: Multiple Choice — 45 questions | 1 hour 45 minutes | 50% of exam score",
+          "parts": [
+            {
+              "name": "Part A",
+              "questionCount": "30",
+              "minutes": 60,
+              "toolNote": "calculator not permitted",
+              "quote": "30 questions; 60 minutes (calculator not permitted)"
+            },
+            {
+              "name": "Part B",
+              "questionCount": "15",
+              "minutes": 45,
+              "toolNote": "graphing calculator required",
+              "quote": "15 questions; 45 minutes (graphing calculator required)"
+            }
+          ]
+        },
+        {
+          "name": "Free Response",
+          "questionCount": "6",
+          "minutes": 90,
+          "weightPercent": 50,
+          "quote": "Section II: Free Response — 6 questions | 1 hour 30 minutes | 50% of exam score",
+          "parts": [
+            {
+              "name": "Part A",
+              "questionCount": "2",
+              "minutes": 30,
+              "toolNote": "graphing calculator required",
+              "quote": "2 questions; 30 minutes (graphing calculator required)"
+            },
+            {
+              "name": "Part B",
+              "questionCount": "4",
+              "minutes": 60,
+              "toolNote": "calculator not permitted",
+              "quote": "4 questions; 60 minutes (calculator not permitted)"
+            }
+          ]
+        }
+      ],
+      "datasetDiscrepancies": []
+    },
+    {
+      "id": "chemistry",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-chemistry/exam",
+      "totalMinutesStated": 195,
+      "totalMinutesVerbatim": "3hrs 15mins",
+      "totalMinutesApproximate": false,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Multiple Choice",
+          "questionCount": "60",
+          "minutes": 90,
+          "weightPercent": 50,
+          "quote": "Section I: Multiple Choice — 60 Questions | 1 Hour 30 minutes | 50% of Exam Score"
+        },
+        {
+          "name": "Free Response",
+          "questionCount": "7",
+          "minutes": 105,
+          "weightPercent": 50,
+          "quote": "Section II: Free Response — 7 Questions (3 long-answer and 4 short-answer questions) | 1 Hour 45 Minutes | 50% of Exam Score"
+        }
+      ],
+      "datasetDiscrepancies": []
+    },
+    {
+      "id": "chinese-language-and-culture",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-chinese-language-and-culture/exam",
+      "totalMinutesStated": 120,
+      "totalMinutesVerbatim": "Approximately 2hrs",
+      "totalMinutesApproximate": true,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Section I: Free-Response",
+          "questionCount": "4",
+          "minutes": "40-45",
+          "weightPercent": 50,
+          "quote": "Section I: Free-Response — 4 Questions | 40–45 Minutes | 50% of Score",
+          "parts": [
+            {
+              "name": "Question 1: Project Presentation",
+              "questionCount": "1",
+              "minutes": "pending",
+              "toolNote": "20% of Score; 3 minutes prep, 3 minutes presentation",
+              "quote": "Question 1: Project Presentation (20% of Score) — Students deliver a presentation in response to the project prompt about what they learned through their research."
+            },
+            {
+              "name": "Question 2: Project Q&A",
+              "questionCount": "1",
+              "minutes": "pending",
+              "toolNote": "15% of Score; respond to 4 pre-recorded questions, 40 seconds per response",
+              "quote": "Question 2: Project Q&A (15% of Score) — Students participate in a question-and-answer exchange about their project and research by responding to 4 pre-recorded questions that are not known to the student ahead of the exam."
+            },
+            {
+              "name": "Question 3: Story Narration",
+              "questionCount": "1",
+              "minutes": "pending",
+              "toolNote": "7.5% of Score; Questions 3 & 4 combined 30 minutes",
+              "quote": "Question 3: Story Narration (7.5% of Score) — Students write a story based on four provided pictures."
+            },
+            {
+              "name": "Question 4: Email Response",
+              "questionCount": "1",
+              "minutes": "pending",
+              "toolNote": "7.5% of Score; Questions 3 & 4 combined 30 minutes",
+              "quote": "Question 4: Email Response (7.5% of Score) — Students compose an email in response to an email received from a friend or member of the community."
+            }
+          ]
+        },
+        {
+          "name": "Section II: Multiple-Choice",
+          "questionCount": "55",
+          "minutes": 65,
+          "weightPercent": 50,
+          "quote": "Section II: Multiple-Choice — 55 Questions | 65 Minutes | 50% of Score",
+          "parts": [
+            {
+              "name": "Part A: Listening",
+              "questionCount": "25",
+              "minutes": 25,
+              "toolNote": "25% of Score",
+              "quote": "Part A: Listening – 25 questions; 25 minutes; 25% of Score"
+            },
+            {
+              "name": "Part B: Reading",
+              "questionCount": "30",
+              "minutes": 40,
+              "toolNote": "25% of Score",
+              "quote": "Part B: Reading – 30 questions; 40 minutes; 25% of Score"
+            }
+          ]
+        }
+      ],
+      "datasetDiscrepancies": [
+        {
+          "field": "mcqCount",
+          "dataset": "55–75",
+          "page": "55",
+          "quote": "Section II: Multiple-Choice — 55 Questions | 65 Minutes | 50% of Score"
+        },
+        {
+          "field": "mcqMinutes",
+          "dataset": "pending",
+          "page": "65",
+          "quote": "Section II: Multiple-Choice — 55 Questions | 65 Minutes | 50% of Score"
+        },
+        {
+          "field": "frqMinutes",
+          "dataset": "pending",
+          "page": "40–45",
+          "quote": "Section I: Free-Response — 4 Questions | 40–45 Minutes | 50% of Score"
+        },
+        {
+          "field": "totalMinutes",
+          "dataset": "120",
+          "page": "pending",
+          "quote": "The page does not print a total exam time; only per-section times are stated."
+        }
+      ]
+    },
+    {
+      "id": "comparative-government-and-politics",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-comparative-government-and-politics/exam",
+      "totalMinutesStated": 150,
+      "totalMinutesVerbatim": null,
+      "totalMinutesApproximate": null,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Multiple Choice",
+          "questionCount": "55",
+          "minutes": 60,
+          "weightPercent": 50,
+          "quote": "Section I: Multiple Choice — 55 Questions | 60 Minutes | 50% of Exam Score"
+        },
+        {
+          "name": "Free Response",
+          "questionCount": "4",
+          "minutes": 90,
+          "weightPercent": 50,
+          "quote": "Section II: Free Response — 4 Questions | 1 Hour 30 Minutes | 50% of Exam Score"
+        }
+      ],
+      "datasetDiscrepancies": []
+    },
+    {
+      "id": "computer-science-a",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-computer-science-a/exam",
+      "totalMinutesStated": 180,
+      "totalMinutesVerbatim": "3hrs",
+      "totalMinutesApproximate": false,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Multiple Choice",
+          "questionCount": "42",
+          "minutes": 90,
+          "weightPercent": 55,
+          "quote": "42 Questions | 1 Hour 30 Minutes | 55% of Exam Score"
+        },
+        {
+          "name": "Free Response",
+          "questionCount": "4",
+          "minutes": 90,
+          "weightPercent": 45,
+          "quote": "4 Questions | 1 Hour 30 Minutes | 45% of Exam Score"
+        }
+      ],
+      "datasetDiscrepancies": [
+        {
+          "field": "mcqMinutes",
+          "dataset": "pending",
+          "page": "90",
+          "quote": "42 Questions | 1 Hour 30 Minutes | 55% of Exam Score"
+        },
+        {
+          "field": "frqMinutes",
+          "dataset": "pending",
+          "page": "90",
+          "quote": "4 Questions | 1 Hour 30 Minutes | 45% of Exam Score"
+        }
+      ]
+    },
+    {
+      "id": "computer-science-principles",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-computer-science-principles/exam",
+      "totalMinutesStated": 180,
+      "totalMinutesVerbatim": null,
+      "totalMinutesApproximate": null,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Multiple Choice",
+          "questionCount": "70",
+          "minutes": 120,
+          "weightPercent": 70,
+          "quote": "Multiple Choice Section (Section I): 70 multiple-choice questions | 120 minutes | 70% of score"
+        },
+        {
+          "name": "Written Response",
+          "questionCount": "2",
+          "minutes": 60,
+          "weightPercent": 30,
+          "quote": "Written Response Section (Section II): 60-minute end-of-course exam | 30% of score; 2 written response questions with 4 distinct prompts"
+        }
+      ],
+      "datasetDiscrepancies": []
+    },
+    {
+      "id": "cybersecurity",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-cybersecurity/exam",
+      "totalMinutesStated": 130,
+      "totalMinutesVerbatim": "2hrs 10mins",
+      "totalMinutesApproximate": false,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Multiple Choice",
+          "questionCount": "60",
+          "minutes": 80,
+          "weightPercent": 70,
+          "quote": "Section I: Multiple Choice — 60 Questions | 80 minutes | 70% of Exam Score. The multiple-choice section includes individual questions as well as sets of 2, 3, or 4 questions."
+        },
+        {
+          "name": "Free Response",
+          "questionCount": "1",
+          "minutes": 50,
+          "weightPercent": 30,
+          "quote": "Section II: Free Response — 1 Question | 50 minutes | 30% of Exam Score. The free-response question gives students different sources of information from the same device, including: a set of firewall rules, several system and application logs, a list of files with their permissions, a device policy."
+        }
+      ],
+      "datasetDiscrepancies": [
+        {
+          "field": "mcqMinutes",
+          "dataset": "pending",
+          "page": "80",
+          "quote": "Section I: Multiple Choice — 60 Questions | 80 minutes | 70% of Exam Score"
+        },
+        {
+          "field": "frqMinutes",
+          "dataset": "pending",
+          "page": "50",
+          "quote": "Section II: Free Response — 1 Question | 50 minutes | 30% of Exam Score"
+        }
+      ]
+    },
+    {
+      "id": "drawing",
+      "sourceUrl": "https://apstudents.collegeboard.org/courses/ap-drawing/assessment",
+      "totalMinutesStated": "n/a",
+      "totalMinutesVerbatim": null,
+      "totalMinutesApproximate": null,
+      "noSitDownExam": true,
+      "sections": [],
+      "datasetDiscrepancies": []
+    },
+    {
+      "id": "english-language-and-composition",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-english-language-and-composition/exam",
+      "totalMinutesStated": 195,
+      "totalMinutesVerbatim": null,
+      "totalMinutesApproximate": null,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Multiple Choice",
+          "questionCount": "45",
+          "minutes": 60,
+          "weightPercent": 45,
+          "quote": "Section I: Multiple Choice — 45 Questions | 1 hour | 45% of Exam Score"
+        },
+        {
+          "name": "Free Response",
+          "questionCount": "3",
+          "minutes": 135,
+          "weightPercent": 55,
+          "quote": "Section II: Free Response — 3 Questions | 2 hours 15 minutes (includes a 15-minute reading period) | 55% of Exam Score"
+        }
+      ],
+      "datasetDiscrepancies": [
+        {
+          "field": "mcqMinutes",
+          "dataset": "pending",
+          "page": "60",
+          "quote": "Section I: Multiple Choice — 45 Questions | 1 hour | 45% of Exam Score"
+        }
+      ]
+    },
+    {
+      "id": "english-literature-and-composition",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-english-literature-and-composition/exam",
+      "totalMinutesStated": 180,
+      "totalMinutesVerbatim": "3hrs",
+      "totalMinutesApproximate": false,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Section I: Multiple Choice",
+          "questionCount": "55",
+          "minutes": 60,
+          "weightPercent": 45,
+          "quote": "Section I: Multiple Choice — 55 Questions | 1 Hour | 45% of Exam Score. Includes 5 sets of questions with 8–13 questions per set. Each set is preceded by a passage of prose fiction, drama, or poetry of varying difficulty."
+        },
+        {
+          "name": "Section II: Free Response",
+          "questionCount": "3",
+          "minutes": 120,
+          "weightPercent": 55,
+          "quote": "Section II: Free Response — 3 Questions | 2 Hours | 55% of Exam Score. Comprises three essay prompts: literary analysis of a provided poem, literary analysis of a prose fiction or drama passage, and analysis of a student-selected work."
+        }
+      ],
+      "datasetDiscrepancies": [
+        {
+          "field": "mcqMinutes",
+          "dataset": "pending",
+          "page": "60",
+          "quote": "Section I: Multiple Choice — 55 Questions | 1 Hour | 45% of Exam Score"
+        },
+        {
+          "field": "frqMinutes",
+          "dataset": "pending",
+          "page": "120",
+          "quote": "Section II: Free Response — 3 Questions | 2 Hours | 55% of Exam Score"
+        }
+      ]
+    },
+    {
+      "id": "environmental-science",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-environmental-science/exam",
+      "totalMinutesStated": 160,
+      "totalMinutesVerbatim": "2hrs 40mins",
+      "totalMinutesApproximate": false,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Multiple Choice",
+          "questionCount": "80",
+          "minutes": 90,
+          "weightPercent": 60,
+          "quote": "Section I: Multiple Choice — 80 Questions | 1 Hour 30 Minutes | 60% of Exam Score"
+        },
+        {
+          "name": "Free Response",
+          "questionCount": "3",
+          "minutes": 70,
+          "weightPercent": 40,
+          "quote": "Section II: Free Response — 3 Questions | 1 Hour 10 Minutes | 40% of Exam Score"
+        }
+      ],
+      "datasetDiscrepancies": []
+    },
+    {
+      "id": "european-history",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-european-history/exam",
+      "totalMinutesStated": 195,
+      "totalMinutesVerbatim": "3hrs 15mins",
+      "totalMinutesApproximate": false,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Section I, Part A: Multiple Choice",
+          "questionCount": "55",
+          "minutes": 55,
+          "weightPercent": 40,
+          "quote": "Section I, Part A: Multiple Choice — 55 Questions | 55 minutes | 40% of Exam Score"
+        },
+        {
+          "name": "Section I, Part B: Short Answer",
+          "questionCount": "3",
+          "minutes": 40,
+          "weightPercent": 20,
+          "quote": "Section I, Part B: Short Answer — 3 Questions | 40 Minutes | 20% of Exam Score"
+        },
+        {
+          "name": "Section II: Document-Based Question and Long Essay",
+          "questionCount": "2",
+          "minutes": 100,
+          "weightPercent": 40,
+          "quote": "Section II: Document-Based Question and Long Essay — 2 questions | 1 Hour, 40 minutes | 40% of Exam Score",
+          "parts": [
+            {
+              "name": "Document-Based Question (DBQ)",
+              "questionCount": "1",
+              "minutes": 60,
+              "toolNote": "includes 15-minute reading period",
+              "quote": "Document-Based Question (DBQ): 1 Hour (includes 15-minute reading period) | 25% of Exam Score"
+            },
+            {
+              "name": "Long Essay",
+              "questionCount": "1",
+              "minutes": 40,
+              "toolNote": "student chooses from 3 options",
+              "quote": "Long Essay: 40 minutes | 15% of Exam Score"
+            }
+          ]
+        }
+      ],
+      "datasetDiscrepancies": []
+    },
+    {
+      "id": "french-language-and-culture",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-french-language-and-culture/exam",
+      "totalMinutesStated": 150,
+      "totalMinutesVerbatim": "Approximately 2hrs 30mins",
+      "totalMinutesApproximate": true,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Section I: Free-Response",
+          "questionCount": "3",
+          "minutes": "65-70",
+          "weightPercent": 50,
+          "quote": "Section I: Free-Response — 3 Questions | 65–70 Minutes | 50% of Score",
+          "parts": [
+            {
+              "name": "Question 1: Project Presentation",
+              "questionCount": "1",
+              "minutes": "pending",
+              "toolNote": "n/a",
+              "quote": "Question 1: Project Presentation: 20% of Score"
+            },
+            {
+              "name": "Question 2: Project Q&A",
+              "questionCount": "1",
+              "minutes": "pending",
+              "toolNote": "n/a",
+              "quote": "Question 2: Project Q&A: 15% of Score"
+            },
+            {
+              "name": "Question 3: Argumentative Essay",
+              "questionCount": "1",
+              "minutes": 55,
+              "toolNote": "including 2 opportunities to listen to audio",
+              "quote": "Question 3: Argumentative Essay: 15% of Score"
+            }
+          ]
+        },
+        {
+          "name": "Section II: Multiple-Choice",
+          "questionCount": "55",
+          "minutes": 80,
+          "weightPercent": 50,
+          "quote": "Section II: Multiple-Choice — 55 Questions | 80 Minutes | 50% of Score",
+          "parts": [
+            {
+              "name": "Part A: Listening",
+              "questionCount": "25",
+              "minutes": 40,
+              "toolNote": "n/a",
+              "quote": "Part A: Listening: 25 questions; 40 minutes; 25% of Score"
+            },
+            {
+              "name": "Part B: Reading",
+              "questionCount": "30",
+              "minutes": 40,
+              "toolNote": "n/a",
+              "quote": "Part B: Reading: 30 questions; 40 minutes; 25% of Score"
+            }
+          ]
+        }
+      ],
+      "datasetDiscrepancies": [
+        {
+          "field": "mcqCount",
+          "dataset": "65",
+          "page": "55",
+          "quote": "Section II: Multiple-Choice — 55 Questions | 80 Minutes | 50% of Score"
+        },
+        {
+          "field": "frqCount",
+          "dataset": "4",
+          "page": "3",
+          "quote": "Section I: Free-Response — 3 Questions | 65–70 Minutes | 50% of Score"
+        },
+        {
+          "field": "totalMinutes",
+          "dataset": "180",
+          "page": "pending",
+          "quote": "The page does not print an overall total exam duration."
+        }
+      ]
+    },
+    {
+      "id": "german-language-and-culture",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-german-language-and-culture/exam",
+      "totalMinutesStated": 150,
+      "totalMinutesVerbatim": "Approximately 2hrs 30mins",
+      "totalMinutesApproximate": true,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Section II: Multiple-Choice",
+          "questionCount": "55",
+          "minutes": 80,
+          "weightPercent": 50,
+          "quote": "Section II: Multiple-Choice — 55 Questions | 80 Minutes | 50% of Score",
+          "parts": [
+            {
+              "name": "Part A: Listening",
+              "questionCount": "25",
+              "minutes": 40,
+              "toolNote": "n/a",
+              "quote": "Part A: Listening — 25 questions; 40 minutes; 25% of Score"
+            },
+            {
+              "name": "Part B: Reading",
+              "questionCount": "30",
+              "minutes": 40,
+              "toolNote": "n/a",
+              "quote": "Part B: Reading — 30 questions; 40 minutes; 25% of Score"
+            }
+          ]
+        },
+        {
+          "name": "Section I: Free-Response",
+          "questionCount": "3",
+          "minutes": "65-70",
+          "weightPercent": 50,
+          "quote": "Section I: Free-Response — 3 Questions | 65–70 Minutes | 50% of Score",
+          "parts": [
+            {
+              "name": "Question 1: Project Presentation",
+              "questionCount": "1",
+              "minutes": "pending",
+              "toolNote": "20% of Score",
+              "quote": "Question 1: Project Presentation — 20% of Score. Students deliver a presentation in response to the project prompt about what they learned through their research. (3 minutes to prepare; 3 minutes to present.)"
+            },
+            {
+              "name": "Question 2: Project Q&A",
+              "questionCount": "4 pre-recorded questions",
+              "minutes": "pending",
+              "toolNote": "15% of Score",
+              "quote": "Question 2: Project Q&A — 15% of Score. Students participate in a question-and-answer exchange about their project and research by responding to 4 pre-recorded questions that are not known to the student ahead of the exam. (40 seconds for each response.)"
+            },
+            {
+              "name": "Question 3: Argumentative Essay",
+              "questionCount": "1",
+              "minutes": 55,
+              "toolNote": "15% of Score",
+              "quote": "Question 3: Argumentative Essay — 15% of Score. Students write an essay based on accompanying sources (print and audio) that present different viewpoints. (55 minutes, including 2 opportunities to listen to audio.)"
+            }
+          ]
+        }
+      ],
+      "datasetDiscrepancies": [
+        {
+          "field": "mcqCount",
+          "dataset": "65",
+          "page": "55",
+          "quote": "Section II: Multiple-Choice — 55 Questions | 80 Minutes | 50% of Score"
+        },
+        {
+          "field": "frqCount",
+          "dataset": "4",
+          "page": "3",
+          "quote": "Section I: Free-Response — 3 Questions | 65–70 Minutes | 50% of Score"
+        },
+        {
+          "field": "totalMinutes",
+          "dataset": "183",
+          "page": "not printed",
+          "quote": "The page prints no combined total exam time; Section II = 80 Minutes, Section I = 65–70 Minutes."
+        }
+      ]
+    },
+    {
+      "id": "human-geography",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-human-geography/exam",
+      "totalMinutesStated": 135,
+      "totalMinutesVerbatim": "2hrs 15mins",
+      "totalMinutesApproximate": false,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Multiple Choice",
+          "questionCount": "60",
+          "minutes": 60,
+          "weightPercent": 50,
+          "quote": "Section I: Multiple Choice — Questions: 60 — Time: 1 Hour (60 minutes) — Exam Score: 50%. Approximately 30%–40% of the multiple-choice questions will reference stimulus material, including maps, tables, charts, graphs, images, infographics, and/or landscapes."
+        },
+        {
+          "name": "Free Response",
+          "questionCount": "3",
+          "minutes": 75,
+          "weightPercent": 50,
+          "quote": "Section II: Free Response — Questions: 3 — Time: 1 Hour 15 Minutes (75 minutes) — Exam Score: 50%."
+        }
+      ],
+      "datasetDiscrepancies": []
+    },
+    {
+      "id": "italian-language-and-culture",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-italian-language-and-culture/exam",
+      "totalMinutesStated": 150,
+      "totalMinutesVerbatim": "Approximately 2hrs 30mins",
+      "totalMinutesApproximate": true,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Section II: Multiple-Choice",
+          "questionCount": "55",
+          "minutes": 80,
+          "weightPercent": 50,
+          "quote": "55 Questions | 80 Minutes | 50% of Score",
+          "parts": [
+            {
+              "name": "Part A: Listening",
+              "questionCount": "25",
+              "minutes": 40,
+              "toolNote": "n/a",
+              "quote": "Part A: Listening — 25 questions; 40 minutes; 25% of Score"
+            },
+            {
+              "name": "Part B: Reading",
+              "questionCount": "30",
+              "minutes": 40,
+              "toolNote": "n/a",
+              "quote": "Part B: Reading — 30 questions; 40 minutes; 25% of Score"
+            }
+          ]
+        },
+        {
+          "name": "Section I: Free-Response",
+          "questionCount": "3",
+          "minutes": "65-70",
+          "weightPercent": 50,
+          "quote": "3 Questions | 65–70 Minutes | 50% of Score",
+          "parts": [
+            {
+              "name": "Project Presentation",
+              "questionCount": "1",
+              "minutes": "pending",
+              "toolNote": "3 minutes to prepare; 3 minutes to present",
+              "quote": "Project Presentation — 20% of Score — 3 minutes to prepare; 3 minutes to present"
+            },
+            {
+              "name": "Project Q&A",
+              "questionCount": "4",
+              "minutes": "pending",
+              "toolNote": "4 pre-recorded questions; 40 seconds for each response",
+              "quote": "Project Q&A — 15% of Score — 4 pre-recorded questions with 40 seconds for each response"
+            },
+            {
+              "name": "Argumentative Essay",
+              "questionCount": "1",
+              "minutes": 55,
+              "toolNote": "including 2 opportunities to listen to audio",
+              "quote": "Argumentative Essay — 15% of Score — 55 minutes, including 2 opportunities to listen to audio"
+            }
+          ]
+        }
+      ],
+      "datasetDiscrepancies": [
+        {
+          "field": "mcqCount",
+          "dataset": "65",
+          "page": "55",
+          "quote": "Section II: Multiple-Choice — 55 Questions | 80 Minutes | 50% of Score"
+        },
+        {
+          "field": "frqCount",
+          "dataset": "4",
+          "page": "3",
+          "quote": "Section I: Free-Response — 3 Questions | 65–70 Minutes | 50% of Score"
+        },
+        {
+          "field": "totalMinutes",
+          "dataset": "180",
+          "page": "pending",
+          "quote": "The page prints Section II as 80 Minutes and Section I as 65–70 Minutes but does not print an overall exam total."
+        }
+      ]
+    },
+    {
+      "id": "japanese-language-and-culture",
+      "sourceUrl": "https://apstudents.collegeboard.org/courses/ap-japanese-language-and-culture/assessment",
+      "totalMinutesStated": 120,
+      "totalMinutesVerbatim": "Approximately 2hrs",
+      "totalMinutesApproximate": true,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Section I: Free Response",
+          "questionCount": "4",
+          "minutes": "40-45",
+          "weightPercent": 50,
+          "quote": "Section I: Free Response — 4 questions — 50% of Score. Question 1: Project Presentation: 20% of Score. Question 2: Project Q&A: 15% of Score. Question 3: Story Narration: 7.5% of Score. Question 4: Email Response: 7.5% of Score. You'll have 30 minutes to complete both writing tasks (Questions 3 and 4).",
+          "parts": [
+            {
+              "name": "Question 1: Project Presentation",
+              "questionCount": "1",
+              "minutes": "pending",
+              "toolNote": "3 minutes to prepare; 3 minutes to present",
+              "quote": "Question 1: Project Presentation: 20% of Score Deliver a presentation in response to the project prompt about what you learned through your research. (3 minutes to prepare; 3 minutes to present.)"
+            },
+            {
+              "name": "Question 2: Project Q&A",
+              "questionCount": "4 pre-recorded questions",
+              "minutes": "pending",
+              "toolNote": "40 seconds for each response",
+              "quote": "Question 2: Project Q&A: 15% of Score Participate in a simulated question-and-answer exchange about your project and research by responding to 4 pre-recorded questions that are not known to you ahead of the exam. (40 seconds for each response.)"
+            },
+            {
+              "name": "Question 3: Story Narration + Question 4: Email Response (Writing)",
+              "questionCount": "2",
+              "minutes": 30,
+              "toolNote": "combined time for both writing tasks",
+              "quote": "Question 3: Story Narration: 7.5% of Score Write a story based on four provided pictures. Question 4: Email Response: 7.5% of Score Compose an email in response to an email received from a friend or member of the community. You'll have 30 minutes to complete both writing tasks (Questions 3 and 4)."
+            }
+          ]
+        },
+        {
+          "name": "Section II: Multiple Choice",
+          "questionCount": "55",
+          "minutes": 65,
+          "weightPercent": 50,
+          "quote": "Section II: Multiple Choice — 55 questions — 50% of Score. Part A: Listening: 25 questions; 25 minutes; 25% of Score. Part B: Reading: 30 questions; 40 minutes; 25% of Score",
+          "parts": [
+            {
+              "name": "Part A: Listening",
+              "questionCount": "25",
+              "minutes": 25,
+              "toolNote": "listening/audio, no calculator (world language exam)",
+              "quote": "Part A: Listening: 25 questions; 25 minutes; 25% of Score"
+            },
+            {
+              "name": "Part B: Reading",
+              "questionCount": "30",
+              "minutes": 40,
+              "toolNote": "reading, no calculator (world language exam)",
+              "quote": "Part B: Reading: 30 questions; 40 minutes; 25% of Score"
+            }
+          ]
+        }
+      ],
+      "datasetDiscrepancies": [
+        {
+          "field": "mcqCount",
+          "dataset": "60–75",
+          "page": "55",
+          "quote": "Section II: Multiple Choice — 55 questions — 50% of Score (Part A: Listening: 25 questions; Part B: Reading: 30 questions)"
+        },
+        {
+          "field": "frqCount",
+          "dataset": "4",
+          "page": "4",
+          "quote": "Section I: Free Response — 4 questions — 50% of Score"
+        },
+        {
+          "field": "totalMinutes",
+          "dataset": "120",
+          "page": "not printed on Exam Components block",
+          "quote": "The Exam Components block prints no overall exam duration; the 2026 AP Japanese Language and Culture Exam Overview PDF states 'The exam will take approximately two hours and 15 minutes to complete... This includes a 10-minute break between Sections I and II.'"
+        }
+      ]
+    },
+    {
+      "id": "latin",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-latin/exam",
+      "totalMinutesStated": 180,
+      "totalMinutesVerbatim": null,
+      "totalMinutesApproximate": null,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Multiple Choice",
+          "questionCount": "52",
+          "minutes": 65,
+          "weightPercent": 50,
+          "quote": "Section I: Multiple Choice — 52 Questions | 1 Hour 5 minutes | 50% of Exam Score"
+        },
+        {
+          "name": "Free Response",
+          "questionCount": "5",
+          "minutes": 115,
+          "weightPercent": 50,
+          "quote": "Section II: Free Response — 5 Questions | 1 Hour 55 minutes | 50% of Exam Score"
+        }
+      ],
+      "datasetDiscrepancies": []
+    },
+    {
+      "id": "macroeconomics",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-macroeconomics/exam",
+      "totalMinutesStated": 130,
+      "totalMinutesVerbatim": null,
+      "totalMinutesApproximate": null,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Multiple Choice",
+          "questionCount": "60",
+          "minutes": 70,
+          "weightPercent": 66,
+          "quote": "Section I: Multiple Choice — 60 Questions | 1 Hour 10 Minutes | 66% of Exam Score. Questions require the use of economics content knowledge and reasoning across the range of course topics and skills in skill categories 1, 2, and 3."
+        },
+        {
+          "name": "Free Response",
+          "questionCount": "3",
+          "minutes": 60,
+          "weightPercent": 33,
+          "quote": "Section II: Free Response — 3 Questions | 1 Hour (includes 10-minute reading period) | 33% of Exam Score. 1 long question (50% of section score) and 2 short questions (25% each of section score)."
+        }
+      ],
+      "datasetDiscrepancies": []
+    },
+    {
+      "id": "microeconomics",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-microeconomics/exam",
+      "totalMinutesStated": 130,
+      "totalMinutesVerbatim": "2hrs 10mins",
+      "totalMinutesApproximate": false,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Multiple Choice",
+          "questionCount": "60",
+          "minutes": 70,
+          "weightPercent": 66,
+          "quote": "60 Questions | 1 Hour 10 Minutes | 66% of Exam Score"
+        },
+        {
+          "name": "Free Response",
+          "questionCount": "3",
+          "minutes": 60,
+          "weightPercent": 33,
+          "quote": "3 Questions | 1 Hour (includes a 10-minute reading period) | 33% of Exam Score"
+        }
+      ],
+      "datasetDiscrepancies": [
+        {
+          "field": "mcqMinutes",
+          "dataset": "70",
+          "page": "70",
+          "quote": "60 Questions | 1 Hour 10 Minutes | 66% of Exam Score"
+        },
+        {
+          "field": "totalMinutes",
+          "dataset": "130",
+          "page": "not printed",
+          "quote": "The page does not print a combined total exam duration; 130 equals the sum of the two published section times (70 + 60)."
+        }
+      ]
+    },
+    {
+      "id": "music-theory",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-music-theory/exam",
+      "totalMinutesStated": 160,
+      "totalMinutesVerbatim": "~ 2hrs 40mins",
+      "totalMinutesApproximate": true,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Section I: Multiple Choice",
+          "questionCount": "75",
+          "minutes": 80,
+          "weightPercent": 45,
+          "quote": "Section I: Multiple Choice  75 Questions | ~1 Hour 20 Minutes | 45% of Exam Score"
+        },
+        {
+          "name": "Section IIA: Free Response: Written",
+          "questionCount": "7",
+          "minutes": 70,
+          "weightPercent": 45,
+          "quote": "Section IIA: Free Response: Written  7 questions | ~1 hour and 10 minutes | 45% of Exam Score"
+        },
+        {
+          "name": "Section IIB: Free Response: Sight Singing",
+          "questionCount": "2",
+          "minutes": 10,
+          "weightPercent": 10,
+          "quote": "Section IIB: Free Response: Sight Singing  2 questions | ~10 minutes | 10% of Exam Score"
+        }
+      ],
+      "datasetDiscrepancies": []
+    },
+    {
+      "id": "physics-1",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-physics-1/exam",
+      "totalMinutesStated": 180,
+      "totalMinutesVerbatim": "3hrs",
+      "totalMinutesApproximate": false,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Multiple Choice",
+          "questionCount": "40",
+          "minutes": 80,
+          "weightPercent": 50,
+          "quote": "Section I: Multiple Choice — 40 questions | 80 minutes | 50% of exam score"
+        },
+        {
+          "name": "Free Response",
+          "questionCount": "4",
+          "minutes": 100,
+          "weightPercent": 50,
+          "quote": "Section II: Free Response — 4 questions | 100 minutes | 50% of exam score"
+        }
+      ],
+      "datasetDiscrepancies": []
+    },
+    {
+      "id": "physics-2",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-physics-2/exam",
+      "totalMinutesStated": 180,
+      "totalMinutesVerbatim": "3hrs",
+      "totalMinutesApproximate": false,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Multiple Choice",
+          "questionCount": "40",
+          "minutes": 80,
+          "weightPercent": 50,
+          "quote": "Section I: Multiple Choice — 40 Questions | 80 Minutes | 50% of Exam Score"
+        },
+        {
+          "name": "Free Response",
+          "questionCount": "4",
+          "minutes": 100,
+          "weightPercent": 50,
+          "quote": "Section II: Free Response — 4 Questions | 100 Minutes | 50% of Exam Score"
+        }
+      ],
+      "datasetDiscrepancies": []
+    },
+    {
+      "id": "physics-c-electricity-and-magnetism",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-physics-c-electricity-and-magnetism/exam",
+      "totalMinutesStated": 180,
+      "totalMinutesVerbatim": "3hrs",
+      "totalMinutesApproximate": false,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Multiple Choice",
+          "questionCount": "40",
+          "minutes": 80,
+          "weightPercent": 50,
+          "quote": "Section I: Multiple Choice — 40 Questions — 80 minutes — 50% of exam. Questions are either discrete questions or question sets, in which students may be provided with a stimulus or a set of data and a series of related questions."
+        },
+        {
+          "name": "Free Response",
+          "questionCount": "4",
+          "minutes": 100,
+          "weightPercent": 50,
+          "quote": "Section II: Free Response — 4 Questions — 100 minutes — 50% of exam. The section includes one question each of the following categories: Mathematical routines; Translation between representations; Experimental design and analysis; Qualitative/quantitative translation."
+        }
+      ],
+      "datasetDiscrepancies": []
+    },
+    {
+      "id": "physics-c-mechanics",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-physics-c-mechanics/exam",
+      "totalMinutesStated": 180,
+      "totalMinutesVerbatim": "3hrs",
+      "totalMinutesApproximate": false,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Section I: Multiple Choice",
+          "questionCount": "40",
+          "minutes": 80,
+          "weightPercent": 50,
+          "quote": "Section I: Multiple Choice — 40 Questions | 80 minutes | 50% of Exam Score"
+        },
+        {
+          "name": "Section II: Free Response",
+          "questionCount": "4",
+          "minutes": 100,
+          "weightPercent": 50,
+          "quote": "Section II: Free Response — 4 Questions | 100 minutes | 50% of Exam Score"
+        }
+      ],
+      "datasetDiscrepancies": []
+    },
+    {
+      "id": "precalculus",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-precalculus/exam",
+      "totalMinutesStated": 180,
+      "totalMinutesVerbatim": "3hrs",
+      "totalMinutesApproximate": false,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Multiple Choice",
+          "questionCount": "40",
+          "minutes": 120,
+          "weightPercent": 62.5,
+          "quote": "Section I: Multiple Choice — 40 Questions | 2 Hours | 62.5% of Exam Score",
+          "parts": [
+            {
+              "name": "Part A",
+              "questionCount": "28",
+              "minutes": 80,
+              "toolNote": "calculator not permitted",
+              "quote": "28 questions; 80 minutes; 43.75% of exam score (calculator not permitted)"
+            },
+            {
+              "name": "Part B",
+              "questionCount": "12",
+              "minutes": 40,
+              "toolNote": "graphing calculator required",
+              "quote": "12 questions; 40 minutes; 18.75% of exam score (graphing calculator required)"
+            }
+          ]
+        },
+        {
+          "name": "Free Response",
+          "questionCount": "4",
+          "minutes": 60,
+          "weightPercent": 37.5,
+          "quote": "Section II: Free Response — 4 Questions | 1 Hour | 37.5% of Exam Score",
+          "parts": [
+            {
+              "name": "Part A",
+              "questionCount": "2",
+              "minutes": 30,
+              "toolNote": "graphing calculator required",
+              "quote": "2 questions; 30 minutes; 18.75% of exam score (graphing calculator required)"
+            },
+            {
+              "name": "Part B",
+              "questionCount": "2",
+              "minutes": 30,
+              "toolNote": "calculator not permitted",
+              "quote": "2 questions; 30 minutes; 18.75% of exam score (calculator not permitted)"
+            }
+          ]
+        }
+      ],
+      "datasetDiscrepancies": []
+    },
+    {
+      "id": "psychology",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-psychology/exam",
+      "totalMinutesStated": 160,
+      "totalMinutesVerbatim": "2hrs 40mins",
+      "totalMinutesApproximate": false,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Multiple Choice",
+          "questionCount": "75",
+          "minutes": 90,
+          "weightPercent": 66.7,
+          "quote": "75 Questions | 90 Minutes | 66.7% of Exam Score"
+        },
+        {
+          "name": "Free Response",
+          "questionCount": "2",
+          "minutes": 70,
+          "weightPercent": 33.3,
+          "quote": "2 Questions | 70 Minutes | 33.3% of Exam Score",
+          "parts": [
+            {
+              "name": "Part A - Article Analysis Question (AAQ)",
+              "questionCount": "1",
+              "minutes": "pending",
+              "toolNote": "n/a",
+              "quote": "Article Analysis Question (AAQ)"
+            },
+            {
+              "name": "Part B - Evidence-Based Question (EBQ)",
+              "questionCount": "1",
+              "minutes": "pending",
+              "toolNote": "n/a",
+              "quote": "Evidence-Based Question (EBQ)"
+            }
+          ]
+        }
+      ],
+      "datasetDiscrepancies": [
+        {
+          "field": "totalMinutes",
+          "dataset": "160",
+          "page": "pending",
+          "quote": "The page does not state a combined total exam duration."
+        }
+      ]
+    },
+    {
+      "id": "research",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-research/exam",
+      "totalMinutesStated": "n/a",
+      "totalMinutesVerbatim": null,
+      "totalMinutesApproximate": null,
+      "noSitDownExam": true,
+      "sections": [],
+      "datasetDiscrepancies": []
+    },
+    {
+      "id": "seminar",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-seminar/exam",
+      "totalMinutesStated": 120,
+      "totalMinutesVerbatim": null,
+      "totalMinutesApproximate": null,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "End-of-Course Exam – Short-Answer Section",
+          "questionCount": "3",
+          "minutes": 30,
+          "weightPercent": 13.5,
+          "quote": "Short-Answer Section: 3 short-answer questions analyzing arguments, suggested 30 minutes, College Board scored (30% of 45%). End-of-Course Exam (45% of Score, 2 Hours Total)."
+        },
+        {
+          "name": "End-of-Course Exam – Essay Section",
+          "questionCount": "1",
+          "minutes": 90,
+          "weightPercent": 31.5,
+          "quote": "Essay Section: 1 long essay presenting evidence-based argument, suggested 90 minutes, College Board scored (70% of 45%). End-of-Course Exam (45% of Score, 2 Hours Total)."
+        }
+      ],
+      "datasetDiscrepancies": [
+        {
+          "field": "frqMinutes",
+          "dataset": "120",
+          "page": "30 + 90 suggested (2 Hours Total)",
+          "quote": "End-of-Course Exam (45% of Score, 2 Hours Total); Short-Answer suggested 30 minutes; Essay suggested 90 minutes"
+        }
+      ]
+    },
+    {
+      "id": "spanish-language-and-culture",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-spanish-language-and-culture/exam",
+      "totalMinutesStated": 150,
+      "totalMinutesVerbatim": "Approximately 2hrs 30mins",
+      "totalMinutesApproximate": true,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Section I: Free-Response",
+          "questionCount": "3",
+          "minutes": "65-70",
+          "weightPercent": 50,
+          "quote": "Section I: Free-Response — 3 Questions | 65–70 Minutes | 50% of Score",
+          "parts": [
+            {
+              "name": "Question 1: Project Presentation",
+              "questionCount": "1",
+              "minutes": "pending",
+              "toolNote": "3 minutes to prepare; 3 minutes to present",
+              "quote": "Question 1: Project Presentation: 20% of Score — Students deliver a presentation in response to the project prompt about what they learned through their research. (3 minutes to prepare; 3 minutes to present.)"
+            },
+            {
+              "name": "Question 2: Project Q&A",
+              "questionCount": "1",
+              "minutes": "pending",
+              "toolNote": "responding to 4 pre-recorded questions, 40 seconds per response",
+              "quote": "Question 2: Project Q&A: 15% of Score — Students participate in a question-and-answer exchange about their project and research by responding to 4 pre-recorded questions (40 seconds per response)"
+            },
+            {
+              "name": "Question 3: Argumentative Essay",
+              "questionCount": "1",
+              "minutes": 55,
+              "toolNote": "55 minutes, including 2 opportunities to listen to audio",
+              "quote": "Question 3: Argumentative Essay: 15% of Score — Students write an essay based on accompanying sources (print and audio) that present different viewpoints. (55 minutes, including 2 opportunities to listen to audio.)"
+            }
+          ]
+        },
+        {
+          "name": "Section II: Multiple-Choice",
+          "questionCount": "55",
+          "minutes": 80,
+          "weightPercent": 50,
+          "quote": "Section II: Multiple-Choice — 55 Questions | 80 Minutes | 50% of Score",
+          "parts": [
+            {
+              "name": "Part A: Listening",
+              "questionCount": "25",
+              "minutes": 40,
+              "toolNote": "digital exam via Bluebook",
+              "quote": "Part A: Listening: 25 questions; 40 minutes; 25% of Score"
+            },
+            {
+              "name": "Part B: Reading",
+              "questionCount": "30",
+              "minutes": 40,
+              "toolNote": "digital exam via Bluebook",
+              "quote": "Part B: Reading: 30 questions; 40 minutes; 25% of Score"
+            }
+          ]
+        }
+      ],
+      "datasetDiscrepancies": [
+        {
+          "field": "mcqCount",
+          "dataset": "65",
+          "page": "55",
+          "quote": "Section II: Multiple-Choice — 55 Questions | 80 Minutes | 50% of Score"
+        },
+        {
+          "field": "frqCount",
+          "dataset": "4",
+          "page": "3",
+          "quote": "Section I: Free-Response — 3 Questions | 65–70 Minutes | 50% of Score"
+        },
+        {
+          "field": "totalMinutes",
+          "dataset": "183",
+          "page": "pending",
+          "quote": "The page prints no single total exam time; it states Free-Response 65–70 Minutes and Multiple-Choice 80 Minutes."
+        },
+        {
+          "field": "mcqMinutes",
+          "dataset": "pending",
+          "page": "80",
+          "quote": "Section II: Multiple-Choice — 55 Questions | 80 Minutes | 50% of Score"
+        },
+        {
+          "field": "frqMinutes",
+          "dataset": "pending",
+          "page": "65-70",
+          "quote": "Section I: Free-Response — 3 Questions | 65–70 Minutes | 50% of Score"
+        }
+      ]
+    },
+    {
+      "id": "spanish-literature-and-culture",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-spanish-literature-and-culture/exam",
+      "totalMinutesStated": 180,
+      "totalMinutesVerbatim": "3hrs",
+      "totalMinutesApproximate": false,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Section IA: Multiple Choice",
+          "questionCount": "15",
+          "minutes": 20,
+          "weightPercent": 10,
+          "quote": "Section IA: Multiple Choice — 15 Questions | 20 Minutes | 10% of Exam Score. Comprises 3 sets of questions based on authentic audio texts."
+        },
+        {
+          "name": "Section IB: Multiple Choice",
+          "questionCount": "50",
+          "minutes": 60,
+          "weightPercent": 40,
+          "quote": "Section IB: Multiple Choice — 50 Questions | 1 Hour | 40% of Exam Score. Contains 6 sets of 7–10 questions from various readings."
+        },
+        {
+          "name": "Section II: Free Response",
+          "questionCount": "4",
+          "minutes": 100,
+          "weightPercent": 50,
+          "quote": "Section II: Free Response — 4 Questions | 1 Hour, 40 Minutes | 50% of Exam Score.",
+          "parts": [
+            {
+              "name": "Short-Answer Questions",
+              "questionCount": "2",
+              "minutes": 30,
+              "toolNote": "n/a",
+              "quote": "Short-Answer Questions: Suggested time: 15 minutes each (~30 minutes)"
+            },
+            {
+              "name": "Essay Questions",
+              "questionCount": "2",
+              "minutes": 70,
+              "toolNote": "n/a",
+              "quote": "Essay Questions: Suggested time: 35 minutes each (~70 minutes)"
+            }
+          ]
+        }
+      ],
+      "datasetDiscrepancies": []
+    },
+    {
+      "id": "statistics",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-statistics/exam",
+      "totalMinutesStated": 180,
+      "totalMinutesVerbatim": "3hrs",
+      "totalMinutesApproximate": false,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Multiple Choice",
+          "questionCount": "42",
+          "minutes": 90,
+          "weightPercent": 50,
+          "quote": "Section I: Multiple Choice — 42 Questions | 1 Hour 30 Minutes | 50% of Exam Score"
+        },
+        {
+          "name": "Free Response",
+          "questionCount": "4",
+          "minutes": 90,
+          "weightPercent": 50,
+          "quote": "Section II: Free Response — 4 Questions | 1 Hour 30 Minutes | 50% of Exam Score"
+        }
+      ],
+      "datasetDiscrepancies": [
+        {
+          "field": "mcqCount",
+          "dataset": "40",
+          "page": "42",
+          "quote": "Section I: Multiple Choice — 42 Questions | 1 Hour 30 Minutes | 50% of Exam Score"
+        },
+        {
+          "field": "frqCount",
+          "dataset": "6",
+          "page": "4",
+          "quote": "Section II: Free Response — 4 Questions | 1 Hour 30 Minutes | 50% of Exam Score"
+        }
+      ]
+    },
+    {
+      "id": "united-states-government-and-politics",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-united-states-government-and-politics/exam",
+      "totalMinutesStated": 180,
+      "totalMinutesVerbatim": null,
+      "totalMinutesApproximate": null,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Multiple Choice",
+          "questionCount": "55",
+          "minutes": 80,
+          "weightPercent": 50,
+          "quote": "Section I: Multiple Choice — 55 Questions | 1 Hour 20 minutes | 50% of Exam Score"
+        },
+        {
+          "name": "Free Response",
+          "questionCount": "4",
+          "minutes": 100,
+          "weightPercent": 50,
+          "quote": "Section II: Free Response — 4 Questions | 1 Hour 40 minutes | 50% of Exam Score"
+        }
+      ],
+      "datasetDiscrepancies": []
+    },
+    {
+      "id": "united-states-history",
+      "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-united-states-history/exam",
+      "totalMinutesStated": 195,
+      "totalMinutesVerbatim": null,
+      "totalMinutesApproximate": null,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Section I, Part A: Multiple Choice",
+          "questionCount": "55",
+          "minutes": 55,
+          "weightPercent": 40,
+          "quote": "55 Questions | 55 Minutes | 40% of Exam Score"
+        },
+        {
+          "name": "Section I, Part B: Short Answer",
+          "questionCount": "3",
+          "minutes": 40,
+          "weightPercent": 20,
+          "quote": "3 Questions | 40 Minutes | 20% of Exam Score"
+        },
+        {
+          "name": "Section II: Free Response (Document-Based Question and Long Essay)",
+          "questionCount": "2",
+          "minutes": 100,
+          "weightPercent": 40,
+          "quote": "2 questions | 1 Hour, 40 minutes | 40% of Exam Score",
+          "parts": [
+            {
+              "name": "Document-Based Question (DBQ)",
+              "questionCount": "1",
+              "minutes": 60,
+              "toolNote": "Recommended Time: 1 Hour (includes 15-minute reading period)",
+              "quote": "Recommended Time: 1 Hour (includes 15-minute reading period) | 25% of Exam Score"
+            },
+            {
+              "name": "Long Essay",
+              "questionCount": "1",
+              "minutes": 40,
+              "toolNote": "Recommended time; student chooses from 3 options",
+              "quote": "Recommended time: 40 Minutes | 15% of Exam Score"
+            }
+          ]
+        }
+      ],
+      "datasetDiscrepancies": [
+        {
+          "field": "mcqMinutes",
+          "dataset": "55",
+          "page": "55",
+          "quote": "55 Questions | 55 Minutes | 40% of Exam Score"
+        },
+        {
+          "field": "frqMinutes",
+          "dataset": "pending",
+          "page": "40 (Short Answer) + 100 (Section II) published separately",
+          "quote": "Section I Part B: 3 Questions | 40 Minutes; Section II: 2 questions | 1 Hour, 40 minutes"
+        }
+      ]
+    },
+    {
+      "id": "world-history-modern",
+      "sourceUrl": "https://apstudents.collegeboard.org/courses/ap-world-history-modern/assessment",
+      "totalMinutesStated": 195,
+      "totalMinutesVerbatim": null,
+      "totalMinutesApproximate": null,
+      "noSitDownExam": false,
+      "sections": [
+        {
+          "name": "Section IA: Multiple Choice",
+          "questionCount": "55",
+          "minutes": 55,
+          "weightPercent": 40,
+          "quote": "Section IA: Multiple Choice — 55 questions 55mins 40% of Score"
+        },
+        {
+          "name": "Section IB: Short Answer",
+          "questionCount": "3",
+          "minutes": 40,
+          "weightPercent": 20,
+          "quote": "Section IB: Short Answer — 3 questions 40mins 20% of Score"
+        },
+        {
+          "name": "Section II: Free Response",
+          "questionCount": "2",
+          "minutes": 100,
+          "weightPercent": 40,
+          "quote": "Section II: Free Response — 2 questions 1hr 40mins 40% of Score",
+          "parts": [
+            {
+              "name": "Document-Based Question",
+              "questionCount": "1",
+              "minutes": 60,
+              "toolNote": "Recommended Time: 60 Minutes (includes 15-minute reading period)",
+              "quote": "Document-Based Question | Recommended Time: 60 Minutes (includes 15-minute reading period) | 25% of Score"
+            },
+            {
+              "name": "Long Essay Question",
+              "questionCount": "1",
+              "minutes": 40,
+              "toolNote": "none",
+              "quote": "Long Essay Question | 40 Minutes | 15% of Score"
+            }
+          ]
+        }
+      ],
+      "datasetDiscrepancies": [
+        {
+          "field": "frqMinutes",
+          "dataset": "pending",
+          "page": "Section II Free Response = 1hr 40mins (100 min); Section IB Short Answer = 40mins",
+          "quote": "Section II: Free Response — 2 questions 1hr 40mins 40% of Score"
+        },
+        {
+          "field": "frqCount",
+          "dataset": "5",
+          "page": "Section IB Short Answer = 3 questions; Section II Free Response = 2 questions (2 DBQ+LEQ). Dataset lumps SAQ+FRQ into 5.",
+          "quote": "Section IB: Short Answer — 3 questions ... Section II: Free Response — 2 questions"
+        }
+      ]
+    }
+  ],
+  "spotCheckPatch2026_07_09": "issue #44 builder spot-check (raw apcentral HTML): italian S-I 65-70, japanese S-I 40-45 / S-II 65, french Q3 essay 55 — four false 'pending' values corrected; see the per-id records' spotCheckPatch2026_07_09 notes."
+}

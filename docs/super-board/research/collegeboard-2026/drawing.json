@@ -1,0 +1,11 @@
+{
+  "id": "drawing",
+  "name": "AP Drawing",
+  "sourceUrl": "https://apstudents.collegeboard.org/courses/ap-drawing/assessment",
+  "fallbackUsed": "apstudents",
+  "noSitDownExam": true,
+  "totalMinutesStated": "n/a",
+  "sectionsSumToTotal": "n/a",
+  "sections": [],
+  "datasetDiscrepancies": []
+}

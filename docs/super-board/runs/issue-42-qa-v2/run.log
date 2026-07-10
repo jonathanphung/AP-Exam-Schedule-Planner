@@ -1,0 +1,40 @@
+
+> ap-exam-planner@0.1.0 test:e2e /Users/jon/repos/AP-Exam-Planner/.worktrees/issue-42-qa
+> playwright test e2e/issue-42-feedback-dialog.spec.ts
+
+
+Running 23 tests using 4 workers
+
+  ✓   3 [chromium] › e2e/issue-42-feedback-dialog.spec.ts:131:5 › AC1 — opens from the mobile presentation too (375px) (16.2s)
+  ✓   4 [chromium] › e2e/issue-42-feedback-dialog.spec.ts:106:5 › AC1 — footer 'Send us Feedback' is a real <button> that opens the dialog without navigating; the GitHub icon still links to the repo (16.5s)
+  ✓   1 [chromium] › e2e/issue-42-feedback-dialog.spec.ts:182:5 › AC3 — invalid email blocks submission with an inline, aria-tied error; no transport is touched (17.0s)
+  ✓   2 [chromium] › e2e/issue-42-feedback-dialog.spec.ts:139:5 › AC2 — dialog contents match the card: heading, blurb, labeled optional email, labeled textarea w/ placeholder, Cancel + Send Feedback + ✕ (17.3s)
+  ✓   5 [chromium] › e2e/issue-42-feedback-dialog.spec.ts:208:5 › AC3 — empty email submits fine (email is optional); any-domain email is accepted and rides along (3.8s)
+  ✓   7 [chromium] › e2e/issue-42-feedback-dialog.spec.ts:276:5 › AC4 — 2000-char cap is enforced (maxLength) and the live counter appears near the cap, turning emphatic at it (3.3s)
+  ✓   6 [chromium] › e2e/issue-42-feedback-dialog.spec.ts:239:5 › AC4 — empty and whitespace-only messages are rejected inline (role=alert, aria-describedby, focus moves to the field); no transport (3.6s)
+  ✓   8 [chromium] › e2e/issue-42-feedback-dialog.spec.ts:309:5 › AC5 — pending: submit disabled w/ busy indicator, dialog not dismissable mid-flight (Cancel, ✕, Escape, backdrop all inert) (3.2s)
+  ✓   9 [chromium] › e2e/issue-42-feedback-dialog.spec.ts:373:5 › AC5 — failure (blocked pop-up): error surfaces, the user's text is preserved, and retry succeeds — the UI never claims success on failure (1.8s)
+  ✓  10 [chromium] › e2e/issue-42-feedback-dialog.spec.ts:344:5 › AC5 — success: thank-you view uses the adapter's own notice and never claims delivery the interim path can't guarantee (1.7s)
+  ✓  12 [chromium] › e2e/issue-42-feedback-dialog.spec.ts:437:5 › AC6 — it's a real form: Enter from the email field submits (1.9s)
+  ✓  13 [chromium] › e2e/issue-42-feedback-dialog.spec.ts:449:5 › AC6 — ≥44×44px touch targets on mobile (trigger, ✕, Cancel, Send) (1.6s)
+  ✓  14 [chromium] › e2e/issue-42-feedback-dialog.spec.ts:471:7 › AC6 — axe: the open dialog has no WCAG violations (light) (3.0s)
+  ✓  15 [chromium] › e2e/issue-42-feedback-dialog.spec.ts:471:7 › AC6 — axe: the open dialog has no WCAG violations (dark) (2.7s)
+  ✓  11 [chromium] › e2e/issue-42-feedback-dialog.spec.ts:402:5 › AC6 — focus management: initial focus in the dialog, Tab is trapped, and Cancel / Escape / ✕ each restore focus to the trigger (5.1s)
+  ✓  16 [chromium] › e2e/issue-42-feedback-dialog.spec.ts:500:7 › AC7 — dialog works at 320×568 with no horizontal page scroll (2.3s)
+  ✓  17 [chromium] › e2e/issue-42-feedback-dialog.spec.ts:500:7 › AC7 — dialog works at 375×667 with no horizontal page scroll (1.9s)
+  ✓  18 [chromium] › e2e/issue-42-feedback-dialog.spec.ts:500:7 › AC7 — dialog works at 1024×768 with no horizontal page scroll (1.9s)
+  ✓  19 [chromium] › e2e/issue-42-feedback-dialog.spec.ts:500:7 › AC7 — dialog works at 1920×1080 with no horizontal page scroll (1.8s)
+  ✓  20 [chromium] › e2e/issue-42-feedback-dialog.spec.ts:517:5 › AC7 — desktop presentation: the modal overlay covers the sticky catalog filter bar (QA v1 FAIL — issue-29 R6 regression class) (1.5s)
+  ✓  23 [chromium] › e2e/issue-42-feedback-dialog.spec.ts:586:9 › AC7 — evidence: dark theme dialog at 375×667 (2.1s)
+  ✓  21 [chromium] › e2e/issue-42-feedback-dialog.spec.ts:565:5 › AC7 — the dialog itself scrolls on short viewports (footer actions stay reachable) (2.6s)
+  ✓  22 [chromium] › e2e/issue-42-feedback-dialog.spec.ts:586:9 › AC7 — evidence: dark theme dialog at 1920×1080 (2.7s)
+
+  23 passed (35.5s)
+
+=== QA v2 verification summary (branch issue-42-feedback-dialog @ 6e37221) ===
+pnpm test:unit                                  133/133 PASS
+pnpm lint                                       clean
+npx tsc --noEmit                                clean
+PORT=3100 pnpm test:e2e e2e/issue-42-feedback-dialog.spec.ts   23/23 PASS (incl. modal-integrity :521)
+PORT=3100 pnpm test:e2e (full suite)            255/255 PASS
+pnpm build                                      green — all routes ○ Static

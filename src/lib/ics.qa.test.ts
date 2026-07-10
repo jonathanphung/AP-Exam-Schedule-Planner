@@ -87,14 +87,19 @@ describe("issue #7 QA — ICS export against the shipped ap-2026.json", () => {
     );
   });
 
-  it("issue #38 — the kept exam carries a DTEND and a timing-breakdown DESCRIPTION", () => {
+  it("issue #38 — the kept exam carries a DTEND and a sections[] timing-breakdown DESCRIPTION", () => {
     const raw = ics.replace(/\r\n /g, "");
     // Biology: 2026-05-04 08:00 + published 180 + 30-min setup = 11:30, floating.
     expect(raw).toContain("DTEND:20260504T113000");
     expect(raw).not.toMatch(/DTEND:\d{8}T\d{6}Z/);
-    // Published section timings from College Board's AP Biology assessment page.
-    expect(raw).toContain("MCQ: 60 Questions | 90 Minutes");
-    expect(raw).toContain("FRQ: 6 Questions | 90 Minutes");
+    // Published section rows come from format.sections[] (the #44 model):
+    // dataset section names + questions | minutes | weight, verbatim.
+    expect(raw).toContain(
+      "Multiple Choice: 60 Questions | 90 Minutes | 50% of Score",
+    );
+    expect(raw).toContain(
+      "Free Response: 6 Questions | 90 Minutes | 50% of Score",
+    );
     // issue #38 A/B — published total phrased as hours-and-minutes, +30 setup
     // merged into the same row as OUR allowance.
     expect(raw).toContain(
@@ -102,14 +107,26 @@ describe("issue #7 QA — ICS export against the shipped ap-2026.json", () => {
     );
   });
 
-  it("issue #38 — a no-MCQ subject (AP Seminar) omits the MCQ row entirely", () => {
-    const raw = ics.replace(/\r\n /g, "");
+  it("issue #38 — a subject with no multiple-choice section (AP Seminar) has no MCQ row", () => {
     const vcal = new ICAL.Component(ICAL.parse(ics));
-    // Seminar's end-of-course written exam is all free response, no MCQ section.
-    expect(uid(vcal, "seminar-exam@ap-exam-planner")).toBeDefined();
-    expect(raw).toContain("FRQ: 4 Questions | 120 Minutes");
-    // A zero-count MCQ section is omitted, never printed as a "0" row.
-    expect(raw).not.toContain("MCQ: 0");
+    const seminar = uid(vcal, "seminar-exam@ap-exam-planner");
+    expect(seminar).toBeDefined();
+    const description = String(seminar?.getFirstPropertyValue("description"));
+    // Seminar's published sections are its two end-of-course components — the
+    // rows are exactly those, in dataset order…
+    expect(description).toContain(
+      "End-of-Course Exam – Short-Answer Section: 3 Questions | 30 Minutes | 13.5% of Score",
+    );
+    expect(description).toContain(
+      "End-of-Course Exam – Essay Section: 1 Question | 90 Minutes | 31.5% of Score",
+    );
+    expect(description).toContain(
+      "Total Length: 2 hours (+ 30 minutes for exam setup time)",
+    );
+    // …and an exam that lacks a section simply has no row for it: no
+    // multiple-choice line, and never a fabricated "0" row (issue #38 C5).
+    expect(description).not.toContain("Multiple Choice");
+    expect(description).not.toContain(": 0 Questions");
   });
 
   it("AC2 — the moved exam exports at its RESOLVED late slot, not its regular slot", () => {

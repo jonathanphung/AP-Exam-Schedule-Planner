@@ -1,0 +1,29 @@
+{
+  "id": "physics-c-electricity-and-magnetism",
+  "name": "AP Physics C: Electricity and Magnetism",
+  "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-physics-c-electricity-and-magnetism/exam",
+  "fallbackUsed": "none",
+  "noSitDownExam": false,
+  "totalMinutesStated": 180,
+  "sectionsSumToTotal": true,
+  "sections": [
+    {
+      "name": "Multiple Choice",
+      "questionCount": "40",
+      "minutes": 80,
+      "weightPercent": 50,
+      "quote": "Section I: Multiple Choice — 40 Questions — 80 minutes — 50% of exam. Questions are either discrete questions or question sets, in which students may be provided with a stimulus or a set of data and a series of related questions."
+    },
+    {
+      "name": "Free Response",
+      "questionCount": "4",
+      "minutes": 100,
+      "weightPercent": 50,
+      "quote": "Section II: Free Response — 4 Questions — 100 minutes — 50% of exam. The section includes one question each of the following categories: Mathematical routines; Translation between representations; Experimental design and analysis; Qualitative/quantitative translation."
+    }
+  ],
+  "datasetDiscrepancies": [],
+  "totalMinutesVerbatim": "3hrs",
+  "totalMinutesApproximate": false,
+  "totalMinutesSource": "https://apstudents.collegeboard.org/courses/ap-physics-c-electricity-and-magnetism/assessment"
+}

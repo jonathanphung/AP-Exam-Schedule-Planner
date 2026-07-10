@@ -1,4 +1,10 @@
-import type { ApSubject, ExamFormat, Session } from "../data/schema";
+import type {
+  ApSubject,
+  ExamFormat,
+  ExamSection,
+  ExamSectionPart,
+  Session,
+} from "../data/schema";
 import { SETUP_BUFFER_MINUTES } from "./calendar";
 import type { SlotResolution } from "./conflicts";
 import { resolveSlots } from "./conflicts";
@@ -192,19 +198,63 @@ export function formatDurationHM(totalMinutes: number): string {
 }
 
 /**
+ * `"1 Question"` / `"60 Questions"` / `"55–75 Questions"` (published ranges
+ * render verbatim, always plural) / `"Questions pending"` for a count that
+ * exists but is not yet published. An OMITTED count (College Board prints no
+ * count — e.g. a project-style component) returns `undefined` so the caller
+ * drops the segment entirely: omission and "pending" are different states.
+ */
+function questionSegment(
+  count: ExamSection["questionCount"],
+): string | undefined {
+  if (count === undefined) return undefined;
+  if (count === "pending") return "Questions pending";
+  return count === 1 ? "1 Question" : `${count} Questions`;
+}
+
+/**
+ * `"90 Minutes"` / `"40–45 Minutes"` (published ranges verbatim, never
+ * averaged) / `"Duration pending"` for a section that exists but whose length
+ * College Board has not published. Never an invented number (PRD §7.5).
+ */
+function minutesSegment(minutes: ExamSection["minutes"]): string {
+  return minutes === "pending" ? "Duration pending" : `${minutes} Minutes`;
+}
+
+/** One `Part A: 30 Questions | 60 Minutes (calculator not permitted)` row. */
+function partRow(part: ExamSectionPart): string {
+  const segments = [questionSegment(part.questionCount), minutesSegment(part.minutes)]
+    .filter((s): s is string => s !== undefined)
+    .join(" | ");
+  const note = part.note ? ` (${part.note})` : "";
+  return `- ${part.name}: ${segments}${note}`;
+}
+
+/**
  * Human-readable timing breakdown for an exam event's DESCRIPTION, e.g.
  *
- *   MCQ: 60 Questions | 80 Minutes
- *   FRQ: 6 Questions | 100 Minutes
+ *   Multiple Choice: 60 Questions | 90 Minutes | 50% of Score
+ *   Free Response: 6 Questions | 90 Minutes | 50% of Score
  *   Total Length: 3 hours (+ 30 minutes for exam setup time)
  *
- * Rules (issue #38):
- *  - One row per section that HAS questions; a section with a count of 0 (a
- *    subject with no MCQ or no FRQ) is omitted entirely, never printed as "0".
- *  - A section whose published minutes are "pending" prints "Duration pending"
- *    rather than an invented number — section durations are never estimated.
+ * Rules (issue #38, repointed at `format.sections[]` — the #44 model — as the
+ * single source of truth):
+ *  - One row per PUBLISHED section, in dataset order, titled exactly as the
+ *    dataset (College Board's own section names, never forced into an MCQ/FRQ
+ *    mold). An exam that lacks a section simply has no row for it (AP Seminar
+ *    prints no multiple-choice row) — omission is structural, never a "0" row.
+ *  - Row shape mirrors College Board's printed format (and the #44 info
+ *    panel): `questions | minutes | weight`. An omitted question count drops
+ *    that segment; a genuinely unpublished value renders as
+ *    "Questions pending" / "Duration pending" / "Weight pending" — pending is
+ *    never blank and never estimated (PRD §7.5).
+ *  - Published Part A/B rows nest under their section as `- `-prefixed lines,
+ *    carrying the page's note (calculator rule etc.) as a parenthetical.
+ *    Design call (issue #38): part notes ARE included (they distinguish the
+ *    parts); section-level notes are NOT (the rows stay unadorned, per the
+ *    ticket) — and no extra calculator/delivery line is added.
  *  - Section rows keep their raw published minutes; only the total is phrased
- *    as hours-and-minutes (part A).
+ *    as hours-and-minutes (part A of Jon's bounce).
  *  - "Total Length" is the subject's PUBLISHED `totalMinutes`, not a recomputed
  *    sum of the section minutes (sections may exclude breaks/instructions).
  *  - The 30-minute setup allowance is a parenthetical ON the total row (part B),
@@ -217,20 +267,23 @@ export function formatDurationHM(totalMinutes: number): string {
 function buildExamDescription(format: ExamFormat): string {
   const rows: string[] = [];
 
-  const sectionRow = (
-    label: string,
-    count: ExamFormat["mcqCount"],
-    minutes: ExamFormat["mcqMinutes"],
-  ): void => {
-    // A section that does not exist (a literal 0 count) is omitted, never "0".
-    if (count === 0) return;
-    const duration =
-      minutes === "pending" ? "Duration pending" : `${minutes} Minutes`;
-    rows.push(`${label}: ${count} Questions | ${duration}`);
-  };
-
-  sectionRow("MCQ", format.mcqCount, format.mcqMinutes);
-  sectionRow("FRQ", format.frqCount, format.frqMinutes);
+  for (const section of format.sections) {
+    const weight =
+      section.weightPercent === "pending"
+        ? "Weight pending"
+        : `${section.weightPercent}% of Score`;
+    const segments = [
+      questionSegment(section.questionCount),
+      minutesSegment(section.minutes),
+      weight,
+    ]
+      .filter((s): s is string => s !== undefined)
+      .join(" | ");
+    rows.push(`${section.name}: ${segments}`);
+    for (const part of section.parts ?? []) {
+      rows.push(partRow(part));
+    }
+  }
 
   const total =
     typeof format.totalMinutes === "number"

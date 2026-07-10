@@ -153,10 +153,15 @@ test.describe("issue #7 — export to calendar", () => {
     expect(unfolded).toMatch(/DTEND:\d{8}T143000/);
     expect(unfolded).not.toMatch(/DTEND:\d{8}T\d{6}Z/);
     // issue #38 A/B — the DESCRIPTION carries the published section-by-section
-    // timing breakdown; the total is phrased as hours-and-minutes with the +30
-    // setup allowance merged into that same row as OUR allowance.
-    expect(unfolded).toContain("MCQ: 60 Questions | 90 Minutes");
-    expect(unfolded).toContain("FRQ: 6 Questions | 90 Minutes");
+    // timing breakdown straight from format.sections[] (the #44 model); the
+    // total is phrased as hours-and-minutes with the +30 setup allowance
+    // merged into that same row as OUR allowance.
+    expect(unfolded).toContain(
+      "Multiple Choice: 60 Questions | 90 Minutes | 50% of Score",
+    );
+    expect(unfolded).toContain(
+      "Free Response: 6 Questions | 90 Minutes | 50% of Score",
+    );
     expect(unfolded).toContain(
       "Total Length: 3 hours (+ 30 minutes for exam setup time)",
     );

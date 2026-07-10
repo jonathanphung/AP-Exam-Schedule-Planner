@@ -1,0 +1,29 @@
+{
+  "id": "physics-1",
+  "name": "AP Physics 1: Algebra-Based",
+  "sourceUrl": "https://apcentral.collegeboard.org/courses/ap-physics-1/exam",
+  "fallbackUsed": "none",
+  "noSitDownExam": false,
+  "totalMinutesStated": 180,
+  "sectionsSumToTotal": "pending",
+  "sections": [
+    {
+      "name": "Multiple Choice",
+      "questionCount": "40",
+      "minutes": 80,
+      "weightPercent": 50,
+      "quote": "Section I: Multiple Choice — 40 questions | 80 minutes | 50% of exam score"
+    },
+    {
+      "name": "Free Response",
+      "questionCount": "4",
+      "minutes": 100,
+      "weightPercent": 50,
+      "quote": "Section II: Free Response — 4 questions | 100 minutes | 50% of exam score"
+    }
+  ],
+  "datasetDiscrepancies": [],
+  "totalMinutesVerbatim": "3hrs",
+  "totalMinutesApproximate": false,
+  "totalMinutesSource": "https://apstudents.collegeboard.org/courses/ap-physics-1/assessment"
+}

@@ -1,11 +1,9 @@
 # Data sources for `ap-2026.json`
 
 Every value in `ap-2026.json` was taken from a College Board page fetched on
-**2026-07-04** (the file's `lastVerified` date), except the per-section
-durations (`mcqMinutes` / `frqMinutes`, added for issue #38) which were fetched
-on **2026-07-08** — see "Per-section timing (`mcqMinutes` / `frqMinutes`)"
-below. Nothing is estimated; any value College Board has not published is the
-literal string `"pending"` (PRD §7.5/§8/§11).
+**2026-07-04** (the file's `lastVerified` date). Nothing is estimated; any
+value College Board has not published is the literal string `"pending"`
+(PRD §7.5/§8/§11).
 
 ## The four data classes (issue #2 AC)
 
@@ -55,161 +53,11 @@ labels verbatim.
     `ap-business-personal-finance`)
   - `totalMinutes` is the published "Exam Duration" from the AP Students
     assessment page (e.g. Biology "3hrs" → 180; Cybersecurity "2hrs 10mins"
-    → 130). Where the page publishes a range for question counts (AP Chinese
-    "25–35" + "30–40" listening/reading MCQs), the dataset stores the
-    published range as a string (e.g. `"55–75"`).
-### Per-section timing (`mcqMinutes` / `frqMinutes`)
-
-Added for issue #38 (ICS export timing breakdown). Each value is the published
-duration of that exam section, fetched **2026-07-08** and **re-verified live on
-2026-07-09** (issue #38 human bounce — Jon asked whether the remaining pending
-sections could simply be fetched from College Board) from the AP Students
-assessment page for the course
-(`https://apstudents.collegeboard.org/courses/ap-<slug>/assessment`, the same
-pages already cited above for `totalMinutes`). **No section duration is
-estimated**, and none is back-computed by subtracting one section from the
-published total — an unpublished section duration is the literal `"pending"`
-(PRD §7.5/§8/§11).
-
-Each populated value was cross-checked against the section's already-verified
-question count and against the published `totalMinutes`; a value was only
-recorded when the fetched page unambiguously stated a single time for exactly
-that section AND its question count matched the dataset. Where a page did not
-survive that check the field is `"pending"` rather than a guess.
-
-**2026-07-09 live re-verification result:** the re-fetch confirmed the pending
-set — no new section time could be honestly populated. The AP Students
-assessment pages publish a per-section MCQ/FRQ **minute** figure for only a
-subset of sit-down exams; for the rest they publish the total exam duration and
-per-section **score weights** but no per-section time. The exact page text for
-every still-pending subject is quoted below so the gap is auditable rather than
-mysterious. Two subjects (`statistics`, `french-language-and-culture`) surfaced
-a live **question-count discrepancy** against the dataset — see the flagged
-sub-list; those minutes stay pending because populating a time next to a count
-the same page contradicts would ship an internally inconsistent row.
-
-Fully populated (both sections stated and cross-checked; `mcqMinutes` +
-`frqMinutes` = published `totalMinutes`):
-
-| Subject | MCQ | FRQ | Total | Assessment page section text (verbatim) |
-|---|---|---|---|---|
-| biology | 90 | 90 | 180 | MC "60 questions 1hr 30mins"; FR "6 questions 1hr 30mins" |
-| calculus-bc | 105 | 90 | 195 | MC "45 questions 1hr 45mins"; FR "6 questions 1hr 30mins" |
-| chemistry | 90 | 105 | 195 | MC "60 questions 1hr 30mins"; FR "7 questions 1hr 45mins" |
-| physics-1 | 80 | 100 | 180 | MC "40 Questions 1hr 20mins"; FR "4 Questions 1hr 40mins" |
-| physics-2 | 80 | 100 | 180 | MC "40 Questions 1hr 20mins"; FR "4 Questions 1hr 40mins" |
-| physics-c-mechanics | 80 | 100 | 180 | MC "40 Questions 1hr 20mins"; FR "4 Questions 1hr 40mins" |
-| physics-c-electricity-and-magnetism | 80 | 100 | 180 | MC "40 Questions 1hr 20mins"; FR "4 Questions 1hr 40mins" |
-| precalculus | 120 | 60 | 180 | MC "40 Questions 2hrs"; FR "4 Questions 1hr" |
-| environmental-science | 90 | 70 | 160 | MC "80 questions 1hr 30mins"; FR "3 questions 1hr 10mins" |
-| psychology | 90 | 70 | 160 | MC "75 questions 1hr 30mins"; FR "2 questions 1hr 10mins" |
-| human-geography | 60 | 75 | 135 | MC "60 questions 1hr"; FR "3 questions 1hr 15mins" |
-| macroeconomics | 70 | 60 | 130 | MC "60 Questions 1hr 10mins"; FR "3 Questions 1hr" |
-| microeconomics | 70 | 60 | 130 | MC "60 questions 1hr 10mins"; FR "3 questions 1hr" |
-| comparative-government-and-politics | 60 | 90 | 150 | MC "55 questions 1hr"; FR "4 questions 1hr 30mins" |
-| united-states-government-and-politics | 80 | 100 | 180 | MC "55 questions 1hr 20mins"; FR "4 questions 1hr 40mins" |
-| computer-science-principles | 120 | 60 | 180 | MC "70 questions 120 minutes"; exam-day written response "2 questions 60 minutes" |
-| latin | 65 | 115 | 180 | MC "52 questions 1hr 05mins"; FR "5 questions 1hr 55mins" |
-
-Partially populated — one section is directly published, the other is
-`"pending"` because the exam's Part A / Part B structure spreads it across
-sections and College Board publishes only per-part times (never summed here):
-
-- `united-states-history`, `world-history-modern`: `mcqMinutes: 55` (Section I
-  Part A: "55 questions 55mins"); `frqMinutes: "pending"` (short-answer +
-  document-based + long essay are timed as separate parts across Sections I–II).
-- `african-american-studies`: `mcqMinutes: 70` (Section I: "60 Questions
-  1hr 10mins"); `frqMinutes: "pending"` (project-validation, short-answer, and
-  document-based questions are timed as separate parts).
-- `english-language-and-composition`: `frqMinutes: 135` (Section II free
-  response: "2 hour and 15 minute time limit ... includes a 15-minute reading
-  period"); `mcqMinutes: "pending"` (the MC section time is not stated on the
-  page).
-- `seminar`: `frqMinutes: 120` (end-of-course written exam, "2hrs", four
-  free-response questions); `mcqMinutes: "pending"` (no MC section — `mcqCount`
-  is 0, so the ICS breakdown omits the MCQ row entirely).
-
-`"pending"` for both sections, grouped by the reason confirmed on the live
-2026-07-09 re-fetch (assessment page = `…/courses/ap-<slug>/assessment`):
-
-**(a) Page publishes the total + per-section score weights but NO per-section
-minutes.** These are genuinely unpublished per-section — the split cannot be
-recovered without back-computing (forbidden), so both stay `"pending"`:
-
-- `calculus-ab` — MC "45 questions 50% of Score"; FR "6 questions 50% of Score";
-  total "3hrs 15mins". No section time stated.
-- `computer-science-a` — MC "42 questions 55% of Score"; FR "4 questions 45% of
-  Score"; total "3 hours". No section time stated. (Counts match the dataset;
-  only the minutes are unpublished.)
-- `art-history` — MC "80 questions 50% of Score"; FR "6 questions 50% of Score";
-  total "3hrs". No section time stated.
-- `english-literature-and-composition` — MC "55 questions 45% of Score"; FR
-  "3 questions 55% of Score"; total "3 hours". No section time stated.
-- `music-theory` — MC 75 questions given only as "~80 minutes combined" split
-  across aural (~45 min) + non-aural (35 min); FR is written (7) + sight-singing
-  (2). No single published MCQ or FRQ minute figure; total "~2hrs 40mins".
-
-**(b) FRQ is split across separately-timed Part A/B components (short-answer,
-document-based, long-essay) that College Board times individually and never
-sums.** The MCQ side is published and populated (see "Partially populated"
-above); the FRQ side stays `"pending"` because summing the parts would be
-back-computation:
-
-- `united-states-history`, `world-history-modern` — Section IB SAQ "3 questions
-  40mins"; Section II DBQ "60 Minutes (includes 15-minute reading period)"; Long
-  Essay "40 Minutes". Timed as three separate parts, never summed.
-- `european-history` — same structure: MC "55 questions 40% of Score" (no time);
-  SAQ "3 questions 20% of Score" (no time); DBQ "60 minutes"; Long Essay
-  "40 minutes". Both sections stay pending (MC time not published either).
-- `african-american-studies` — FRQ project-validation + short-answer +
-  document-based questions timed as separate parts (MCQ side populated at 70).
-
-**(c) Live question-count discrepancy vs the dataset — FLAGGED for a counts
-re-source decision (Jon).** The assessment page publishes a clean per-section
-time, but its question count contradicts the dataset's already-"verified" count.
-Populating the minute next to a mismatched count would ship an internally
-inconsistent breakdown row, so both stay `"pending"` pending a human decision on
-whether to re-source the counts (that is issue #2 dataset territory, outside
-issue #38's per-section-minutes scope):
-
-- `statistics` — live page: MC "42 questions 1hr 30mins"; FR "4 questions 1hr
-  30mins"; total 3 hours. Dataset: `mcqCount 40`, `frqCount 6`. Counts disagree
-  (42/4 live vs 40/6 stored) → minutes held pending.
-- `french-language-and-culture` — live page: MC (listening 25 + reading 30) =
-  "55 questions | 80 minutes"; FR is 3 tasks timed per-task. Dataset:
-  `mcqCount 65`, `frqCount 4`. Counts disagree → minutes held pending.
-
-**(d) World-language exams whose listening + reading + speaking + writing
-structure does not map to a single MCQ time + single FRQ time** (and, like
-French above, generally carry range/aggregate counts that don't cross-check):
-`german-language-and-culture`, `italian-language-and-culture`,
-`spanish-language-and-culture`, `spanish-literature-and-culture`,
-`chinese-language-and-culture`, `japanese-language-and-culture`.
-
-**(e) Not applicable — no such section, or no May 2026 exam, so the field never
-renders in the export.** These `"pending"` values are inert: the ICS breakdown
-omits any section whose `count` is 0, and no exam VEVENT (hence no breakdown at
-all) is produced for a subject with `exam: null`:
-
-- Zero-count section (`mcqCount: 0`): `seminar` (MCQ row omitted; its published
-  FRQ is 120 min).
-- Portfolio-only, `exam: null` (portfolio-deadline events only, no exam
-  breakdown): `research`, `2-d-art-and-design`, `3-d-art-and-design`, `drawing`.
-- Career Kickstart, `exam: null` (first exam May 2027):
-  `business-with-personal-finance`, `cybersecurity`.
-
-So of the "~25 pending" the bounce cited, 14 are class (e) — structurally N/A
-values that never reach the user (the export already omits them, issue #38 part
-C5) — and the rest are genuinely-unpublished-per-section (a/b/d) or blocked on a
-counts discrepancy (c). None can be filled from College Board today without
-estimating or back-computing, which the data rule forbids.
-
-Note on `Total Length` vs the section sum: the ICS breakdown prints the
-published `totalMinutes`, not the sum of `mcqMinutes` + `frqMinutes`. For the
-fully-populated subjects above the two happen to agree, but the total is
-authoritative — some exams' published total excludes breaks/instructions, and
-those are not reconciled by editing section values.
-
+    → 130). The `questionCount` type also accepts a published range string
+    (`"55–75"`) for cycles where College Board prints an adaptive range, though
+    **no subject currently uses one** after the 2026-07-09 re-source — see
+    "2026 digital-redesign question-count corrections" below, which moved AP
+    Chinese and AP Japanese to fixed counts.
 - Portfolio component weights (`weightPct`):
   - AP Seminar 20% + 35% = 55% through-course performance tasks:
     <https://apcentral.collegeboard.org/courses/ap-seminar/exam>
@@ -219,6 +67,264 @@ those are not reconciled by editing section values.
     <https://apcentral.collegeboard.org/courses/ap-computer-science-principles/exam>
   - AP Art and Design sustained investigation 60% + selected works 40%:
     <https://apstudents.collegeboard.org/courses/ap-drawing/assessment>
+
+## 2026 digital-redesign question-count corrections (issue #45, re-sourced 2026-07-09)
+
+The initial 2026-07-04 fill carried **pre-redesign** question counts for seven
+subjects. They were re-sourced on **2026-07-09** from each course's AP Central
+exam page (`https://apcentral.collegeboard.org/courses/ap-<slug>/exam`),
+adversarially verified (one fetch agent + one independent refute-skeptic per
+subject), and re-checked by hand. Verbatim page text for all 42 subjects is
+committed under `docs/super-board/research/collegeboard-2026/` (see that
+folder's `README.md`); each subject below cites its file.
+
+| subject | field | was | now | verbatim source quote |
+|---|---|---|---|---|
+| `statistics` | `mcqCount` | 40 | **42** | "Section I: Multiple Choice — 42 Questions \| 1 Hour 30 Minutes \| 50% of Exam Score" |
+| `statistics` | `frqCount` | 6 | **4** | "Section II: Free Response — 4 Questions \| 1 Hour 30 Minutes \| 50% of Exam Score" |
+| `french-language-and-culture` | `mcqCount` | 65 | **55** | "Section II: Multiple-Choice — 55 Questions \| 80 Minutes \| 50% of Score" |
+| `french-language-and-culture` | `frqCount` | 4 | **3** | "Section I: Free-Response — 3 Questions \| 65–70 Minutes \| 50% of Score" |
+| `german-language-and-culture` | `mcqCount` | 65 | **55** | "Section II: Multiple-Choice — 55 Questions \| 80 Minutes \| 50% of Score" |
+| `german-language-and-culture` | `frqCount` | 4 | **3** | "Section I: Free-Response — 3 Questions \| 65–70 Minutes \| 50% of Score" |
+| `italian-language-and-culture` | `mcqCount` | 65 | **55** | "55 Questions \| 80 Minutes \| 50% of Score" |
+| `italian-language-and-culture` | `frqCount` | 4 | **3** | "3 Questions \| 65–70 Minutes \| 50% of Score" |
+| `spanish-language-and-culture` | `mcqCount` | 65 | **55** | "Section II: Multiple-Choice — 55 Questions \| 80 Minutes \| 50% of Score" |
+| `spanish-language-and-culture` | `frqCount` | 4 | **3** | "Section I: Free-Response — 3 Questions \| 65–70 Minutes \| 50% of Score" |
+| `chinese-language-and-culture` | `mcqCount` | `"55–75"` | **55** | "Section II: Multiple-Choice — 55 Questions \| 65 Minutes \| 50% of Score" |
+| `japanese-language-and-culture` | `mcqCount` | `"60–75"` | **55** | "Section II: Multiple Choice — 55 questions — 50% of Score (Part A: Listening 25 + Part B: Reading 30)" |
+
+The `"55–75"` / `"60–75"` ranges for Chinese and Japanese described the older
+adaptive-listening format; the current pages print a fixed **55** (25 listening
++ 30 reading). AP Statistics moved to 42 MCQ / 4 FRQ and AP French/German/
+Italian/Spanish now open with a spoken project presentation, dropping Section I
+to 3 free-response questions.
+
+### `frqType` re-descriptions (kept consistent with the corrected `frqCount`)
+
+> **Historical (issue #44):** the flat `frqType` field no longer exists — it
+> was replaced by `format.sections[]`. For plain two-section exams the
+> composition strings below live on as the free-response section's `note`
+> (see "Per-section `sections[]` breakdown"); the language exams' structure
+> is now expressed by their published parts instead.
+
+`frqType` renders directly beneath `frqCount` in `InfoPanel`, so a corrected
+count with a stale description would render a self-contradiction. Where the
+count changed, `frqType` was re-sourced from the same page:
+
+- `french/german/italian/spanish-language-and-culture`: `"2 written tasks + 2
+  spoken tasks"` → **`"1 written task + 2 spoken tasks"`** — the three published
+  free-response questions are Project Presentation (spoken), Project Q&A
+  (spoken), and Argumentative Essay (written).
+- `statistics`: `"6 free-response questions (5 multipart questions + 1
+  investigative task)"` → **`"3 multi-part questions + 1 inference question
+  (hypothesis test or confidence interval)"`** — the pre-redesign "investigative
+  task" was dropped and the count fell to 4. Both College Board pages publish a
+  per-question breakdown of Section II, so the composition is sourced, not
+  pending. AP Central
+  (`apcentral.collegeboard.org/courses/ap-statistics/exam`): "Question 1:
+  Multi-Focus on Practices 1 and 2 / Question 2: Multi-Focus on Practices 3 and
+  4 / Question 3: Inference (Hypothesis Test or Confidence Interval) / Question
+  4: Multi-Focus on Practices 2, 3, and 4". AP Students
+  (`apstudents.collegeboard.org/courses/ap-statistics/assessment`): "Question 1
+  is a multi-part question that primarily assesses Practices 1 and 2. Question 2
+  is a multi-part question that primarily assesses Practices 3 and 4. Question 3
+  focuses on inference, assessing the inference skills associated with Practices
+  2, 3, and 4. Question 4 is a multi-part question with a focus on multiple
+  course content areas, assessing Practices 2, 3, and 4." Questions 1, 2, and 4
+  are the three multi-part / multi-focus questions; Question 3 is the inference
+  question. Every term in the stored composition ("multi-part", "inference",
+  "hypothesis test or confidence interval") is verbatim page language; the
+  redesigned exam prints no "investigative task".
+- `chinese/japanese-language-and-culture`: unchanged — `frqCount` stays 4 and
+  the four questions remain 2 spoken (Presentation, Q&A) + 2 written (Story
+  Narration, Email Response), so `"2 written tasks + 2 spoken tasks"` is correct.
+
+### Exam durations (`totalMinutes`) — AP Central omits the total, AP Students omits section times
+
+The two College Board pages are **complementary**:
+`apcentral.collegeboard.org/courses/ap-<slug>/exam` prints each section's timing
+and weight but, for most subjects, **no overall exam total**;
+`apstudents.collegeboard.org/courses/ap-<slug>/assessment` prints the overall
+**`Exam Duration`** but **no per-section times**. A duration absent from AP
+Central is therefore *not* unpublished — it is on AP Students. `totalMinutes` is
+sourced from the AP Students `Exam Duration`; the per-section splits come from AP
+Central. (Recorded because the first re-source consulted only AP Central,
+mislabelled published totals `"pending"`, and this card's first build then
+overwrote four correct durations with that false `"pending"`. The provenance was
+re-sourced and patched at commit `171cb15`; every sit-down subject now carries
+`totalMinutesStated` / `totalMinutesVerbatim` / `totalMinutesSource`.)
+
+The six language exams' `totalMinutes` are the published AP Students
+`Exam Duration`:
+
+| subject | totalMinutes | AP Students `Exam Duration` (verbatim) | source |
+|---|---|---|---|
+| `french-language-and-culture` | **150** | "Approximately 2hrs 30mins" | <https://apstudents.collegeboard.org/courses/ap-french-language-and-culture/assessment> |
+| `german-language-and-culture` | **150** | "Approximately 2hrs 30mins" | <https://apstudents.collegeboard.org/courses/ap-german-language-and-culture/assessment> |
+| `italian-language-and-culture` | **150** | "Approximately 2hrs 30mins" | <https://apstudents.collegeboard.org/courses/ap-italian-language-and-culture/assessment> |
+| `spanish-language-and-culture` | **150** | "Approximately 2hrs 30mins" | <https://apstudents.collegeboard.org/courses/ap-spanish-language-and-culture/assessment> |
+| `chinese-language-and-culture` | **120** | "Approximately 2hrs" | <https://apstudents.collegeboard.org/courses/ap-chinese-language-and-culture/assessment> |
+| `japanese-language-and-culture` | **120** | "Approximately 2hrs" | <https://apstudents.collegeboard.org/courses/ap-japanese-language-and-culture/assessment> |
+
+French/German/Italian/Spanish shipped a wrong `180`/`183` in production and are
+corrected to the published **150**. Chinese/Japanese were already correct at
+**120**; this card's first build wrote `"pending"` over them and that is now
+reverted. `statistics.totalMinutes` stays **180** ("3hrs", `statistics.json`),
+unchanged — both its 90-minute sections and its overall total are published.
+Every other subject's `totalMinutes` was verified subject-by-subject to already
+equal its patched `totalMinutesStated`, so **no other subject was touched**. The
+four portfolio-only subjects (`research`, `drawing`, `2-d-art-and-design`,
+`3-d-art-and-design`) have no sit-down exam and keep `0`.
+
+### Design decision — approximate durations stored as the rounded integer; hedge dropped
+
+Four of the six totals are printed with a hedge ("Approximately 2hrs 30mins",
+"Approximately 2hrs") and the provenance flags each `totalMinutesApproximate:
+true`. The schema stores `totalMinutes` as an integer and this card makes **no
+schema change**, so the hedge is **dropped in the data layer**: French is stored
+as `150` and `InfoPanel` renders "2 hr 30 min" with no "about". This is
+deliberate. Surfacing the hedge in the UI ("about 2 hr 30 min") or carrying a
+per-value approximate flag is a schema + `InfoPanel` change that belongs with
+#44's duration model, not a count-fix card. The hedge is not lost — it is kept
+verbatim in `totalMinutesVerbatim` / `totalMinutesApproximate` in the provenance
+for whoever builds that UI.
+
+### Scope deliberately held to these seven subjects
+
+Two categories were **intentionally not touched** here:
+
+1. **The seven 3+-section subjects** — `african-american-studies`,
+   `european-history`, `united-states-history`, `world-history-modern`,
+   `music-theory`, `spanish-literature-and-culture`,
+   `business-with-personal-finance`. Their provenance shows separately-timed
+   Part A/B or third sections (e.g. Music Theory free response "7 + 2", US
+   History free response "2"), which the flat `mcqCount`/`frqCount` model
+   cannot express. That is issue #44's `sections[]` work, not a count fix —
+   forcing a flat number here would fabricate an aggregate the page never
+   prints. Left unchanged.
+2. **Per-section timing splits** — the provenance carries Part A/B and
+   per-question `minutes` for many subjects (e.g. the language exams' 80-minute
+   MCQ = 40 listening + 40 reading) that the flat `mcqMinutes`/`frqMinutes`
+   schema cannot express; those splits belong to #44's `sections[]` model. Note:
+   after the `171cb15` provenance patch every sit-down subject's **overall**
+   `totalMinutes` is published and correct here — including `microeconomics`
+   (130) and `psychology` (160), earlier believed unsourced but in fact printed
+   as the AP Students `Exam Duration`. Only the intra-section splits remain #44's
+   job.
+
+### Design decision — keep the range type in `questionCount`
+
+After these corrections **no subject uses a range** for `mcqCount`/`frqCount`
+(Chinese and Japanese moved to the fixed 55). The `questionCount` union in
+`schema.ts` still accepts a published range string (`/^\d+–\d+$/`). It is
+**kept**, not removed: (a) the issue constrains this card to "no schema change";
+(b) College Board has printed adaptive ranges before and may again in a future
+cycle, so retaining the type keeps the model able to represent a published range
+without a schema migration. The data test below pins the seven counts as exact
+integers so a future re-source cannot silently regress them back to a range.
+
+## Per-section `sections[]` breakdown (issue #44, populated 2026-07-09)
+
+`format.sections` replaced the flat `mcqCount`/`frqCount`/`frqType` fields.
+Every value was populated from the adversarially verified re-source of all 42
+subjects committed at `docs/super-board/research/collegeboard-2026/<id>.json`
+(fetched **2026-07-09** from `apcentral.collegeboard.org/courses/ap-<slug>/exam`,
+with `apstudents.collegeboard.org/courses/ap-<slug>/assessment` as the second
+opinion; records patched at 171cb15). Section **weights** and **Part A/B
+structures** come from the AP Central exam pages — the AP Students assessment
+page usually omits per-section times. The dataset was NOT re-fetched; the
+committed provenance is the source, and
+`src/data/ap-2026.sections.test.ts` re-derives every section from it on each
+test run, so a hand-edit or fabrication fails CI.
+
+### Normalization rules (provenance record → dataset)
+
+- **Section names verbatim** — the titles College Board prints ("Section IIB:
+  Free Response: Sight Singing"), never forced into an MCQ/FRQ mold. Two
+  records (`german-`, `italian-language-and-culture`) listed Section II before
+  Section I in fetch order; the dataset restores the printed Section I/II
+  order (sorting applies only when every section name carries a parseable
+  "Section <roman>" prefix).
+- **`questionCount`**: numeric string → number; `"pending"` stays literal;
+  `"n/a"` → the field is **omitted** (the page prints no count — a project is
+  not a question set); descriptive text (`"4 pre-recorded questions"`) → field
+  omitted, text carried into the row's `note`. Omission ≠ "pending": omission
+  means the concept does not apply, "pending" means unpublished.
+- **`minutes`**: numbers verbatim; hyphenated published ranges normalized to
+  the en-dash form the popup renders verbatim (`"40-45"` → `"40–45"`);
+  `"pending"` stays literal. **Never back-computed** — AP Japanese's section
+  totals stay `"pending"` even though its part times (25 + 40) are published,
+  because the page prints no section total.
+- **`weightPercent`**: verbatim numbers (AP Seminar's 13.5/31.5 are the
+  page's printed "30% of 45%" / "70% of 45%" shares of the End-of-Course
+  Exam's 45%, as recorded and skeptic-verified in the provenance).
+- **`parts[]`**: present only where the page publishes a split; `toolNote`
+  carried verbatim into `note` (`"n/a"`/`"none"` → omitted).
+- **No fabricated aggregates**: sub-parts are never summed into a parent the
+  page does not print. AP Music Theory stays 7 + 2 in separate sections ("9"
+  appears nowhere); AP African American Studies' five components stay five
+  sections ("5" likewise). Same class of error as back-computing from the
+  total (PRD §7.5/§8/§11).
+- **`frqType` carryover**: the old flat `frqType` composition strings (sourced
+  in issues #2/#45) were kept as the free-response section's `note` for the 20
+  plain two-section exams (exactly one section named like a free-response
+  section, no parts anywhere) — e.g. statistics' pinned "3 multi-part
+  questions + 1 inference question…". Where parts or 3+ sections exist, the
+  published structure supersedes the old aggregate description, several of
+  which were fabricated sums.
+
+### Spot-check finding — four commentary `toolNote`s replaced with page text
+
+The `japanese-` and `spanish-language-and-culture` MC Listening/Reading part
+records carry fetcher commentary as `toolNote` ("listening/audio, no
+calculator (world language exam)", "digital exam via Bluebook") while their
+own verbatim `quote` fields print "…; **25% of Score**" — exactly the text the
+chinese record used. Those four parts use the printed weight share instead;
+every other note is verbatim from the record.
+
+### Spot-check finding — four false `"pending"` values corrected (2026-07-09)
+
+The issue-#44 builder spot-checked the populated sections against the **live
+AP Central pages (raw HTML)**, per the ticket ("if any disagrees, trust the
+live page"). Calculus AB and Music Theory matched exactly; four provenance
+`"pending"` values did not survive:
+
+| Subject | Field | Page prints | Why the record missed it |
+|---|---|---|---|
+| `japanese-language-and-culture` | Section I `minutes` | "4 Questions \| 40–45 Minutes \| 50% of Score" | record fetched from the apstudents assessment page (`fallbackUsed`), which omits per-section times — lesson 1 |
+| `japanese-language-and-culture` | Section II `minutes` | "55 Questions \| 65 Minutes \| 50% of Score" | same fallback |
+| `italian-language-and-culture` | Section I `minutes` | "3 Questions \| 65–70 Minutes \| 50% of Score" | the record's own `quote` prints the range; only the value field said "pending" |
+| `french-language-and-culture` | Question 3: Argumentative Essay part `minutes` | "(55 minutes, including 2 opportunities to listen to audio)" | fetch omission — the german/italian/spanish records all captured the same printed 55 |
+
+All four were corrected in the dataset AND in the provenance records (per-id
+and consolidated, `spotCheckPatch2026_07_09` notes), and
+`src/data/ap-2026.sections.test.ts` pins them so a future re-source cannot
+regress them back to "pending".
+
+### `"pending"` inventory (exact URLs checked 2026-07-09, re-verified against raw page HTML)
+
+Genuinely unpublished values — each was hunted for a "false pending" by an
+independent refute-skeptic and survived, then re-verified by the builder
+against the live page's raw HTML:
+
+| Subject | Field | URL checked |
+|---|---|---|
+| `african-american-studies` | "Individual Student Project" section `minutes` (its `questionCount` is omitted — the page prints none; the project is completed during the course) | <https://apcentral.collegeboard.org/courses/ap-african-american-studies/exam> |
+| `italian-language-and-culture` | Project Presentation / Project Q&A part `minutes` (the section's 65–70 and the Argumentative Essay's 55 ARE published — see spot-check above) | <https://apcentral.collegeboard.org/courses/ap-italian-language-and-culture/exam> |
+| `japanese-language-and-culture` | Section I Questions 1–2 part `minutes` (the page prints prep/response descriptors — "3 minutes to prepare; 3 minutes to present", "40 seconds for each response" — not single per-part figures; the printed combined 30-minute writing figure IS captured on the merged writing part) | <https://apcentral.collegeboard.org/courses/ap-japanese-language-and-culture/exam> |
+| `chinese-language-and-culture` | Section I parts (Questions 1–4) `minutes` (same prep/response descriptors; the printed "30 minutes to complete both writing tasks (Questions 3 and 4)" is a combined figure carried in those parts' notes, never split 15/15) | <https://apcentral.collegeboard.org/courses/ap-chinese-language-and-culture/exam> |
+| `french-language-and-culture` | Section I Questions 1–2 part `minutes` (Question 3 is published: 55 — see spot-check above) | <https://apcentral.collegeboard.org/courses/ap-french-language-and-culture/exam> |
+| `german-language-and-culture` | Section I Questions 1–2 part `minutes` (Question 3 is published: 55) | <https://apcentral.collegeboard.org/courses/ap-german-language-and-culture/exam> |
+| `spanish-language-and-culture` | Section I Questions 1–2 part `minutes` (Question 3 is published: 55) | <https://apcentral.collegeboard.org/courses/ap-spanish-language-and-culture/exam> |
+| `psychology` | Free Response parts (AAQ / EBQ) `minutes` (only the section's 70 is printed; it is never divided between the two questions) | <https://apcentral.collegeboard.org/courses/ap-psychology/exam> |
+
+Slug exception (as everywhere): AP Business with Personal Finance lives at
+`ap-business-personal-finance`.
+
+A **nonexistent** section is never `"pending"`: AP Seminar simply has no
+multiple-choice section, and the four portfolio-only subjects (AP Drawing,
+2-D/3-D Art and Design, AP Research) have `sections: []` — the popup shows
+their portfolio information instead of an empty or zeroed table.
 
 ## Course list (42 subjects, including Career Kickstart)
 

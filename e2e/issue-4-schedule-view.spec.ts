@@ -67,9 +67,11 @@ test.describe("issue #4 — my schedule", () => {
     await openList(page);
 
     // The heading lives in the shared header above the view switcher since
-    // issue #19's second bounce (visible on both views).
+    // issue #19's second bounce (visible on both views). exact: true — the
+    // #29 sidebar added a "My schedules" heading whose accessible name would
+    // otherwise also match this substring.
     await expect(
-      page.getByRole("heading", { level: 2, name: "My Schedule" }),
+      page.getByRole("heading", { level: 2, name: "My Schedule", exact: true }),
     ).toBeVisible();
 
     // Two exams on 2026-05-04 (Biology AM, European History PM) + one on
