@@ -22,9 +22,9 @@ import { pressViewChip } from "./support/view-chip";
  * - The switcher pair intentionally shares an edge (-ml-px segmented
  *   control); the ≥8px anti-mis-tap gap applies between the two DISTINCT
  *   controls (switcher group ↔ Export).
- * - Below 360px CSS width the visible Export label shortens to "Export"
- *   (the " to Calendar" span hides); the accessible name stays
- *   "Export to Calendar" via aria-label at every width.
+ * - Issue #51: the trigger is an "Export" MENU button — the visible label
+ *   is the short "Export" at EVERY width (the old <360px shortening special
+ *   case is gone), and the accessible name is "Export".
  *
  * Evidence (committed to the issue branch, embedded on the issue/PR):
  * desktop.png / tablet.png / mobile.png at the standard super-board
@@ -58,9 +58,12 @@ const listChip = (page: Page) =>
   switcher(page).getByRole("button", { name: "List" });
 const calendarChip = (page: Page) =>
   switcher(page).getByRole("button", { name: "Calendar" });
-const exportBtn = (page: Page) => page.getByTestId("export-ics-button");
-const exportLabelSuffix = (page: Page) =>
-  exportBtn(page).getByText("to Calendar");
+const exportBtn = (page: Page) => page.getByTestId("export-menu-button");
+// Issue #51: the label is the short "Export" at every width; the old
+// " to Calendar" suffix span is gone.
+const expectExportLabel = async (page: Page) => {
+  await expect(exportBtn(page)).toHaveText(/^Export$/);
+};
 
 // --------------------------------------------------------------------------
 // Helpers
@@ -146,7 +149,7 @@ async function toolbarDocBoxes(page: Page) {
     return {
       list: grab(list),
       calendar: grab(calendar),
-      export: grab(document.querySelector('[data-testid="export-ics-button"]')),
+      export: grab(document.querySelector('[data-testid="export-menu-button"]')),
     };
   });
 }
@@ -288,7 +291,7 @@ test("AC2 — 375px: segmented switcher endcaps + filled Export visually distinc
       (s) => getComputedStyle(document.querySelector(s)!).backgroundColor,
       sel,
     );
-  const exportBg = await bg('[data-testid="export-ics-button"]');
+  const exportBg = await bg('[data-testid="export-menu-button"]');
   const chips = switcher(page).getByRole("button");
   const activeBg = await calendarChip(page).evaluate(
     (el) => getComputedStyle(el).backgroundColor,
@@ -344,33 +347,32 @@ for (const vp of [MOBILE, NARROW]) {
 // AC4 — fits at 375px; degrades to ~320px by shortening the Export label
 // --------------------------------------------------------------------------
 
-test("AC4 — 375px & 360px: full 'Export to Calendar' label, one row, no page h-scroll", async ({
+test("AC4 — 375px & 360px: 'Export' label (issue #51), one row, no page h-scroll", async ({
   page,
 }) => {
   await gotoAt(page, MOBILE);
   await expectNoHorizontalScroll(page, "AC4 @375");
-  await expect(exportLabelSuffix(page)).toBeVisible(); // full label
+  await expectExportLabel(page);
   await expectOneRowToolbar(page, SLIM_PILL_PX, "AC4 @375");
 
-  // Breakpoint boundary: 360px CSS width still shows the full label.
+  // The old 360px label breakpoint is gone: same short label either side.
   await page.setViewportSize({ width: 360, height: 667 });
-  await expect(exportLabelSuffix(page)).toBeVisible();
+  await expectExportLabel(page);
   await expectNoHorizontalScroll(page, "AC4 @360");
   await expectOneRowToolbar(page, SLIM_PILL_PX, "AC4 @360");
 });
 
-test("AC4 — 320px: Export label shortens to 'Export' (never stacks), one row, no page h-scroll", async ({
+test("AC4 — 320px: 'Export' label (never stacks), one row, no page h-scroll", async ({
   page,
 }) => {
   await gotoAt(page, NARROW);
   await expectNoHorizontalScroll(page, "AC4 @320");
-  // Below the 360px breakpoint the visible label drops " to Calendar"…
-  await expect(exportLabelSuffix(page)).toBeHidden();
-  await expect(exportBtn(page)).toContainText("Export");
-  // …but the toolbar still reads as ONE row (no re-stacking).
+  // Issue #51: the label is the short "Export" here too (no special case)…
+  await expectExportLabel(page);
+  // …and the toolbar still reads as ONE row (no re-stacking).
   await expectOneRowToolbar(page, SLIM_PILL_PX, "AC4 @320");
-  // Accessible name survives the shortened visible label (WCAG 2.5.3).
-  await expect(exportBtn(page)).toHaveAccessibleName("Export to Calendar");
+  // Visible label IS the accessible name (WCAG 2.5.3 label-in-name).
+  await expect(exportBtn(page)).toHaveAccessibleName("Export");
 
   await page.screenshot({
     path: `${EVIDENCE_DIR}/ac4-320-short-label.png`,
@@ -462,7 +464,7 @@ test("AC5 — keyboard focus reaches List → Calendar → Export in visual orde
   await page.keyboard.press("Tab");
   d = await descriptor();
   expect(d.name, "next stop after Calendar must be Export").toBe(
-    "export-ics-button",
+    "export-menu-button",
   );
   expect(d.indicator, "Export focus indicator").toBe(true);
 
@@ -491,7 +493,7 @@ for (const vp of SM_PLUS) {
     await gotoAt(page, { width: vp.width, height: vp.height });
     await expectNoHorizontalScroll(page, `AC6 @${vp.width}`);
     await expectOneRowToolbar(page, SLIM_PILL_PX, `AC6 @${vp.width}`);
-    await expect(exportLabelSuffix(page)).toBeVisible(); // full label at sm:+
+    await expectExportLabel(page); // short "Export" label at sm:+ too (#51)
     if (vp.shot) {
       await page.screenshot({
         path: `${EVIDENCE_DIR}/${vp.shot}`,

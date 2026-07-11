@@ -144,7 +144,7 @@ const scheduleHeading = (page: Page) =>
   // exact: true — the #29 sidebar's "My schedules" heading would otherwise
   // also match this substring.
   page.getByRole("heading", { level: 2, name: "My Schedule", exact: true });
-const exportButton = (page: Page) => page.getByTestId("export-ics-button");
+const exportButton = (page: Page) => page.getByTestId("export-menu-button");
 const weekSections = (page: Page) =>
   calendarView(page).locator(
     'section[aria-label^="Week of"], section[aria-label^="Late-testing week"]',
@@ -960,7 +960,7 @@ test("Pager a11y — keyboard-operable buttons with accessible names and an aria
   // button — and keyboard focus paints a :focus-visible ring.
   await calendarChip(page).focus();
   await page.keyboard.press("Tab");
-  await expect(page.getByTestId("export-ics-button")).toBeFocused();
+  await expect(page.getByTestId("export-menu-button")).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(nextButton(page)).toBeFocused();
   const shadow = await nextButton(page).evaluate(

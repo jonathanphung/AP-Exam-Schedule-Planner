@@ -25,7 +25,22 @@ const schedule = (page: Page) =>
 // "My exams" section since issue #19's second bounce, present on BOTH views.
 const myExams = (page: Page) =>
   page.locator('section[aria-label="My exams"]');
-const exportButton = (page: Page) => page.getByTestId("export-ics-button");
+const exportButton = (page: Page) => page.getByTestId("export-menu-button");
+
+/**
+ * Issue #51 turned the one-shot button into an "Export" menu button. The ICS
+ * download now lives behind the "Save as .ics" menu item — same builder, same
+ * filename, same MIME, byte-for-byte unchanged — so this spec's download flow
+ * opens the menu first and everything it asserts about the FILE stays as-is.
+ */
+async function downloadIcsViaMenu(page: Page) {
+  await exportButton(page).click();
+  const item = page.getByRole("menuitem", { name: "Save as .ics" });
+  await expect(item).toBeVisible();
+  const downloadPromise = page.waitForEvent("download");
+  await item.click();
+  return downloadPromise;
+}
 
 /**
  * Issue #19 made the calendar the default view; switch to the list.
@@ -60,9 +75,10 @@ test.describe("issue #7 — export to calendar", () => {
     // Rendered *near My Schedule*: the button sits in the shared header row
     // beside the "My Schedule" heading — visible on the default (calendar)
     // view AND after switching to the list (issue #19 second bounce, item B4).
-    const btn = myExams(page).getByTestId("export-ics-button");
+    const btn = myExams(page).getByTestId("export-menu-button");
     await expect(btn).toBeVisible();
-    await expect(btn).toHaveText(/Export to Calendar/i);
+    // Issue #51: the trigger label is just "Export" (menu button) everywhere.
+    await expect(btn).toHaveText(/^Export$/);
     await expect(
       myExams(page).getByRole("heading", { level: 2, name: "My Schedule" }),
     ).toBeVisible();
@@ -114,9 +130,7 @@ test.describe("issue #7 — export to calendar", () => {
       }
     });
 
-    const downloadPromise = page.waitForEvent("download");
-    await btn.click();
-    const download = await downloadPromise;
+    const download = await downloadIcsViaMenu(page);
 
     // Named exactly ap-exams-2026.ics…
     expect(download.suggestedFilename()).toBe("ap-exams-2026.ics");

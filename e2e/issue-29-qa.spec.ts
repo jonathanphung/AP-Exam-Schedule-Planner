@@ -462,7 +462,7 @@ test("AC6 — switching schedules swaps chips, list, calendar, and ICS export im
   await selectSubject(page, BIOLOGY.name);
   await selectSubject(page, CHEMISTRY.name);
 
-  const exportButton = page.getByTestId("export-ics-button");
+  const exportButton = page.getByTestId("export-menu-button");
   await expect(exportButton).toBeEnabled();
 
   await pressViewChip(page, "List");
@@ -497,8 +497,13 @@ test("AC6 — switching schedules swaps chips, list, calendar, and ICS export im
   await expect(exportButton).toBeEnabled();
 
   // The ICS download contains Schedule 1's exams (client-side blob).
-  const downloadPromise = page.waitForEvent("download");
+  // Issue #51: the export is now a menu button — open it, pick "Save as .ics"
+  // (the calendar export itself is unchanged).
   await exportButton.click();
+  const icsItem = page.getByRole("menuitem", { name: "Save as .ics" });
+  await expect(icsItem).toBeVisible();
+  const downloadPromise = page.waitForEvent("download");
+  await icsItem.click();
   const download = await downloadPromise;
   const { readFileSync } = await import("node:fs");
   const ics = readFileSync((await download.path())!, "utf8");
@@ -527,7 +532,7 @@ test("AC7 — + creates 'Schedule N'; inline rename; delete needs confirmation; 
     "aria-checked",
     "true",
   );
-  await expect(page.getByTestId("export-ics-button")).toBeDisabled();
+  await expect(page.getByTestId("export-menu-button")).toBeDisabled();
 
   // Inline rename: field replaces the row; Enter commits.
   await page.getByRole("button", { name: "Rename Schedule 2" }).click();

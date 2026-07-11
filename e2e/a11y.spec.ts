@@ -58,7 +58,7 @@ const CALM_SELECTION = ["biology", "seminar", "drawing", "cybersecurity"];
 
 const conflictPrompt = (page: Page) => page.getByTestId("conflict-prompt");
 const dialog = (page: Page) => page.getByRole("dialog");
-const exportButton = (page: Page) => page.getByTestId("export-ics-button");
+const exportButton = (page: Page) => page.getByTestId("export-menu-button");
 const infoButton = (page: Page, name: string) =>
   page.getByRole("button", { name: `View exam details for ${name}` });
 // Issues #22/#24 grouped-chip IA: at every width the details button lives
@@ -370,7 +370,7 @@ test.describe("AC1 — keyboard operability", () => {
     await page.keyboard.press("Tab");
     d = await focusedDescriptor(page);
     expect(d, "next stop: the export button").toMatchObject({
-      testid: "export-ics-button",
+      testid: "export-menu-button",
       inSchedule: true,
     });
     await expectVisibleFocusIndicator(page, "export button");
