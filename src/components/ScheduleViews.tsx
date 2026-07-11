@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import apData from "@/data/ap-2026.json";
 import type { ApDataset } from "@/data/schema";
 import { ScheduleView } from "@/components/ScheduleView";
@@ -17,7 +17,7 @@ import { ExportButton } from "@/components/ExportButton";
  *   header. The banner is not a control, so it never shares the control row.
  * - ONE toolbar row sits BELOW that header on every viewport and on BOTH
  *   views: the List/Calendar segmented switcher leads (view navigation, left)
- *   and Export to Calendar trails (primary action, right) — standard mobile
+ *   and the Export menu button trails (primary action, right) — standard mobile
  *   toolbar convention (issue #31 design decision). The switcher-below-header
  *   rule from #19's bounce is preserved; Export stays visible on the
  *   calendar, not just the list, and never jumps between views.
@@ -45,6 +45,7 @@ const VIEWS: ReadonlyArray<{ mode: ViewMode; label: string }> = [
 
 export function ScheduleViews() {
   const [view, setView] = useState<ViewMode>("calendar");
+  const captureRef = useRef<HTMLDivElement | null>(null);
 
   return (
     <section aria-label="My exams" className="flex flex-col gap-4">
@@ -58,7 +59,10 @@ export function ScheduleViews() {
 
       {/* Toolbar (issue #31): switcher + Export on ONE row at every width.
           `justify-between` pins the primary action to the row's end; gap-2
-          guarantees ≥8px between adjacent controls when the row is tight. */}
+          guarantees ≥8px between adjacent controls when the row is tight.
+          Since issue #51 Export is a menu button (Save as .png/.ics/.json/
+          .txt); it receives `captureRef` so the .png item can rasterize the
+          view wrapper below — whichever view is active is what exports. */}
       <div className="flex items-center justify-between gap-2">
         <div
           role="group"
@@ -96,10 +100,15 @@ export function ScheduleViews() {
             );
           })}
         </div>
-        <ExportButton />
+        <ExportButton captureRef={captureRef} />
       </div>
 
-      {view === "list" ? <ScheduleView /> : <CalendarView />}
+      {/* Plain block wrapper: the .png export's capture target (issue #51).
+          It adds no layout of its own, so the section's flex-col gap still
+          spaces the view exactly as before. */}
+      <div ref={captureRef} data-testid="schedule-capture">
+        {view === "list" ? <ScheduleView /> : <CalendarView />}
+      </div>
     </section>
   );
 }

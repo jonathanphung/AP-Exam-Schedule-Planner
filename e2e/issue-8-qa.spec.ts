@@ -208,7 +208,7 @@ test.describe("issue #8 QA evidence", () => {
   }) => {
     await seed(page, ["biology", "seminar", "drawing", "cybersecurity"]);
     await page.goto("/");
-    const exportBtn = page.getByTestId("export-ics-button");
+    const exportBtn = page.getByTestId("export-menu-button");
     await expect(exportBtn).toBeEnabled();
     // Keyboard-focus the export button so the ring renders (not a click focus).
     await exportBtn.focus();
@@ -274,7 +274,7 @@ test.describe("issue #8 QA evidence", () => {
     // samples mid-blend colors (same false positive as the PR #18 thread).
     // The other seeded states already gate on hydration-dependent UI
     // (conflict dialog / late-collision warning) before their scans.
-    await expect(withSel.getByTestId("export-ics-button")).toBeEnabled();
+    await expect(withSel.getByTestId("export-menu-button")).toBeEnabled();
     await scan(withSel, "with-selections");
     await ctx1.close();
 
@@ -418,7 +418,7 @@ test.describe("issue #8 QA evidence", () => {
     const base = await ctx2.newPage();
     await seed(base, ["biology", "seminar", "drawing", "cybersecurity"]);
     await base.goto("/");
-    await expect(base.getByTestId("export-ics-button")).toBeEnabled();
+    await expect(base.getByTestId("export-menu-button")).toBeEnabled();
 
     // Issue #22 mobile IA: the flat category filter is replaced by a sticky
     // quick-jump nav, and the per-card info button by a chip expand affordance
@@ -442,7 +442,7 @@ test.describe("issue #8 QA evidence", () => {
         "details affordance",
         base.getByRole("button", { name: "View exam details for AP Biology" }),
       ],
-      ["export button", base.getByTestId("export-ics-button")],
+      ["export button", base.getByTestId("export-menu-button")],
     ];
     const measured: Record<string, { width: number; height: number }> = {};
     for (const [what, loc] of targets) {
