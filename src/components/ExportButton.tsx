@@ -8,7 +8,6 @@ import {
   useState,
   type CSSProperties,
   type KeyboardEvent,
-  type RefObject,
 } from "react";
 import { createPortal } from "react-dom";
 import apData from "@/data/ap-2026.json";
@@ -27,11 +26,16 @@ import {
   buildTxtExport,
   JSON_FILE_NAME,
   JSON_MIME_TYPE,
-  PNG_FILE_NAME,
   TXT_FILE_NAME,
   TXT_MIME_TYPE,
+  weekPngFileName,
 } from "@/lib/exports";
-import { captureSchedulePng } from "@/lib/export-png";
+import { buildWeekCards, type WeekCard } from "@/lib/week-cards";
+import {
+  captureWeekCardPng,
+  type ExportTheme,
+  type WeekCardRenderOptions,
+} from "@/lib/export-png";
 
 /**
  * "Export" menu button (issue #51; previously the one-shot "Export to
@@ -42,8 +46,12 @@ import { captureSchedulePng } from "@/lib/export-png";
  * because the label is short everywhere now. Clicking it opens a WAI-ARIA
  * menu of four "Save as .<ext>" items:
  *
- *   .png  — image of the schedule as currently viewed (list or calendar),
- *           rasterized client-side (src/lib/export-png.ts)
+ *   .png  — one DESIGNED schedule card per non-empty AP testing week (issue
+ *           #56): the week model is built from the SAME calendarWeeks() /
+ *           resolveSlots → buildSchedule pipeline as the calendar/list/txt
+ *           paths (src/lib/week-cards.ts) and rasterized client-side
+ *           (src/lib/export-png.ts). Emits one PNG per week the student has a
+ *           placed entry in — not a screenshot of the current view.
  *   .ics  — EXACTLY the pre-#51 calendar export: same buildIcsCalendar call,
  *           same filename, same MIME; src/lib/ics.ts untouched
  *   .json — versioned machine-readable envelope (src/lib/exports.ts)
@@ -105,7 +113,7 @@ const MENU_ITEMS: ReadonlyArray<{
   { format: "txt", label: "Save as .txt", Icon: TextLinesIcon },
 ];
 
-/** Shared in-memory Blob download (the issue-#7 pattern, now used 4×). */
+/** Shared in-memory Blob download (the issue-#7 pattern). */
 function downloadBlob(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
@@ -114,7 +122,47 @@ function downloadBlob(blob: Blob, filename: string): void {
   document.body.appendChild(link);
   link.click();
   link.remove();
-  URL.revokeObjectURL(url);
+  // Revoke on a LATER tick, not synchronously. `link.click()` starts the
+  // download asynchronously; revoking the blob URL in the same tick can cancel
+  // it before the browser has read it — harmless-looking for a single file,
+  // but the race bites the per-week PNG export (issue #56), where several
+  // downloads fire in quick succession and an early revoke drops all but the
+  // first. A deferred revoke still frees the blob; it just waits for the
+  // browser to grab the URL first.
+  setTimeout(() => URL.revokeObjectURL(url), 30_000);
+}
+
+/** Ms between consecutive PNG downloads — a deliberate stagger (see below). */
+const PNG_DOWNLOAD_STAGGER_MS = 200;
+
+/**
+ * Render + download one designed PNG per week, sequentially (issue #56).
+ *
+ * Each week is a SEPARATE file (Jon asked for separate files per week, not a
+ * zip). Firing several Blob downloads back-to-back can trip a browser's "allow
+ * multiple downloads?" prompt or throttle, so we await each rasterization and
+ * add a small stagger between saves. A single failed week is logged and
+ * skipped — client-side rasterization has no server to report to — so one bad
+ * card never blocks the rest.
+ */
+async function downloadWeekCards(
+  cards: readonly WeekCard[],
+  options: WeekCardRenderOptions,
+): Promise<void> {
+  for (let i = 0; i < cards.length; i += 1) {
+    const card = cards[i];
+    try {
+      const blob = await captureWeekCardPng(card, options);
+      downloadBlob(blob, weekPngFileName(card.slug));
+    } catch (error: unknown) {
+      console.error(`PNG export failed for ${card.slug}`, error);
+    }
+    if (i < cards.length - 1) {
+      await new Promise((resolve) =>
+        setTimeout(resolve, PNG_DOWNLOAD_STAGGER_MS),
+      );
+    }
+  }
 }
 
 interface MenuPosition {
@@ -126,13 +174,7 @@ interface MenuPosition {
 /** Estimated open-menu height used only for the flip-up decision. */
 const MENU_HEIGHT_ESTIMATE = 220;
 
-export function ExportButton({
-  captureRef,
-}: {
-  /** The wrapper around the ACTIVE schedule view (list or calendar) that the
-   *  `.png` export rasterizes — owned by ScheduleViews. */
-  captureRef: RefObject<HTMLElement | null>;
-}) {
+export function ExportButton() {
   const { selectedIds, selectedCount } = useSelection();
   const resolutions = useResolutions();
   const { active } = useSchedules();
@@ -255,20 +297,41 @@ export function ExportButton({
           break;
         }
         case "png": {
-          const node = captureRef.current;
-          if (!node) return;
-          void captureSchedulePng(node)
-            .then((blob) => downloadBlob(blob, PNG_FILE_NAME))
-            .catch((error: unknown) => {
-              // Client-side rasterization has no server to report to; keep
-              // the failure inspectable without breaking the page.
-              console.error("PNG export failed", error);
-            });
+          // One designed card per non-empty testing week (issue #56). The week
+          // partition + effective slots come from the shared pipeline in
+          // week-cards.ts — no screenshot of the current view.
+          const { cards, undated } = buildWeekCards(
+            SUBJECTS,
+            selectedIds,
+            resolutions,
+            SESSION_START_TIMES,
+          );
+          if (cards.length === 0) {
+            // Zero qualifying weeks: every selection is undated (all Career
+            // Kickstart, no May date). Do NOT download an empty/misleading
+            // file — inertly no-op with a console note (the trigger is already
+            // disabled at 0 selected, so this only fires for all-undated sets).
+            console.info(
+              "No dated exams to export as .png — every selected subject has no May 2026 date.",
+            );
+            break;
+          }
+          const theme: ExportTheme = document.documentElement.classList.contains(
+            "dark",
+          )
+            ? "dark"
+            : "light";
+          void downloadWeekCards(cards, {
+            theme,
+            cycle: CYCLE,
+            scheduleName: active.name,
+            undatedNames: undated.map((subject) => subject.name),
+          });
           break;
         }
       }
     },
-    [selectedCount, selectedIds, resolutions, active.name, captureRef],
+    [selectedCount, selectedIds, resolutions, active.name],
   );
 
   const activateItem = (format: ExportFormat) => {

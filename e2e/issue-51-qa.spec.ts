@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Download, type Page } from "@playwright/test";
 import { readFileSync, writeFileSync } from "node:fs";
 import { pressViewChip } from "./support/view-chip";
 
@@ -381,25 +381,40 @@ test.describe("issue #51 — real downloads per format", () => {
     ]);
   });
 
-  test("AC13/AC8 — .png downloads a raster image with non-zero pixel dimensions", async ({
+  test("AC13/AC8 — .png downloads one designed card per non-empty testing week", async ({
     page,
   }) => {
     await page.goto("/");
     await selectBiologyAndSeminar(page);
 
-    const download = await downloadVia(page, "Save as .png");
-    expect(download.suggestedFilename()).toBe("ap-exams-2026.png");
+    // Since issue #56 the .png item emits one designed PNG per non-empty
+    // testing week. Biology (Week 1) + Seminar exam (Week 2) + Seminar's
+    // Apr 30 portfolio deadline (rides Week 1) → exactly two week files, in
+    // chronological week order. Collect every download the click triggers.
+    const downloads: Download[] = [];
+    page.on("download", (d) => downloads.push(d));
 
-    const buf = readFileSync(await download.path());
-    // PNG 8-byte signature.
-    expect([...buf.subarray(0, 8)]).toEqual([
-      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    await openMenu(page);
+    await page
+      .getByRole("menuitem", { name: "Save as .png", exact: true })
+      .click();
+
+    await expect.poll(() => downloads.length, { timeout: 15000 }).toBe(2);
+    expect(downloads.map((d) => d.suggestedFilename())).toEqual([
+      "ap-exams-2026-week-1.png",
+      "ap-exams-2026-week-2.png",
     ]);
-    // IHDR width/height are big-endian uint32 at byte offsets 16 and 20.
-    const width = buf.readUInt32BE(16);
-    const height = buf.readUInt32BE(20);
-    expect(width).toBeGreaterThan(0);
-    expect(height).toBeGreaterThan(0);
+
+    for (const download of downloads) {
+      const buf = readFileSync(await download.path());
+      // PNG 8-byte signature.
+      expect([...buf.subarray(0, 8)]).toEqual([
+        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+      ]);
+      // IHDR width/height are big-endian uint32 at byte offsets 16 and 20.
+      expect(buf.readUInt32BE(16)).toBeGreaterThan(0);
+      expect(buf.readUInt32BE(20)).toBeGreaterThan(0);
+    }
   });
 
   test("AC13/AC7 — .ics downloads the unchanged calendar file (blob, valid VCALENDAR)", async ({
@@ -490,11 +505,20 @@ test("evidence — export a real .png / .json / .txt and commit the artifacts", 
   await page.goto("/");
   await selectBiologyAndSeminar(page);
 
-  const png = await downloadVia(page, "Save as .png");
-  writeFileSync(
-    `${EVIDENCE_DIR}/exported-schedule.png`,
-    readFileSync(await png.path()),
-  );
+  // .png now emits one designed card per week (issue #56); save each.
+  const pngDownloads: Download[] = [];
+  page.on("download", (d) => pngDownloads.push(d));
+  await openMenu(page);
+  await page
+    .getByRole("menuitem", { name: "Save as .png", exact: true })
+    .click();
+  await expect.poll(() => pngDownloads.length, { timeout: 15000 }).toBe(2);
+  for (const download of pngDownloads) {
+    writeFileSync(
+      `${EVIDENCE_DIR}/${download.suggestedFilename()}`,
+      readFileSync(await download.path()),
+    );
+  }
 
   const json = await downloadVia(page, "Save as .json");
   writeFileSync(
@@ -508,9 +532,10 @@ test("evidence — export a real .png / .json / .txt and commit the artifacts", 
     readFileSync(await txt.path(), "utf8"),
   );
 
-  // Sanity: all three artifacts are non-empty on disk.
+  // Sanity: every artifact is non-empty on disk.
   for (const f of [
-    "exported-schedule.png",
+    "ap-exams-2026-week-1.png",
+    "ap-exams-2026-week-2.png",
     "exported-schedule.json",
     "exported-schedule.txt",
   ]) {

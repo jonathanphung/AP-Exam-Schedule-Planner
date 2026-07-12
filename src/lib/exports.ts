@@ -24,9 +24,26 @@ import { ICS_FILE_NAME } from "./ics";
 /** Shared basename for every export format (derived, never duplicated). */
 export const EXPORT_BASE_NAME = ICS_FILE_NAME.replace(/\.ics$/, "");
 
+/**
+ * Base `.png` name. Retained as the single-file convention (and asserted by
+ * the filename unit test), but the `.png` export is now per testing week
+ * (issue #56): `ExportButton` names each week's file via {@link weekPngFileName}
+ * — `ap-exams-2026-week-1.png`, `ap-exams-2026-late-testing.png`, … — so a
+ * dataset-cycle rename still propagates to every emitted file automatically.
+ */
 export const PNG_FILE_NAME = `${EXPORT_BASE_NAME}.png`;
 export const JSON_FILE_NAME = `${EXPORT_BASE_NAME}.json`;
 export const TXT_FILE_NAME = `${EXPORT_BASE_NAME}.txt`;
+
+/**
+ * Per-week `.png` filename (issue #56): the shared basename plus a week slug
+ * (`week-1` / `week-2` / `late-testing`, from `WeekCard.slug`). Derived from
+ * `EXPORT_BASE_NAME`, so a future dataset-cycle rename re-names every week file
+ * with no edit here.
+ */
+export function weekPngFileName(slug: string): string {
+  return `${EXPORT_BASE_NAME}-${slug}.png`;
+}
 
 export const JSON_MIME_TYPE = "application/json;charset=utf-8";
 export const TXT_MIME_TYPE = "text/plain;charset=utf-8";
