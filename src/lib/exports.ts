@@ -24,9 +24,36 @@ import { ICS_FILE_NAME } from "./ics";
 /** Shared basename for every export format (derived, never duplicated). */
 export const EXPORT_BASE_NAME = ICS_FILE_NAME.replace(/\.ics$/, "");
 
+/**
+ * Base `.png` name. Retained as the single-file convention (and asserted by
+ * the filename unit test), but the `.png` export is now per testing week
+ * (issue #56): `ExportButton` names each week's file via {@link weekPngFileName}
+ * — `ap-exams-2026-week-1-list.png`, `ap-exams-2026-late-testing-calendar.png`,
+ * … — so a dataset-cycle rename still propagates to every emitted file
+ * automatically.
+ */
 export const PNG_FILE_NAME = `${EXPORT_BASE_NAME}.png`;
 export const JSON_FILE_NAME = `${EXPORT_BASE_NAME}.json`;
 export const TXT_FILE_NAME = `${EXPORT_BASE_NAME}.txt`;
+
+/**
+ * The two designed `.png` variants (Jon's pre-merge bounce on issue #56): the
+ * decluttered per-week LIST card and the per-week CALENDAR week-grid card.
+ */
+export type ExportView = "list" | "calendar";
+
+/**
+ * Per-week `.png` filename (issue #56 + bounce): the shared basename, a week
+ * slug (`week-1` / `week-2` / `late-testing`, from the card's `slug`), AND a
+ * view suffix (`list` / `calendar`). The view suffix keeps the two variants
+ * from colliding when a user saves both for the same week
+ * (`ap-exams-2026-week-1-list.png` vs `ap-exams-2026-week-1-calendar.png`).
+ * Derived from `EXPORT_BASE_NAME`, so a future dataset-cycle rename re-names
+ * every week file with no edit here.
+ */
+export function weekPngFileName(slug: string, view: ExportView): string {
+  return `${EXPORT_BASE_NAME}-${slug}-${view}.png`;
+}
 
 export const JSON_MIME_TYPE = "application/json;charset=utf-8";
 export const TXT_MIME_TYPE = "text/plain;charset=utf-8";

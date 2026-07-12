@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import apData from "@/data/ap-2026.json";
 import type { ApDataset } from "@/data/schema";
 import { ScheduleView } from "@/components/ScheduleView";
@@ -45,7 +45,6 @@ const VIEWS: ReadonlyArray<{ mode: ViewMode; label: string }> = [
 
 export function ScheduleViews() {
   const [view, setView] = useState<ViewMode>("calendar");
-  const captureRef = useRef<HTMLDivElement | null>(null);
 
   return (
     <section aria-label="My exams" className="flex flex-col gap-4">
@@ -60,9 +59,10 @@ export function ScheduleViews() {
       {/* Toolbar (issue #31): switcher + Export on ONE row at every width.
           `justify-between` pins the primary action to the row's end; gap-2
           guarantees ≥8px between adjacent controls when the row is tight.
-          Since issue #51 Export is a menu button (Save as .png/.ics/.json/
-          .txt); it receives `captureRef` so the .png item can rasterize the
-          view wrapper below — whichever view is active is what exports. */}
+          Export is a menu button (Save as .png/.ics/.json/.txt). Since issue
+          #56 the .png item builds its OWN designed per-week cards from the
+          shared schedule model, so it no longer rasterizes the on-screen view
+          and needs no capture ref. */}
       <div className="flex items-center justify-between gap-2">
         <div
           role="group"
@@ -100,13 +100,12 @@ export function ScheduleViews() {
             );
           })}
         </div>
-        <ExportButton captureRef={captureRef} />
+        <ExportButton />
       </div>
 
-      {/* Plain block wrapper: the .png export's capture target (issue #51).
-          It adds no layout of its own, so the section's flex-col gap still
-          spaces the view exactly as before. */}
-      <div ref={captureRef} data-testid="schedule-capture">
+      {/* Plain block wrapper for the active view. It adds no layout of its own,
+          so the section's flex-col gap still spaces the view exactly as before. */}
+      <div data-testid="schedule-capture">
         {view === "list" ? <ScheduleView /> : <CalendarView />}
       </div>
     </section>
