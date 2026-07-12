@@ -105,13 +105,28 @@ export function SubjectChip({
         ].join(" ")}
       >
         <div className="flex items-stretch">
-          {/* Select toggle — the whole chip body, ≥44px tall. */}
+          {/* Select toggle — the whole chip body.
+              Height reservation (issue #57): the collapsed body reserves TWO
+              lines of the `text-sm leading-snug` name so a one-line label (e.g.
+              "AP Chemistry") and a two-line label (e.g. "AP Computer Science
+              Principles") render at the SAME height within a grid row — the
+              section grid is `items-start` (issue #24 bounce: expansion is
+              vertical-only), so each collapsed cell otherwise sizes to its own
+              content and two-line chips stood taller than their neighbors.
+              `min-h-14` = 3.5rem/56px ≥ two lines (2 × 0.875rem × 1.375 ≈ 38.5px)
+              + `py-2` (16px) = 54.5px, and `items-center` vertically centers the
+              label. It is a MIN-height, not a fixed height: it strictly raises
+              the box (56px > the prior ≥44px touch-target floor, issue #8 AC5)
+              and still lets a genuinely three-line name grow ITS OWN cell taller
+              (never clipped) — `items-start` keeps that growth off its neighbors.
+              The chevron cell keeps `min-h-11` and stretches to the body via the
+              outer `flex items-stretch` row, so its divider runs full height. */}
           <button
             type="button"
             aria-pressed={selected}
             onClick={() => onToggle(subject.id)}
             className={[
-              "flex min-h-11 min-w-0 flex-1 items-center gap-1.5 px-3 py-2 text-left text-sm font-medium transition",
+              "flex min-h-14 min-w-0 flex-1 items-center gap-1.5 px-3 py-2 text-left text-sm font-medium transition",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500",
               selected
                 ? "text-slate-900 dark:text-slate-50"
