@@ -373,3 +373,61 @@ test("bounce1 — mobile: the feedback dialog still opens from the quiet meta ro
     "focus must return to the meta row's feedback button",
   ).toEqual({ isTrigger: true, inFooter: true });
 });
+
+// ── QA v2 addendum: the "tracks the footer's type" contract must hold in DARK ──
+//
+// The Build spec asserts the meta row's font-size/colour against the attribution
+// paragraph's OWN computed style — which is the right contract, because it
+// tracks the footer instead of hard-coding `12px` / slate-600. But it only ever
+// runs in the default (light) colour scheme, so only the light half of that
+// contract is actually locked.
+//
+// The row carries a dark pair (`dark:text-slate-400`) independent of the
+// footer's (`dark:text-slate-400` on the wrapper). Hard-coding the row's colour
+// — or dropping the dark variant — would keep every existing assertion green and
+// still ship a meta row that stops matching the copy above it in dark mode: the
+// exact "two stray controls floating in the footer" failure Jon bounced, just
+// theme-gated. This closes that half.
+test("bounce1 — dark mode: the meta row still resolves to the footer's own type and colour", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext({ viewport: MOBILE, colorScheme: "dark" });
+  const page = await ctx.newPage();
+  await page.goto("/");
+
+  const footer = page.locator(SITE_FOOTER);
+  await footer.scrollIntoViewIfNeeded();
+
+  const notice = footer.getByText("Not affiliated with College Board.");
+  const copy = await notice.evaluate((el) => {
+    const s = getComputedStyle(el);
+    return { fontSize: s.fontSize, color: s.color };
+  });
+
+  const row = page.locator(FOOTER_ROW);
+  await expect(row).toBeVisible();
+
+  for (const [name, control] of [
+    ["feedback", feedbackButton(page)],
+    ["github", githubLink(page)],
+  ] as const) {
+    const style = await control.evaluate((el) => {
+      const s = getComputedStyle(el);
+      return { fontSize: s.fontSize, color: s.color, background: s.backgroundColor };
+    });
+    expect(
+      style.fontSize,
+      `dark: ${name} must use the footer's type scale`,
+    ).toBe(copy.fontSize);
+    expect(
+      style.color,
+      `dark: ${name} must resolve to the footer's own muted colour, not a hard-coded light-mode value`,
+    ).toBe(copy.color);
+    expect(
+      style.background,
+      `dark: ${name} must not read as a button`,
+    ).toBe("rgba(0, 0, 0, 0)");
+  }
+
+  await ctx.close();
+});
